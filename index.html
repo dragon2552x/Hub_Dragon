@@ -174,19 +174,14 @@
     <script type="module">
         // Importa as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-            authDomain: "list-games-9bddd.firebaseapp.com",
-            projectId: "list-games-9bddd",
-            storageBucket: "list-games-9bddd.firebasestorage.app",
-            messagingSenderId: "756898313156",
-            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-            measurementId: "G-GLM50YVLXP"
-        };
-
+        // --- Configuração do Firebase usando variáveis globais do ambiente ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -258,7 +253,8 @@
                 return;
             }
 
-            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
+            // O caminho agora usa o appId global para corresponder às regras de segurança
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
             console.log("Tentando sincronizar dados de:", gamesCollectionPath);
             const q = query(collection(db, gamesCollectionPath));
 
@@ -268,10 +264,10 @@
                     allGames.push({ id: doc.id, ...doc.data() });
                 });
                 refreshDisplay();
-                // O carregamento inicial é desativado aqui.
                 toggleLoading(false);
             }, (error) => {
                 console.error("Erro ao sincronizar dados: ", error);
+                showMessage(`Erro ao carregar os jogos: ${error.message}`, true);
                 toggleLoading(false);
             });
         };
@@ -311,7 +307,6 @@
                     gamesToRender.sort((a, b) => b.stars - a.stars);
                     break;
                 case 'createdAt-desc':
-                    // Verifica se o campo `createdAt` existe e é um Timestamp válido
                     gamesToRender.sort((a, b) => {
                         const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
                         const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
@@ -417,7 +412,7 @@
                 notes: document.getElementById('game-notes').value,
             };
 
-            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
             
             try {
                 if (gameId) {
@@ -434,7 +429,6 @@
                 console.error("Erro ao salvar o jogo: ", error);
                 showMessage(`Erro ao salvar o jogo: ${error.message}`, true);
             } finally {
-                // Finaliza o estado de carregamento, independentemente do sucesso ou erro
                 toggleLoading(false);
             }
         };
@@ -443,7 +437,7 @@
         deleteGameBtn.onclick = async () => {
             toggleLoading(true);
             const gameId = document.getElementById('game-id').value;
-            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
             try {
                 await deleteDoc(doc(db, gamesCollectionPath, gameId));
                 showMessage("Jogo excluído com sucesso!");
@@ -452,7 +446,6 @@
                 console.error("Erro ao excluir o jogo: ", error);
                 showMessage(`Erro ao excluir o jogo: ${error.message}`, true);
             } finally {
-                // Finaliza o estado de carregamento, independentemente do sucesso ou erro
                 toggleLoading(false);
             }
         };
@@ -473,26 +466,34 @@
         starsFilter.onchange = refreshDisplay;
         statusFilter.onchange = refreshDisplay;
 
-        // --- Inicialização ---
+        // --- Inicialização e Autenticação ---
         toggleLoading(true);
-        
-        // Autentica o usuário anonimamente para que ele possa usar o banco de dados
-        signInAnonymously(auth)
-          .then(() => {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    syncGames();
-                } else {
-                    console.error("Falha na autenticação do usuário.");
+
+        // Usa o token de autenticação inicial ou faz login anonimamente
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                syncGames();
+            } else if (initialAuthToken) {
+                // Tenta fazer login com o token fornecido
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Erro ao autenticar com token customizado:", error);
+                    // Se o token falhar, tenta login anônimo
+                    await signInAnonymously(auth);
+                }
+            } else {
+                // Sem token, faz login anônimo
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Erro na autenticação anônima:", error);
+                    showMessage("Falha na autenticação do usuário. Recarregue a página.", true);
                     toggleLoading(false);
                 }
-            });
-          })
-          .catch((error) => {
-            console.error("Erro na autenticação anônima:", error);
-            toggleLoading(false);
-          });
+            }
+        });
     </script>
 </body>
 </html>
