@@ -35,11 +35,11 @@
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-gray-200">
-    <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50 hidden">
+    <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
         <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-300"></div>
     </div>
-
-    <div class="container mx-auto p-4 sm:p-8">
+    
+    <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
         <!-- Header Section -->
         <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
             <h1 class="text-3xl sm:text-4xl font-bold">Games</h1>
@@ -166,11 +166,40 @@
                 </form>
             </div>
         </div>
-    </div>
 
+        <!-- Notification Message Box -->
+        <div id="message-box" class="fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden transition-all duration-300 transform translate-y-full"></div>
+    </div>
+    
     <script type="module">
-        // UI Elements
+        // Importa as bibliotecas do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- Configuração do Firebase usando suas credenciais ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+            authDomain: "list-games-9bddd.firebaseapp.com",
+            projectId: "list-games-9bddd",
+            storageBucket: "list-games-9bddd.firebasestorage.app",
+            messagingSenderId: "756898313156",
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+            measurementId: "G-GLM50YVLXP"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // --- Variáveis Globais ---
+        let allGames = [];
+        let userId = null;
+        const mainApp = document.getElementById('main-app');
         const loadingSpinner = document.getElementById('loading-spinner');
+        const messageBox = document.getElementById('message-box');
+        
+        // UI Elements
         const addGameBtn = document.getElementById('add-game-btn');
         const searchBtn = document.getElementById('search-btn');
         const searchContainer = document.getElementById('search-and-sort-container');
@@ -186,12 +215,33 @@
         const modalTitle = document.getElementById('modal-title');
         const deleteGameBtn = document.getElementById('delete-game-btn');
 
-        const LOCAL_STORAGE_KEY = 'game_manager_games';
-        let allGames = [];
-
         // Function to show/hide loading spinner
         const toggleLoading = (show) => {
-            loadingSpinner.classList.toggle('hidden', !show);
+            if (show) {
+                loadingSpinner.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            } else {
+                loadingSpinner.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+            }
+        };
+
+        // Function to show notification messages
+        const showMessage = (message, isError = false) => {
+            messageBox.textContent = message;
+            messageBox.classList.remove('bg-green-600', 'bg-red-600', 'translate-y-full');
+            if (isError) {
+                messageBox.classList.add('bg-red-600');
+            } else {
+                messageBox.classList.add('bg-green-600');
+            }
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('translate-y-full');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 300); // tempo de espera para a animação
+            }, 3000); // 3 segundos antes de começar a animação de esconder
         };
 
         // Helper function to format date
@@ -201,34 +251,39 @@
             return `${day}/${month}/${year}`;
         };
 
-        // Load games from localStorage
-        const loadGames = () => {
-            try {
-                const storedGames = localStorage.getItem(LOCAL_STORAGE_KEY);
-                allGames = storedGames ? JSON.parse(storedGames) : [];
-                // Ensure createdAt is a number for older games
-                allGames = allGames.map(game => ({
-                    ...game,
-                    createdAt: game.createdAt || parseInt(game.id)
-                }));
-                refreshDisplay();
-            } catch (error) {
-                console.error("Erro ao carregar jogos do armazenamento local:", error);
-                allGames = [];
-                refreshDisplay();
+        // --- Funções do Firestore ---
+        // Sincroniza a lista de jogos do Firestore
+        const syncGames = () => {
+            if (!userId) {
+                console.error("Usuário não autenticado.");
+                return;
             }
+
+            // O caminho agora usa a estrutura 'users/{userId}/games' para corresponder às regras
+            const gamesCollectionPath = `users/${userId}/games`;
+            console.log("Tentando sincronizar dados de:", gamesCollectionPath);
+            const q = query(collection(db, gamesCollectionPath));
+
+            onSnapshot(q, (querySnapshot) => {
+                allGames = [];
+                querySnapshot.forEach((doc) => {
+                    allGames.push({ id: doc.id, ...doc.data() });
+                });
+                refreshDisplay();
+                toggleLoading(false);
+            }, (error) => {
+                console.error("Erro ao sincronizar dados: ", error);
+                showMessage(`Erro ao carregar os jogos: ${error.message}`, true);
+                toggleLoading(false);
+            });
         };
 
-        // Save games to localStorage
-        const saveGames = () => {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allGames));
-        };
-
-        // Refresh the display with current filters and sorting
+        // --- Funções de UI e Lógica ---
+        // Atualiza a exibição com base nos filtros e ordenação atuais
         const refreshDisplay = () => {
             let gamesToRender = [...allGames];
-
-            // Apply Filters
+            
+            // Aplicar Filtros
             const starValue = starsFilter.value;
             if (starValue) {
                 const starInt = parseInt(starValue);
@@ -239,8 +294,8 @@
             if (statusValue) {
                 gamesToRender = gamesToRender.filter(game => game.status === statusValue);
             }
-
-            // Apply Search
+            
+            // Aplicar Pesquisa
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
                 gamesToRender = gamesToRender.filter(game =>
@@ -248,7 +303,7 @@
                 );
             }
 
-            // Apply Sort
+            // Aplicar Ordenação
             const criteria = sortSelect.value;
             switch (criteria) {
                 case 'name-asc':
@@ -258,7 +313,11 @@
                     gamesToRender.sort((a, b) => b.stars - a.stars);
                     break;
                 case 'createdAt-desc':
-                    gamesToRender.sort((a, b) => b.createdAt - a.createdAt);
+                    gamesToRender.sort((a, b) => {
+                        const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                        const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                        return dateB - dateA;
+                    });
                     break;
                 case 'dateStart-asc':
                     gamesToRender.sort((a, b) => {
@@ -276,7 +335,7 @@
             renderGames(gamesToRender);
         };
 
-        // Render games based on a provided list
+        // Renderiza os cards na tela
         const renderGames = (gamesToRender) => {
             cardsView.innerHTML = '';
             if (gamesToRender.length === 0) {
@@ -287,9 +346,9 @@
                     const card = document.createElement('div');
                     card.className = 'card rounded-lg overflow-hidden shadow-lg cursor-pointer flex flex-col items-center p-4';
                     card.onclick = () => openEditModal(game);
-
+                    
                     const starRating = '<div class="flex text-3xl text-yellow-400">' + Array(game.stars || 0).fill('★').join('') + '</div>';
-
+                    
                     let dateString = '';
                     if (game.dateStart && game.dateEnd) {
                         dateString = `${formatDate(game.dateStart)} - ${formatDate(game.dateEnd)}`;
@@ -312,7 +371,7 @@
             }
         };
 
-        // Open modal for adding/editing a game
+        // Abre o modal para adicionar/editar um jogo
         const openAddModal = () => {
             modalTitle.textContent = 'Adicionar Jogo';
             gameForm.reset();
@@ -336,56 +395,70 @@
             gameModal.classList.remove('hidden');
         };
 
-        // Close modal
+        // Fecha o modal
         const closeModal = () => {
             gameModal.classList.add('hidden');
         };
 
-        // Handle form submission
+        // Lida com o envio do formulário (Adicionar/Editar)
         gameForm.onsubmit = async (e) => {
             e.preventDefault();
             toggleLoading(true);
 
             const gameId = document.getElementById('game-id').value;
-            const now = Date.now();
-
+            
             const gameData = {
-                id: gameId || now.toString(),
-                createdAt: gameId ? (allGames.find(game => game.id === gameId).createdAt) : now,
                 name: document.getElementById('game-name').value,
                 image: document.getElementById('game-image').value || 'https://placehold.co/400x200/555/eee?text=No+Image',
                 stars: parseInt(document.getElementById('game-stars').value) || 0,
                 status: document.getElementById('game-status').value,
                 dateStart: document.getElementById('game-date-start').value,
                 dateEnd: document.getElementById('game-date-end').value,
-                hours: parseInt(document.getElementById('game-hours').value),
+                hours: parseInt(document.getElementById('game-hours').value) || 0,
                 notes: document.getElementById('game-notes').value,
             };
 
-            if (gameId) {
-                allGames = allGames.map(game => game.id === gameId ? gameData : game);
-            } else {
-                allGames.push(gameData);
+            const gamesCollectionPath = `users/${userId}/games`;
+            
+            try {
+                if (gameId) {
+                    // Editar um jogo existente
+                    await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
+                    showMessage("Jogo atualizado com sucesso!");
+                } else {
+                    // Adicionar um novo jogo
+                    await addDoc(collection(db, gamesCollectionPath), { ...gameData, createdAt: serverTimestamp() });
+                    showMessage("Jogo adicionado com sucesso!");
+                }
+                closeModal();
+            } catch (error) {
+                console.error("Erro ao salvar o jogo: ", error);
+                showMessage(`Erro ao salvar o jogo: ${error.message}`, true);
+            } finally {
+                toggleLoading(false);
             }
-
-            saveGames();
-            refreshDisplay();
-            closeModal();
-            toggleLoading(false);
         };
 
-        // Handle game deletion
-        deleteGameBtn.onclick = () => {
+        // Lida com a exclusão de um jogo
+        deleteGameBtn.onclick = async () => {
             toggleLoading(true);
             const gameId = document.getElementById('game-id').value;
-            allGames = allGames.filter(game => game.id !== gameId);
-            saveGames();
-            refreshDisplay();
-            closeModal();
-            toggleLoading(false);
+            const gamesCollectionPath = `users/${userId}/games`;
+            try {
+                await deleteDoc(doc(db, gamesCollectionPath, gameId));
+                showMessage("Jogo excluído com sucesso!");
+                closeModal();
+            } catch (error) {
+                console.error("Erro ao excluir o jogo: ", error);
+                showMessage(`Erro ao excluir o jogo: ${error.message}`, true);
+            } finally {
+                toggleLoading(false);
+            }
         };
 
-        // Toggle search bar
+        // Lidar com eventos de UI
+        addGameBtn.addEventListener('click', openAddModal);
+        closeModalBtn.addEventListener('click', closeModal);
         searchBtn.onclick = () => {
             searchContainer.classList.toggle('hidden');
             if (!searchContainer.classList.contains('hidden')) {
@@ -393,30 +466,28 @@
             }
         };
 
-        // Search, Sort and Filter functionality
-        searchInput.oninput = () => {
-            refreshDisplay();
-        };
+        // Eventos de filtro e ordenação
+        searchInput.oninput = refreshDisplay;
+        sortSelect.onchange = refreshDisplay;
+        starsFilter.onchange = refreshDisplay;
+        statusFilter.onchange = refreshDisplay;
 
-        sortSelect.onchange = () => {
-            refreshDisplay();
-        };
+        // --- Inicialização e Autenticação ---
+        toggleLoading(true);
 
-        starsFilter.onchange = () => {
-            refreshDisplay();
-        };
-
-        statusFilter.onchange = () => {
-            refreshDisplay();
-        };
-
-        // Listeners for UI interaction
-        addGameBtn.addEventListener('click', openAddModal);
-        closeModalBtn.addEventListener('click', closeModal);
-
-        window.onload = () => {
-            loadGames();
-        };
+        // A autenticação anônima é usada para criar uma sessão de usuário
+        // que a regra de segurança pode usar.
+        signInAnonymously(auth)
+            .then((result) => {
+                const user = result.user;
+                userId = user.uid;
+                syncGames();
+            })
+            .catch((error) => {
+                console.error("Erro na autenticação anônima:", error);
+                showMessage("Falha na autenticação do usuário. Recarregue a página.", true);
+                toggleLoading(false);
+            });
     </script>
 </body>
 </html>
