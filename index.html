@@ -174,11 +174,10 @@
     <script type="module">
         // Importa as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // --- Variáveis Globais fornecidas pelo ambiente ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+        const firebaseConfig = {
             apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
             authDomain: "list-games-9bddd.firebaseapp.com",
             projectId: "list-games-9bddd",
@@ -187,9 +186,7 @@
             appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
             measurementId: "G-GLM50YVLXP"
         };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-        
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -261,7 +258,7 @@
                 return;
             }
 
-            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
             console.log("Tentando sincronizar dados de:", gamesCollectionPath);
             const q = query(collection(db, gamesCollectionPath));
 
@@ -420,7 +417,7 @@
                 notes: document.getElementById('game-notes').value,
             };
 
-            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
             
             try {
                 if (gameId) {
@@ -446,7 +443,7 @@
         deleteGameBtn.onclick = async () => {
             toggleLoading(true);
             const gameId = document.getElementById('game-id').value;
-            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
             try {
                 await deleteDoc(doc(db, gamesCollectionPath, gameId));
                 showMessage("Jogo excluído com sucesso!");
@@ -479,18 +476,23 @@
         // --- Inicialização ---
         toggleLoading(true);
         
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                syncGames();
-            } else {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+        // Autentica o usuário anonimamente para que ele possa usar o banco de dados
+        signInAnonymously(auth)
+          .then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    syncGames();
                 } else {
-                    await signInAnonymously(auth);
+                    console.error("Falha na autenticação do usuário.");
+                    toggleLoading(false);
                 }
-            }
-        });
+            });
+          })
+          .catch((error) => {
+            console.error("Erro na autenticação anônima:", error);
+            toggleLoading(false);
+          });
     </script>
 </body>
 </html>
