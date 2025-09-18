@@ -166,6 +166,9 @@
                 </form>
             </div>
         </div>
+
+        <!-- Notification Message Box -->
+        <div id="message-box" class="fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden transition-all duration-300 transform translate-y-full"></div>
     </div>
     
     <script type="module">
@@ -175,16 +178,17 @@
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Variáveis Globais fornecidas pelo ambiente ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
             authDomain: "list-games-9bddd.firebaseapp.com",
             projectId: "list-games-9bddd",
             storageBucket: "list-games-9bddd.firebasestorage.app",
             messagingSenderId: "756898313156",
-            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+            measurementId: "G-GLM50YVLXP"
         };
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -195,6 +199,7 @@
         let userId = null;
         const mainApp = document.getElementById('main-app');
         const loadingSpinner = document.getElementById('loading-spinner');
+        const messageBox = document.getElementById('message-box');
         
         // UI Elements
         const addGameBtn = document.getElementById('add-game-btn');
@@ -223,6 +228,24 @@
             }
         };
 
+        // Function to show notification messages
+        const showMessage = (message, isError = false) => {
+            messageBox.textContent = message;
+            messageBox.classList.remove('bg-green-600', 'bg-red-600', 'translate-y-full');
+            if (isError) {
+                messageBox.classList.add('bg-red-600');
+            } else {
+                messageBox.classList.add('bg-green-600');
+            }
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('translate-y-full');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 300); // tempo de espera para a animação
+            }, 3000); // 3 segundos antes de começar a animação de esconder
+        };
+
         // Helper function to format date
         const formatDate = (dateString) => {
             if (!dateString) return '';
@@ -238,7 +261,8 @@
                 return;
             }
 
-            const gamesCollectionPath = `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`;
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
+            console.log("Tentando sincronizar dados de:", gamesCollectionPath);
             const q = query(collection(db, gamesCollectionPath));
 
             onSnapshot(q, (querySnapshot) => {
@@ -247,6 +271,7 @@
                     allGames.push({ id: doc.id, ...doc.data() });
                 });
                 refreshDisplay();
+                // O carregamento inicial é desativado aqui.
                 toggleLoading(false);
             }, (error) => {
                 console.error("Erro ao sincronizar dados: ", error);
@@ -289,7 +314,12 @@
                     gamesToRender.sort((a, b) => b.stars - a.stars);
                     break;
                 case 'createdAt-desc':
-                    gamesToRender.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+                    // Verifica se o campo `createdAt` existe e é um Timestamp válido
+                    gamesToRender.sort((a, b) => {
+                        const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                        const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                        return dateB - dateA;
+                    });
                     break;
                 case 'dateStart-asc':
                     gamesToRender.sort((a, b) => {
@@ -390,19 +420,25 @@
                 notes: document.getElementById('game-notes').value,
             };
 
-            const gamesCollectionRef = collection(db, `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`);
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
             
             try {
                 if (gameId) {
                     // Editar um jogo existente
-                    await setDoc(doc(gamesCollectionRef, gameId), gameData);
+                    await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
+                    showMessage("Jogo atualizado com sucesso!");
                 } else {
                     // Adicionar um novo jogo
-                    await addDoc(gamesCollectionRef, { ...gameData, createdAt: serverTimestamp() });
+                    await addDoc(collection(db, gamesCollectionPath), { ...gameData, createdAt: serverTimestamp() });
+                    showMessage("Jogo adicionado com sucesso!");
                 }
                 closeModal();
             } catch (error) {
                 console.error("Erro ao salvar o jogo: ", error);
+                showMessage(`Erro ao salvar o jogo: ${error.message}`, true);
+            } finally {
+                // Finaliza o estado de carregamento, independentemente do sucesso ou erro
+                toggleLoading(false);
             }
         };
 
@@ -410,11 +446,17 @@
         deleteGameBtn.onclick = async () => {
             toggleLoading(true);
             const gameId = document.getElementById('game-id').value;
+            const gamesCollectionPath = `/artifacts/${appId}/users/${userId}/games`;
             try {
-                await deleteDoc(doc(db, `/artifacts/${firebaseConfig.projectId}/users/${userId}/games`, gameId));
+                await deleteDoc(doc(db, gamesCollectionPath, gameId));
+                showMessage("Jogo excluído com sucesso!");
                 closeModal();
             } catch (error) {
                 console.error("Erro ao excluir o jogo: ", error);
+                showMessage(`Erro ao excluir o jogo: ${error.message}`, true);
+            } finally {
+                // Finaliza o estado de carregamento, independentemente do sucesso ou erro
+                toggleLoading(false);
             }
         };
 
