@@ -32,6 +32,9 @@
         .btn-primary:hover {
             background-color: #3a7bc0;
         }
+        .input {
+            @apply mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+        }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-gray-200">
@@ -44,6 +47,11 @@
         <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
             <h1 class="text-3xl sm:text-4xl font-bold">Games</h1>
             <div class="flex space-x-2 sm:space-x-4">
+                <button id="auth-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </button>
                 <button id="add-game-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -56,9 +64,14 @@
                 </button>
             </div>
         </header>
+        
+        <!-- User ID Display -->
+        <div class="mb-4">
+            <span class="text-xs text-gray-500">ID do Usuário: </span><span id="user-id-display" class="text-xs text-gray-400 truncate">Não autenticado</span>
+        </div>
 
         <!-- Search, Sort and Filter Section -->
-        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4">
+        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden">
             <input type="text" id="search-input" placeholder="Pesquisar games..." class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             <select id="sort-select" class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Ordenar por...</option>
@@ -116,15 +129,15 @@
                     <input type="hidden" id="game-id">
                     <div>
                         <label for="game-name" class="block text-sm font-medium text-gray-400">Nome</label>
-                        <input type="text" id="game-name" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="text" id="game-name" class="input" required>
                     </div>
                     <div>
                         <label for="game-image" class="block text-sm font-medium text-gray-400">URL da Imagem</label>
-                        <input type="url" id="game-image" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="url" id="game-image" class="input">
                     </div>
                     <div>
                         <label for="game-stars" class="block text-sm font-medium text-gray-400">Estrelas</label>
-                        <select id="game-stars" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="game-stars" class="input">
                             <option value=""></option>
                             <option value="1">1 Estrela</option>
                             <option value="2">2 Estrelas</option>
@@ -135,7 +148,7 @@
                     </div>
                     <div>
                         <label for="game-status" class="block text-sm font-medium text-gray-400">Status</label>
-                        <select id="game-status" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="game-status" class="input">
                             <option value="Zerado">Zerado</option>
                             <option value="Não Jogou">Não Jogou</option>
                             <option value="Jogando">Jogando</option>
@@ -147,23 +160,61 @@
                     </div>
                     <div>
                         <label for="game-date-start" class="block text-sm font-medium text-gray-400">Data de Início</label>
-                        <input type="date" id="game-date-start" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="date" id="game-date-start" class="input">
                     </div>
                     <div>
                         <label for="game-date-end" class="block text-sm font-medium text-gray-400">Data de Término</label>
-                        <input type="date" id="game-date-end" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="date" id="game-date-end" class="input">
                     </div>
                     <div>
                         <label for="game-hours" class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
-                        <input type="number" id="game-hours" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                        <input type="number" id="game-hours" class="input" min="0">
                     </div>
                     <div>
                         <label for="game-notes" class="block text-sm font-medium text-gray-400">Observações</label>
-                        <textarea id="game-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <textarea id="game-notes" rows="4" class="input"></textarea>
                     </div>
                     <button type="submit" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Salvar Jogo</button>
                     <button type="button" id="delete-game-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 hidden">Excluir Jogo</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="auth-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg">
+                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
+                    <h2 class="text-2xl font-semibold text-white">Entrar ou Cadastrar</h2>
+                    <button id="close-auth-modal-btn" class="p-2 rounded-full hover:bg-gray-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="auth-form" class="mt-4 space-y-4">
+                    <div>
+                        <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
+                        <input type="email" id="auth-email" class="input" required>
+                    </div>
+                    <div>
+                        <label for="auth-password" class="block text-sm font-medium text-gray-400">Senha</label>
+                        <input type="password" id="auth-password" class="input" required>
+                    </div>
+                    <button type="submit" id="login-btn" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Entrar</button>
+                    <button type="button" id="register-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cadastrar</button>
+                </form>
+                <div id="auth-error-message" class="mt-4 text-red-400 text-sm hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg text-center">
+                <p class="text-white text-lg">Tem certeza que deseja sair?</p>
+                <div class="mt-4 flex justify-around">
+                    <button id="confirm-logout-btn" class="px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700">Sair</button>
+                    <button id="cancel-logout-btn" class="px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cancelar</button>
+                </div>
             </div>
         </div>
 
@@ -174,18 +225,18 @@
     <script type="module">
         // Importa as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Configuração do Firebase usando suas credenciais ---
         const firebaseConfig = {
-          apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-          authDomain: "list-games-9bddd.firebaseapp.com",
-          projectId: "list-games-9bddd",
-          storageBucket: "list-games-9bddd.firebasestorage.app",
-          messagingSenderId: "756898313156",
-          appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-          measurementId: "G-GLM50YVLXP"
+            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+            authDomain: "list-games-9bddd.firebaseapp.com",
+            projectId: "list-games-9bddd",
+            storageBucket: "list-games-9bddd.firebasestorage.app",
+            messagingSenderId: "756898313156",
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+            measurementId: "G-GLM50YVLXP"
         };
         
         const app = initializeApp(firebaseConfig);
@@ -200,6 +251,8 @@
         const messageBox = document.getElementById('message-box');
         
         // UI Elements
+        const authBtn = document.getElementById('auth-btn');
+        const userIdDisplay = document.getElementById('user-id-display');
         const addGameBtn = document.getElementById('add-game-btn');
         const searchBtn = document.getElementById('search-btn');
         const searchContainer = document.getElementById('search-and-sort-container');
@@ -214,6 +267,18 @@
         const gameForm = document.getElementById('game-form');
         const modalTitle = document.getElementById('modal-title');
         const deleteGameBtn = document.getElementById('delete-game-btn');
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
+        const authForm = document.getElementById('auth-form');
+        const authEmailInput = document.getElementById('auth-email');
+        const authPasswordInput = document.getElementById('auth-password');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        const logoutModal = document.getElementById('logout-modal');
+        const confirmLogoutBtn = document.getElementById('confirm-logout-btn');
+        const cancelLogoutBtn = document.getElementById('cancel-logout-btn');
+
 
         // Function to show/hide loading spinner
         const toggleLoading = (show) => {
@@ -403,6 +468,10 @@
         // Lida com o envio do formulário (Adicionar/Editar)
         gameForm.onsubmit = async (e) => {
             e.preventDefault();
+            if (!userId) {
+                showMessage("Por favor, faça login para salvar jogos.", true);
+                return;
+            }
             toggleLoading(true);
 
             const gameId = document.getElementById('game-id').value;
@@ -457,7 +526,13 @@
         };
 
         // Lidar com eventos de UI
-        addGameBtn.addEventListener('click', openAddModal);
+        addGameBtn.addEventListener('click', () => {
+            if (userId) {
+                openAddModal();
+            } else {
+                showMessage("Por favor, faça login para adicionar jogos.", true);
+            }
+        });
         closeModalBtn.addEventListener('click', closeModal);
         searchBtn.onclick = () => {
             searchContainer.classList.toggle('hidden');
@@ -471,23 +546,83 @@
         sortSelect.onchange = refreshDisplay;
         starsFilter.onchange = refreshDisplay;
         statusFilter.onchange = refreshDisplay;
+        
+        // Auth Modal & Logic
+        authBtn.addEventListener('click', () => {
+            if (userId) {
+                logoutModal.classList.remove('hidden');
+            } else {
+                authModal.classList.remove('hidden');
+            }
+        });
+        
+        closeAuthModalBtn.addEventListener('click', () => {
+            authModal.classList.add('hidden');
+            authErrorMessage.classList.add('hidden');
+        });
+        
+        cancelLogoutBtn.addEventListener('click', () => {
+            logoutModal.classList.add('hidden');
+        });
 
+        confirmLogoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            logoutModal.classList.add('hidden');
+            showMessage("Você saiu da sua conta.");
+        });
+
+        registerBtn.addEventListener('click', async () => {
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+            try {
+                toggleLoading(true);
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage("Conta criada e login realizado com sucesso!");
+                authModal.classList.add('hidden');
+            } catch (error) {
+                authErrorMessage.textContent = "Erro ao cadastrar: " + error.message;
+                authErrorMessage.classList.remove('hidden');
+                console.error("Erro de cadastro: ", error);
+            } finally {
+                toggleLoading(false);
+            }
+        });
+        
+        loginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+            try {
+                toggleLoading(true);
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage("Login realizado com sucesso!");
+                authModal.classList.add('hidden');
+            } catch (error) {
+                authErrorMessage.textContent = "Erro de login: " + error.message;
+                authErrorMessage.classList.remove('hidden');
+                console.error("Erro de login: ", error);
+            } finally {
+                toggleLoading(false);
+            }
+        });
+        
         // --- Inicialização e Autenticação ---
         toggleLoading(true);
-
-        // A autenticação anônima é usada para criar uma sessão de usuário
-        // que a regra de segurança pode usar.
-        signInAnonymously(auth)
-            .then((result) => {
-                const user = result.user;
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
                 userId = user.uid;
+                userIdDisplay.textContent = user.uid;
                 syncGames();
-            })
-            .catch((error) => {
-                console.error("Erro na autenticação anônima:", error);
-                showMessage("Falha na autenticação do usuário. Recarregue a página.", true);
+            } else {
+                // Usuário deslogado
+                userId = null;
+                userIdDisplay.textContent = 'Não autenticado';
+                allGames = [];
+                refreshDisplay();
                 toggleLoading(false);
-            });
+            }
+        });
     </script>
 </body>
 </html>
