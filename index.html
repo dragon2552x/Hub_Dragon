@@ -32,9 +32,6 @@
         .btn-primary:hover {
             background-color: #3a7bc0;
         }
-        .input {
-            @apply mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
-        }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-gray-200">
@@ -72,8 +69,8 @@
 
         <!-- Search, Sort and Filter Section -->
         <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden">
-            <input type="text" id="search-input" placeholder="Pesquisar games..." class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select id="sort-select" class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="search-input" placeholder="Pesquisar games..." class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="sort-select" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Ordenar por...</option>
                 <option value="name-asc">Nome (A-Z)</option>
                 <option value="stars-desc">Estrelas (Maior)</option>
@@ -81,7 +78,7 @@
                 <option value="dateStart-asc">Data de Início</option>
                 <option value="hours-desc">Horas Jogadas (Maior)</option>
             </select>
-            <select id="stars-filter" class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="stars-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filtrar por Estrelas...</option>
                 <option value="5">5 Estrelas</option>
                 <option value="4">4 Estrelas</option>
@@ -90,7 +87,7 @@
                 <option value="1">1 Estrela</option>
                 <option value="0">Nenhuma Estrela</option>
             </select>
-            <select id="status-filter" class="w-full sm:w-1/4 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filtrar por Status...</option>
                 <option value="Zerado">Zerado</option>
                 <option value="Não Jogou">Não Jogou</option>
@@ -129,15 +126,15 @@
                     <input type="hidden" id="game-id">
                     <div>
                         <label for="game-name" class="block text-sm font-medium text-gray-400">Nome</label>
-                        <input type="text" id="game-name" class="input" required>
+                        <input type="text" id="game-name" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="game-image" class="block text-sm font-medium text-gray-400">URL da Imagem</label>
-                        <input type="url" id="game-image" class="input">
+                        <input type="url" id="game-image" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="game-stars" class="block text-sm font-medium text-gray-400">Estrelas</label>
-                        <select id="game-stars" class="input">
+                        <select id="game-stars" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value=""></option>
                             <option value="1">1 Estrela</option>
                             <option value="2">2 Estrelas</option>
@@ -148,7 +145,7 @@
                     </div>
                     <div>
                         <label for="game-status" class="block text-sm font-medium text-gray-400">Status</label>
-                        <select id="game-status" class="input">
+                        <select id="game-status" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="Zerado">Zerado</option>
                             <option value="Não Jogou">Não Jogou</option>
                             <option value="Jogando">Jogando</option>
@@ -160,19 +157,19 @@
                     </div>
                     <div>
                         <label for="game-date-start" class="block text-sm font-medium text-gray-400">Data de Início</label>
-                        <input type="date" id="game-date-start" class="input">
+                        <input type="date" id="game-date-start" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="game-date-end" class="block text-sm font-medium text-gray-400">Data de Término</label>
-                        <input type="date" id="game-date-end" class="input">
+                        <input type="date" id="game-date-end" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="game-hours" class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
-                        <input type="number" id="game-hours" class="input" min="0">
+                        <input type="number" id="game-hours" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
                     </div>
                     <div>
                         <label for="game-notes" class="block text-sm font-medium text-gray-400">Observações</label>
-                        <textarea id="game-notes" rows="4" class="input"></textarea>
+                        <textarea id="game-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                     <button type="submit" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Salvar Jogo</button>
                     <button type="button" id="delete-game-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 hidden">Excluir Jogo</button>
@@ -194,11 +191,11 @@
                 <form id="auth-form" class="mt-4 space-y-4">
                     <div>
                         <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
-                        <input type="email" id="auth-email" class="input" required>
+                        <input type="email" id="auth-email" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="auth-password" class="block text-sm font-medium text-gray-400">Senha</label>
-                        <input type="password" id="auth-password" class="input" required>
+                        <input type="password" id="auth-password" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <button type="submit" id="login-btn" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Entrar</button>
                     <button type="button" id="register-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cadastrar</button>
