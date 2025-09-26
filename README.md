@@ -1,2 +1,2 @@
-# List-Games
-Lista de Games
+# Lists
+Listas
