@@ -5,383 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciador de Média</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a;
-            color: #e0e0e0;
-            /* Garante que o conteúdo role acima da barra de navegação */
-            padding-bottom: 6rem; 
-        }
-        .card {
-            background-color: #333;
-            border: 2px solid #555;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-        .icon {
-            filter: invert(100%);
-        }
-        .btn-primary {
-            background-color: #4a90e2;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: #3a7bc0;
-        }
-        .nav-item {
-            color: #777; /* Cor padrão */
-        }
-        .nav-item.active {
-            color: #4a90e2; /* Cor ativa */
-            font-weight: 600;
-        }
-        
-        /* --- ESTILOS PARA FORMATO RETRATO (3:4) - NOVO --- */
-        /* Contêiner para forçar a proporção 3:4 (largura:altura) */
-        .card-image-hqs {
-            width: 100%;
-            /* 3:4 Aspect Ratio (Padding-Bottom é altura / largura * 100 -> 4/3 * 100 = 133.33%) */
-            padding-bottom: 133.33%; 
-            position: relative;
-            overflow: hidden;
-        }
-        .card-image-hqs img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        /* Estilo padrão para Games (paisagem) */
-        .card-image-games {
-             width: 100%;
-             height: 10rem; /* 160px padrão */
-             object-fit: cover;
-        }
-    </style>
-</head>
-<body class="bg-[#1a1a1a] text-gray-200">
-    <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-300"></div>
-    </div>
-    
-    <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
-        <!-- Header Section -->
-        <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
-            <h1 id="main-title" class="text-3xl sm:text-4xl font-bold">Games</h1>
-            <div class="flex space-x-2 sm:space-x-4">
-                <button id="auth-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </button>
-                <button id="add-item-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                </button>
-                <button id="search-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </button>
-            </div>
-        </header>
-        
-        <!-- User ID Display -->
-        <div class="mb-4">
-            <span class="text-xs text-gray-500">ID do Usuário: </span><span id="user-id-display" class="text-xs text-gray-400 truncate">Não autenticado</span>
-        </div>
-
-        <!-- Search, Sort and Filter Section -->
-        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 flex-wrap hidden">
-            <input type="text" id="search-input" placeholder="Pesquisar..." class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select id="sort-select" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Ordenar por...</option>
-                <option value="name-asc">Nome (A-Z)</option>
-                <option value="stars-desc">Estrelas (Maior)</option>
-                <option value="createdAt-desc">Mais Recentes</option>
-                <option value="dateStart-asc">Data de Início/Protagonista</option>
-                <option value="hours-desc">Horas/Capítulos (Maior)</option>
-            </select>
-            <select id="stars-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Filtrar por Estrelas...</option>
-                <option value="5">5 Estrelas</option>
-                <option value="4">4 Estrelas</option>
-                <option value="3">3 Estrelas</option>
-                <option value="2">2 Estrelas</option>
-                <option value="1">1 Estrela</option>
-                <option value="0">Nenhuma Estrela</option>
-            </select>
-            <select id="status-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Filtrar por Status...</option>
-                <!-- Options will be dynamically populated in JS -->
-            </select>
-             <!-- NOVO FILTRO DE PROTAGONISTA -->
-            <select id="protagonist-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 hidden">
-                <option value="">Filtrar por Protagonista...</option>
-                <!-- Options will be dynamically populated in JS -->
-            </select>
-        </div>
-
-        <!-- Main Content Section -->
-        <main id="main-content">
-            <!-- Cards View -->
-            <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Game/HQ cards will be dynamically inserted here -->
-            </div>
-            <!-- Empty State -->
-            <div id="empty-state" class="text-center p-8 hidden">
-                <p class="text-xl text-gray-400">Nenhum item cadastrado. Comece adicionando um novo item!</p>
-            </div>
-        </main>
-
-        <!-- Modal for Add/Edit Item (Game/HQ) -->
-        <div id="item-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
-            <div class="relative w-11/12 max-w-lg mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg">
-                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
-                    <h2 id="modal-title" class="text-2xl font-semibold text-white">Adicionar Item</h2>
-                    <button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <form id="item-form" class="mt-4 space-y-4">
-                    <input type="hidden" id="item-id">
-                    <div>
-                        <label for="item-name" class="block text-sm font-medium text-gray-400"><span id="label-name">Nome</span></label>
-                        <input type="text" id="item-name" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="item-image" class="block text-sm font-medium text-gray-400">URL da Imagem</label>
-                        <input type="url" id="item-image" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label for="item-stars" class="block text-sm font-medium text-gray-400">Estrelas</label>
-                        <select id="item-stars" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value=""></option>
-                            <option value="1">1 Estrela</option>
-                            <option value="2">2 Estrelas</option>
-                            <option value="3">3 Estrelas</option>
-                            <option value="4">4 Estrelas</option>
-                            <option value="5">5 Estrelas</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="item-status" class="block text-sm font-medium text-gray-400">Status</label>
-                        <select id="item-status" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- Options will be dynamically populated -->
-                        </select>
-                    </div>
-
-                    <!-- Campos específicos para GAMES -->
-                    <div id="fields-games" class="space-y-4">
-                        <div>
-                            <label for="item-date-start" class="block text-sm font-medium text-gray-400">Data de Início</label>
-                            <input type="date" id="item-date-start" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="item-date-end" class="block text-sm font-medium text-gray-400">Data de Término</label>
-                            <input type="date" id="item-date-end" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <!-- CAMPO HORAS JOGADAS (Para Games) -->
-                        <div>
-                            <label for="item-count-games" class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
-                            <input type="number" id="item-count-games" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
-                        </div>
-                    </div>
-
-                    <!-- Campos específicos para HQs (Inicialmente ocultos) -->
-                    <div id="fields-hqs" class="space-y-4 hidden">
-                         <div>
-                            <label for="item-total-chapters" class="block text-sm font-medium text-gray-400">Capítulos Totais</label>
-                            <input type="number" id="item-total-chapters" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
-                        </div>
-                         <!-- CAMPO CAPÍTULOS LIDOS (Para HQs) -->
-                        <div>
-                            <label for="item-count-hqs" class="block text-sm font-medium text-gray-400">Capítulos Lidos</label>
-                            <input type="number" id="item-count-hqs" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
-                        </div>
-                        <!-- NOVO CAMPO PROTAGONISTA -->
-                        <div>
-                            <label for="item-protagonist" class="block text-sm font-medium text-gray-400">Protagonista</label>
-                            <input type="text" id="item-protagonist" list="protagonist-list" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <datalist id="protagonist-list">
-                                <!-- Opções de protagonistas serão preenchidas via JS -->
-                            </datalist>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="item-notes" class="block text-sm font-medium text-gray-400">Observações</label>
-                        <textarea id="item-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
-                    <button type="submit" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Salvar Item</button>
-                    <button type="button" id="delete-item-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 hidden">Excluir Item</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Auth Modal -->
-        <div id="auth-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
-            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg">
-                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
-                    <h2 class="text-2xl font-semibold text-white">Entrar ou Cadastrar</h2>
-                    <button id="close-auth-modal-btn" class="p-2 rounded-full hover:bg-gray-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <form id="auth-form" class="mt-4 space-y-4">
-                    <div>
-                        <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
-                        <input type="email" id="auth-email" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="auth-password" class="block text-sm font-medium text-gray-400">Senha</label>
-                        <input type="password" id="auth-password" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <button type="submit" id="login-btn" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Entrar</button>
-                    <button type="button" id="register-btn" class="w-full px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cadastrar</button>
-                </form>
-                <div id="auth-error-message" class="mt-4 text-red-400 text-sm hidden"></div>
-            </div>
-        </div>
-        
-        <!-- Logout Confirmation Modal -->
-        <div id="logout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
-            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg text-center">
-                <p class="text-white text-lg">Tem certeza que deseja sair?</p>
-                <div class="mt-4 flex justify-around">
-                    <button id="confirm-logout-btn" class="px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700">Sair</button>
-                    <button id="cancel-logout-btn" class="px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cancelar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notification Message Box -->
-        <div id="message-box" class="fixed bottom-20 sm:bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden transition-all duration-300 transform translate-y-full"></div>
-    </div>
-    
-    <!-- Bottom Navigation Bar (Mobile-style) -->
-    <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 bg-[#2a2a2a] border-t border-gray-700 shadow-xl z-40">
-        <div class="flex justify-around max-w-lg mx-auto">
-            <button id="nav-games" data-view="games" class="nav-item active p-3 flex-1 flex flex-col items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-                <span class="text-xs mt-1">Games</span>
-            </button>
-            <button id="nav-hqs" data-view="hqs" class="nav-item p-3 flex-1 flex flex-col items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span class="text-xs mt-1">HQs</span>
-            </button>
-        </div>
-    </nav>
-
+    <!-- Importações Firebase -->
     <script type="module">
-        // Importa as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // --- Configuração do Firebase usando suas credenciais ---
+        // --- Variáveis Globais do Ambiente Canvas ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (!firebaseConfig) {
+            console.error("Firebase config not available. Check environment setup.");
+            document.getElementById('loading-spinner').innerHTML = '<p class="text-red-500">Erro: Configuração do Firebase ausente.</p>';
+            return;
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
-        // --- Variáveis Globais ---
+        setLogLevel('debug'); // Habilita logs de debug do Firestore
+
+        // --- Variáveis de Estado ---
         let allGames = [];
         let allHQs = [];
         let userId = null;
         let currentView = 'games'; // Novo estado para controlar a aba
-        
-        const mainApp = document.getElementById('main-app');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const messageBox = document.getElementById('message-box');
-        
-        // UI Elements
-        const mainTitle = document.getElementById('main-title');
-        const authBtn = document.getElementById('auth-btn');
-        const userIdDisplay = document.getElementById('user-id-display');
-        const addItemBtn = document.getElementById('add-item-btn'); 
-        const searchBtn = document.getElementById('search-btn');
-        const searchContainer = document.getElementById('search-and-sort-container');
-        const searchInput = document.getElementById('search-input');
-        const sortSelect = document.getElementById('sort-select');
-        const starsFilter = document.getElementById('stars-filter');
-        const statusFilter = document.getElementById('status-filter');
-        const protagonistFilter = document.getElementById('protagonist-filter'); // NOVO FILTRO
-        const cardsView = document.getElementById('cards-view');
-        const emptyState = document.getElementById('empty-state');
 
-        // Modal Elements
-        const itemModal = document.getElementById('item-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const itemForm = document.getElementById('item-form');
-        const modalTitle = document.getElementById('modal-title');
-        const deleteItemBtn = document.getElementById('delete-item-btn');
-
-        // Form Fields (Gerais)
-        const labelName = document.getElementById('label-name');
-        const itemIdInput = document.getElementById('item-id');
-        const itemNameInput = document.getElementById('item-name');
-        const itemImageInput = document.getElementById('item-image');
-        const itemStarsInput = document.getElementById('item-stars');
-        const itemStatusSelect = document.getElementById('item-status');
-        const itemNotesInput = document.getElementById('item-notes');
-
-        // Form Fields (Específicos para Games)
-        const fieldsGames = document.getElementById('fields-games');
-        const itemDateStartInput = document.getElementById('item-date-start');
-        const itemDateEndInput = document.getElementById('item-date-end');
-        const itemHoursPlayedInput = document.getElementById('item-count-games'); 
-        
-        // Form Fields (Específicos para HQs)
-        const fieldsHQs = document.getElementById('fields-hqs');
-        const itemTotalChaptersInput = document.getElementById('item-total-chapters');
-        const itemProtagonistInput = document.getElementById('item-protagonist'); // NOVO CAMPO
-        const protagonistList = document.getElementById('protagonist-list'); // NOVO DATALIST
-        const itemChaptersReadInput = document.getElementById('item-count-hqs'); 
-
-        const authModal = document.getElementById('auth-modal');
-        const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
-        const authForm = document.getElementById('auth-form');
-        const authEmailInput = document.getElementById('auth-email');
-        const authPasswordInput = document.getElementById('auth-password');
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const authErrorMessage = document.getElementById('auth-error-message');
-        const logoutModal = document.getElementById('logout-modal');
-        const confirmLogoutBtn = document.getElementById('confirm-logout-btn');
-        const cancelLogoutBtn = document.getElementById('cancel-logout-btn');
-
-        // Nav Buttons
-        const navGames = document.getElementById('nav-games');
-        const navHQs = document.getElementById('nav-hqs');
-
-        // Configurações de Status e Rótulos por View
+        // --- Mapeamento de Configurações por View ---
         const viewConfigs = {
             'games': {
                 title: 'Games',
-                collection: `artifacts/${appId}/users/{userId}/games`,
+                collectionTemplate: `artifacts/${appId}/users/{userId}/games`,
                 data: allGames,
                 nameLabel: 'Nome do Jogo',
                 countLabel: 'Horas Jogadas',
+                countField: 'hoursPlayed',
+                dateField: 'dateStart',
+                sortLabelProtagonist: 'Data de Início',
+                sortLabelCount: 'Horas Jogadas (Maior)',
                 statusOptions: [
                     { value: "Zerado", text: "Zerado" },
                     { value: "Não Jogou", text: "Não Jogou" },
@@ -394,10 +57,14 @@
             },
             'hqs': {
                 title: 'HQs',
-                collection: `artifacts/${appId}/users/{userId}/hqs`,
+                collectionTemplate: `artifacts/${appId}/users/{userId}/hqs`,
                 data: allHQs,
                 nameLabel: 'Título da HQ',
                 countLabel: 'Capítulos Lidos',
+                countField: 'chaptersRead',
+                dateField: 'protagonist', // Usando este campo para Protagonista
+                sortLabelProtagonist: 'Protagonista (A-Z)',
+                sortLabelCount: 'Capítulos Lidos (Maior)',
                 statusOptions: [
                     { value: "Lido", text: "Lido" },
                     { value: "Lendo", text: "Lendo" },
@@ -407,8 +74,51 @@
             }
         };
 
+        // --- Elementos UI ---
+        const mainApp = document.getElementById('main-app');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const messageBox = document.getElementById('message-box');
+        const mainTitle = document.getElementById('main-title');
+        const authBtn = document.getElementById('auth-btn');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const addItemBtn = document.getElementById('add-item-btn');
+        const searchBtn = document.getElementById('search-btn');
+        const searchContainer = document.getElementById('search-and-sort-container');
+        const searchInput = document.getElementById('search-input');
+        const sortSelect = document.getElementById('sort-select');
+        const starsFilter = document.getElementById('stars-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const cardsView = document.getElementById('cards-view');
+        const emptyState = document.getElementById('empty-state');
+        const itemModal = document.getElementById('item-modal');
+        const itemForm = document.getElementById('item-form');
+        const modalTitle = document.getElementById('modal-title');
+        const deleteItemBtn = document.getElementById('delete-item-btn');
+        const labelName = document.getElementById('label-name');
+        const itemIdInput = document.getElementById('item-id');
+        const itemNameInput = document.getElementById('item-name');
+        const itemImageInput = document.getElementById('item-image');
+        const itemStarsInput = document.getElementById('item-stars');
+        const itemStatusSelect = document.getElementById('item-status');
+        const itemNotesInput = document.getElementById('item-notes');
+        const fieldsGames = document.getElementById('fields-games');
+        const itemDateStartInput = document.getElementById('item-date-start');
+        const itemDateEndInput = document.getElementById('item-date-end');
+        const itemHoursPlayedInput = document.getElementById('item-count-games');
+        const fieldsHQs = document.getElementById('fields-hqs');
+        const itemTotalChaptersInput = document.getElementById('item-total-chapters');
+        const itemProtagonistInput = document.getElementById('item-protagonist');
+        const protagonistList = document.getElementById('protagonist-list');
+        const itemChaptersReadInput = document.getElementById('item-count-hqs');
+        const authModal = document.getElementById('auth-modal');
+        const authEmailInput = document.getElementById('auth-email');
+        const authPasswordInput = document.getElementById('auth-password');
+        const logoutModal = document.getElementById('logout-modal');
+        const navGames = document.getElementById('nav-games');
+        const navHQs = document.getElementById('nav-hqs');
 
-        // Function to show/hide loading spinner
+        // --- Funções de UI Auxiliares ---
+
         const toggleLoading = (show) => {
             if (show) {
                 loadingSpinner.classList.remove('hidden');
@@ -419,84 +129,116 @@
             }
         };
 
-        // Function to show notification messages
         const showMessage = (message, isError = false) => {
             messageBox.textContent = message;
-            messageBox.classList.remove('bg-green-600', 'bg-red-600', 'translate-y-full');
-            if (isError) {
-                messageBox.classList.add('bg-red-600');
-            } else {
-                messageBox.classList.add('bg-green-600');
-            }
-            messageBox.classList.remove('hidden', 'translate-y-full');
-            
-            void messageBox.offsetWidth; 
-            
-            messageBox.style.transition = 'transform 0.3s ease-out';
+            messageBox.className = 'fixed bottom-20 sm:bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 transition-all duration-300 transform';
+            messageBox.classList.add(isError ? 'bg-red-600' : 'bg-green-600');
             messageBox.style.transform = 'translateY(0)';
-
+            messageBox.classList.remove('hidden');
 
             setTimeout(() => {
                 messageBox.style.transform = 'translateY(100%)';
                 setTimeout(() => {
                     messageBox.classList.add('hidden');
-                    messageBox.style.transform = '';
                 }, 300);
             }, 3000);
         };
 
-
-        // Helper function to format date
         const formatDate = (dateString) => {
             if (!dateString) return '';
-            const [year, month, day] = dateString.split('-');
-            if (year && year.length === 4) {
-                 return `${day}/${month}/${year}`;
-            }
-            return dateString;
+            const date = new Date(dateString + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
+            if (isNaN(date)) return dateString; // Retorna a string original se for inválida
+            return date.toLocaleDateString('pt-BR');
         };
         
-        // NOVO: Extrai a lista de protagonistas únicos para o datalist e o filtro
-        const populateProtagonistData = () => {
-            const protagonistSet = new Set();
-            allHQs.forEach(item => {
-                if (item.protagonist) {
-                    protagonistSet.add(item.protagonist);
-                }
-            });
+        const renderStarRating = (stars) => {
+            const starCount = parseInt(stars) || 0;
+            const filledStar = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400 inline-block" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.637-.921 1.938 0l1.986 6.094a1 1 0 00.95.691h6.417c.969 0 1.371 1.24.588 1.81l-5.195 3.774a1 1 0 00-.364 1.118l1.986 6.094c.3.921-.755 1.688-1.54 1.118l-5.195-3.774a1 1 0 00-1.175 0l-5.195 3.774c-.784.57-1.84-.197-1.54-1.118l1.986-6.094a1 1 0 00-.364-1.118L2.055 11.522c-.783-.57-.381-1.81.588-1.81h6.417a1 1 0 00.95-.691l1.986-6.094z" /></svg>';
+            const emptyStar = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2.5a.5.5 0 00-.387.185l-1.996 2.5a.5.5 0 01-.397.185H2.5a.5.5 0 00-.387.815l2.496 3.062a.5.5 0 01.185.397v4.5c0 .276.224.5.5.5h4.5a.5.5 0 00.397-.185l3.062-2.496a.5.5 0 01.397-.185h4.5a.5.5 0 00.387-.815l-2.496-3.062a.5.5 0 01-.185-.397V2.5a.5.5 0 00-.5-.5h-4.5z" clip-rule="evenodd" /></svg>';
             
-            const protagonists = Array.from(protagonistSet).sort();
-
-            // Atualiza Datalist (sugestões no modal)
-            protagonistList.innerHTML = '';
-            protagonists.forEach(protagonist => {
-                const option = document.createElement('option');
-                option.value = protagonist;
-                protagonistList.appendChild(option);
-            });
-            
-            // Atualiza Filtro (select)
-            protagonistFilter.innerHTML = '<option value="">Filtrar por Protagonista...</option>';
-            protagonists.forEach(protagonist => {
-                const opt = document.createElement('option');
-                opt.value = protagonist;
-                opt.textContent = protagonist;
-                protagonistFilter.appendChild(opt);
-            });
+            let html = '';
+            for (let i = 0; i < 5; i++) {
+                html += (i < starCount) ? filledStar : emptyStar;
+            }
+            return html;
         };
 
-        // --- Funções do Firestore ---
+        const openModal = (itemId = null) => {
+            itemForm.reset();
+            itemIdInput.value = itemId || '';
+            deleteItemBtn.classList.add('hidden');
+            
+            const config = viewConfigs[currentView];
+            modalTitle.textContent = itemId ? `Editar ${config.title.slice(0, -1)}` : `Adicionar ${config.title.slice(0, -1)}`;
+
+            if (itemId) {
+                const currentDataArray = currentView === 'games' ? allGames : allHQs;
+                const item = currentDataArray.find(i => i.id === itemId);
+                if (item) {
+                    itemNameInput.value = item.name || '';
+                    itemImageInput.value = item.image || '';
+                    itemStarsInput.value = item.stars || '';
+                    itemStatusSelect.value = item.status || '';
+                    itemNotesInput.value = item.notes || '';
+                    deleteItemBtn.classList.remove('hidden');
+
+                    if (currentView === 'games') {
+                        itemDateStartInput.value = item.dateStart || '';
+                        itemDateEndInput.value = item.dateEnd || '';
+                        itemHoursPlayedInput.value = item.hoursPlayed || '';
+                    } else { // HQs
+                        itemTotalChaptersInput.value = item.totalChapters || '';
+                        itemChaptersReadInput.value = item.chaptersRead || '';
+                        itemProtagonistInput.value = item.protagonist || '';
+                    }
+                }
+            }
+            itemModal.classList.remove('hidden');
+        };
+
+        const closeModal = () => {
+            itemModal.classList.add('hidden');
+        };
+        
+        const openAuthModal = () => {
+            authEmailInput.value = '';
+            authPasswordInput.value = '';
+            authErrorMessage.classList.add('hidden');
+            authModal.classList.remove('hidden');
+        };
+
+        const closeAuthModal = () => {
+            authModal.classList.add('hidden');
+        };
+        
+        const openLogoutModal = () => {
+            logoutModal.classList.remove('hidden');
+        };
+
+        const closeLogoutModal = () => {
+            logoutModal.classList.add('hidden');
+        };
+
+        // --- Lógica de Sincronização e CRUD (Firestore) ---
+
+        const getCollectionPath = (view) => {
+            const config = viewConfigs[view];
+            // Garante que o path use o ID do usuário (uid) ou um ID anônimo se não houver autenticação
+            const currentUserId = auth.currentUser?.uid || userId;
+            return config.collectionTemplate.replace('{userId}', currentUserId);
+        };
+        
         const syncData = (view) => {
             if (!userId) {
-                console.error("Usuário não autenticado.");
+                console.warn(`Tentativa de sincronizar ${view}, mas o userId é nulo. Pulando.`);
                 return;
             }
 
-            const config = viewConfigs[view];
-            const collectionPath = config.collection.replace('{userId}', userId);
-            
+            const collectionPath = getCollectionPath(view);
+            console.log(`[Firestore] Sincronizando dados de: ${view} em ${collectionPath}`);
             const q = query(collection(db, collectionPath));
 
+            // onSnapshot é a forma reativa de obter dados
             onSnapshot(q, (querySnapshot) => {
                 const items = [];
                 querySnapshot.forEach((doc) => {
@@ -507,506 +249,720 @@
                     allGames = items;
                 } else {
                     allHQs = items;
-                    populateProtagonistData(); // NOVO: Atualiza a lista de protagonistas e filtro
+                    populateProtagonistDatalist(); // Atualiza a lista de protagonistas
                 }
-                
+
+                // Apenas atualiza a exibição se esta for a aba ativa
                 if (currentView === view) {
                     refreshDisplay();
                 }
                 toggleLoading(false);
             }, (error) => {
-                console.error(`Erro ao sincronizar dados de ${view}: `, error);
+                console.error(`[Firestore Error] Erro ao sincronizar dados de ${view}: `, error);
                 showMessage(`Erro ao carregar os itens de ${view}: ${error.message}`, true);
                 toggleLoading(false);
             });
         };
 
-        // --- Funções de UI e Lógica ---
-        
-        const switchView = (view) => {
-            if (currentView === view) return;
-            toggleLoading(true);
-            currentView = view;
-            
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`nav-${view}`).classList.add('active');
-            
-            const config = viewConfigs[view];
-            mainTitle.textContent = config.title;
-            labelName.textContent = config.nameLabel;
-            
-            // Controla a visibilidade dos campos específicos e filtros
-            if (view === 'games') {
-                fieldsGames.classList.remove('hidden');
-                fieldsHQs.classList.add('hidden');
-                protagonistFilter.classList.add('hidden'); // Esconde o filtro de protagonista
-            } else { // 'hqs'
-                fieldsGames.classList.add('hidden');
-                fieldsHQs.classList.remove('hidden');
-                protagonistFilter.classList.remove('hidden'); // Mostra o filtro de protagonista
+        const handleFormSubmit = async (e) => {
+            e.preventDefault();
+            const isEditing = !!itemIdInput.value;
+            const currentConfig = viewConfigs[currentView];
+            const collectionPath = getCollectionPath(currentView);
+
+            // Coletar dados gerais
+            const itemData = {
+                name: itemNameInput.value.trim(),
+                image: itemImageInput.value.trim(),
+                stars: parseInt(itemStarsInput.value) || 0,
+                status: itemStatusSelect.value,
+                notes: itemNotesInput.value.trim(),
+                updatedAt: serverTimestamp(),
+            };
+
+            // Coletar dados específicos
+            if (currentView === 'games') {
+                itemData.dateStart = itemDateStartInput.value;
+                itemData.dateEnd = itemDateEndInput.value;
+                itemData.hoursPlayed = parseInt(itemHoursPlayedInput.value) || 0;
+            } else { // HQs
+                itemData.totalChapters = parseInt(itemTotalChaptersInput.value) || 0;
+                itemData.chaptersRead = parseInt(itemChaptersReadInput.value) || 0;
+                itemData.protagonist = itemProtagonistInput.value.trim();
             }
 
-
-            // Atualiza as opções de status (do Modal e Filtro)
-            itemStatusSelect.innerHTML = '';
-            statusFilter.innerHTML = '<option value="">Filtrar por Status...</option>';
-            config.statusOptions.forEach(option => {
-                const optModal = document.createElement('option');
-                optModal.value = option.value;
-                optModal.textContent = option.text;
-                itemStatusSelect.appendChild(optModal);
-                
-                const optFilter = document.createElement('option');
-                optFilter.value = option.value;
-                optFilter.textContent = option.text;
-                statusFilter.appendChild(optFilter);
-            });
-            
-            // Popula o filtro de protagonista (se for HQ)
-            if (view === 'hqs') {
-                populateProtagonistData(); 
-            }
-
-            // Limpa os filtros
-            searchInput.value = '';
-            starsFilter.value = '';
-            statusFilter.value = '';
-            protagonistFilter.value = '';
-
-
-            // Re-sincroniza e atualiza a exibição
-            if (userId) {
-                const currentDataArray = view === 'games' ? allGames : allHQs;
-                if (currentDataArray.length > 0) {
-                     refreshDisplay();
-                     toggleLoading(false);
+            try {
+                if (isEditing) {
+                    const itemRef = doc(db, collectionPath, itemIdInput.value);
+                    await setDoc(itemRef, itemData, { merge: true });
+                    showMessage(`${currentConfig.title.slice(0, -1)} atualizado com sucesso!`);
                 } else {
-                    syncData(view); 
+                    // Adicionar timestamp de criação apenas ao criar
+                    itemData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, collectionPath), itemData);
+                    showMessage(`${currentConfig.title.slice(0, -1)} adicionado com sucesso!`);
                 }
-            } else {
-                refreshDisplay(); // Exibe vazio se deslogado
-                toggleLoading(false);
+                closeModal();
+            } catch (error) {
+                console.error("Erro ao salvar item:", error);
+                showMessage(`Erro ao salvar: ${error.message}`, true);
             }
         };
 
-        const refreshDisplay = () => {
-            const currentDataArray = currentView === 'games' ? allGames : allHQs;
-            let itemsToRender = [...currentDataArray];
+        const deleteItem = async () => {
+            const itemId = itemIdInput.value;
+            if (!itemId) return;
+
+            const currentConfig = viewConfigs[currentView];
+            const collectionPath = getCollectionPath(currentView);
+            const itemRef = doc(db, collectionPath, itemId);
+
+            // Implementação de caixa de diálogo personalizada (substitui alert/confirm)
+            const confirmationModal = document.createElement('div');
+            confirmationModal.className = 'fixed inset-0 z-[60] overflow-y-auto bg-black bg-opacity-75 flex items-center justify-center';
+            confirmationModal.innerHTML = `
+                <div class="relative w-11/12 max-w-sm mx-auto p-6 bg-[#2a2a2a] rounded-lg shadow-xl text-center">
+                    <p class="text-white text-lg">Tem certeza que deseja excluir este item?</p>
+                    <div class="mt-4 flex justify-around">
+                        <button id="confirm-delete-btn" class="px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700">Excluir</button>
+                        <button id="cancel-delete-btn" class="px-4 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmationModal);
+
+            document.getElementById('confirm-delete-btn').onclick = async () => {
+                try {
+                    await deleteDoc(itemRef);
+                    showMessage(`${currentConfig.title.slice(0, -1)} excluído com sucesso!`);
+                    closeModal();
+                } catch (error) {
+                    console.error("Erro ao excluir item:", error);
+                    showMessage(`Erro ao excluir: ${error.message}`, true);
+                } finally {
+                    document.body.removeChild(confirmationModal);
+                }
+            };
+
+            document.getElementById('cancel-delete-btn').onclick = () => {
+                document.body.removeChild(confirmationModal);
+            };
+        };
+
+        // --- Lógica de Exibição e Filtros ---
+
+        const filterAndSortItems = (items) => {
+            let itemsToRender = [...items];
+            const currentConfig = viewConfigs[currentView];
+
+            // 1. Aplicar Filtros
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            if (searchTerm) {
+                itemsToRender = itemsToRender.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    (item.protagonist && item.protagonist.toLowerCase().includes(searchTerm))
+                );
+            }
             
-            // 1. Aplicar Filtro de Estrelas
             const starValue = starsFilter.value;
             if (starValue) {
                 const starInt = parseInt(starValue);
                 itemsToRender = itemsToRender.filter(item => (item.stars || 0) === starInt);
             }
 
-            // 2. Aplicar Filtro de Status
             const statusValue = statusFilter.value;
             if (statusValue) {
                 itemsToRender = itemsToRender.filter(item => item.status === statusValue);
             }
-            
-            // 3. NOVO: Aplicar Filtro de Protagonista (Apenas para HQs)
-            if (currentView === 'hqs') {
-                const protagonistValue = protagonistFilter.value;
-                if (protagonistValue) {
-                    itemsToRender = itemsToRender.filter(item => item.protagonist === protagonistValue);
-                }
-            }
 
-            // 4. Aplicar Pesquisa
-            const searchTerm = searchInput.value.toLowerCase();
-            if (searchTerm) {
-                itemsToRender = itemsToRender.filter(item =>
-                    item.name.toLowerCase().includes(searchTerm)
-                );
-            }
-
-            // 5. Aplicar Ordenação
-            const criteria = sortSelect.value;
-            switch (criteria) {
-                case 'name-asc':
-                    itemsToRender.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 'stars-desc':
-                    itemsToRender.sort((a, b) => b.stars - a.stars);
-                    break;
-                case 'createdAt-desc':
-                    itemsToRender.sort((a, b) => {
-                        const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-                        const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+            // 2. Aplicar Ordenação (Sorting feito em memória, não no Firestore)
+            const sortValue = sortSelect.value;
+            if (sortValue) {
+                itemsToRender.sort((a, b) => {
+                    if (sortValue === 'name-asc') {
+                        return (a.name || '').localeCompare(b.name || '');
+                    } else if (sortValue === 'stars-desc') {
+                        return (b.stars || 0) - (a.stars || 0);
+                    } else if (sortValue === 'createdAt-desc') {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
                         return dateB - dateA;
-                    });
-                    break;
-                case 'dateStart-asc': // Games: Data de Início | HQs: Protagonista
-                    if (currentView === 'games') {
-                        itemsToRender.sort((a, b) => {
-                            if (!a.dateStart) return 1;
-                            if (!b.dateStart) return -1;
-                            return a.dateStart.localeCompare(b.dateStart);
-                        });
-                    } else { // HQs: Ordenar por Protagonista (A-Z)
-                        itemsToRender.sort((a, b) => (a.protagonist || '').localeCompare(b.protagonist || ''));
+                    } else if (sortValue === 'dateStart-asc') {
+                        // Ordenação por Data de Início (Games) ou Protagonista (HQs)
+                        const field = currentView === 'games' ? currentConfig.dateField : 'protagonist';
+                        const valA = a[field] || '';
+                        const valB = b[field] || '';
+                        if (currentView === 'games') {
+                            // Comparação de datas YYYY-MM-DD
+                             return valA.localeCompare(valB);
+                        } else {
+                            // Comparação de strings (Protagonista)
+                            return valA.localeCompare(valB);
+                        }
+                    } else if (sortValue === 'hours-desc') {
+                        // Ordenação por Horas Jogadas (Games) ou Capítulos Lidos (HQs)
+                        const field = currentConfig.countField;
+                        return (b[field] || 0) - (a[field] || 0);
                     }
-                    break;
-                case 'hours-desc':
-                    itemsToRender.sort((a, b) => (b.hours || 0) - (a.hours || 0));
-                    break;
-                default:
-                    break;
-            }
-            renderItems(itemsToRender);
-        };
-
-        const renderItems = (itemsToRender) => {
-            cardsView.innerHTML = '';
-            const isHQView = currentView === 'hqs';
-            const countLabel = viewConfigs[currentView].countLabel;
-
-            if (itemsToRender.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                itemsToRender.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card rounded-lg overflow-hidden shadow-lg cursor-pointer flex flex-col items-center p-4';
-                    card.onclick = () => openEditModal(item);
-                    
-                    const starRating = '<div class="flex text-3xl text-yellow-400">' + Array(item.stars || 0).fill('★').join('') + '</div>';
-                    
-                    let secondaryInfo = '';
-                    let imageContent;
-
-                    if (!isHQView) {
-                        // GAMES (Paisagem padrão)
-                        let dateString = '';
-                        if (item.dateStart && item.dateEnd) {
-                            dateString = `${formatDate(item.dateStart)} - ${formatDate(item.dateEnd)}`;
-                        } else if (item.dateEnd) {
-                            dateString = formatDate(item.dateEnd);
-                        }
-                        if (dateString) {
-                            secondaryInfo += `<p class="text-sm text-gray-400">${dateString}</p>`;
-                        }
-                        
-                        imageContent = `
-                            <img src="${item.image}" alt="${item.name}" class="card-image-games w-full object-cover rounded-md mb-4" 
-                                onerror="this.src='https://placehold.co/400x200/555/eee?text=No+Image';">
-                        `;
-
-                    } else { 
-                        // HQs (Retrato 3:4) - NOVO
-                         if (item.protagonist) {
-                            secondaryInfo += `<p class="text-sm text-gray-400">Protagonista: ${item.protagonist}</p>`;
-                        }
-                        if (item.totalChapters && item.totalChapters > 0) {
-                            secondaryInfo += `<p class="text-sm text-gray-400">Total Capítulos: ${item.totalChapters}</p>`;
-                        }
-                        
-                        imageContent = `
-                            <div class="card-image-hqs rounded-md mb-4">
-                                <img src="${item.image}" alt="${item.name}" 
-                                    onerror="this.src='https://placehold.co/210x280/555/eee?text=Capa';">
-                            </div>
-                        `;
-                    }
-                    
-                    card.innerHTML = `
-                        ${imageContent}
-                        <div class="text-center w-full">
-                            <h3 class="text-lg font-semibold text-white truncate">${item.name}</h3>
-                            ${secondaryInfo}
-                            ${(item.hours || 0) > 0 ? `<p class="text-sm text-gray-400">${countLabel}: ${item.hours}</p>` : ''}
-                            <p class="text-sm text-gray-400">Status: ${item.status}</p>
-                            <div class="flex justify-center mt-2">${starRating}</div>
-                        </div>
-                    `;
-                    cardsView.appendChild(card);
+                    return 0;
                 });
             }
+
+            return itemsToRender;
         };
-
-        // Abre o modal para adicionar/editar um item
-        const openAddModal = () => {
-            const config = viewConfigs[currentView];
-            modalTitle.textContent = `Adicionar ${config.title.slice(0, -1)}`;
-            itemForm.reset();
-            itemIdInput.value = '';
-            deleteItemBtn.classList.add('hidden');
+        
+        const renderCards = (items) => {
+            cardsView.innerHTML = '';
             
-            if (currentView === 'games') {
-                fieldsGames.classList.remove('hidden');
-                fieldsHQs.classList.add('hidden');
-                itemHoursPlayedInput.value = '';
-            } else { 
-                fieldsGames.classList.add('hidden');
-                fieldsHQs.classList.remove('hidden');
-                itemTotalChaptersInput.value = '';
-                itemProtagonistInput.value = ''; // NOVO CAMPO
-                itemChaptersReadInput.value = '';
-            }
-            
-            itemStatusSelect.innerHTML = '';
-            config.statusOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option.value;
-                opt.textContent = option.text;
-                itemStatusSelect.appendChild(opt);
-            });
-            
-            itemModal.classList.remove('hidden');
-        };
-
-        const openEditModal = (item) => {
-            const config = viewConfigs[currentView];
-            modalTitle.textContent = `Editar ${config.title.slice(0, -1)}`;
-            
-            itemIdInput.value = item.id;
-            itemNameInput.value = item.name;
-            itemImageInput.value = item.image;
-            itemStarsInput.value = item.stars;
-            itemNotesInput.value = item.notes;
-            
-            itemStatusSelect.innerHTML = '';
-            config.statusOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option.value;
-                opt.textContent = option.text;
-                itemStatusSelect.appendChild(opt);
-            });
-            itemStatusSelect.value = item.status || config.statusOptions[0].value;
-            
-            if (currentView === 'games') {
-                fieldsGames.classList.remove('hidden');
-                fieldsHQs.classList.add('hidden');
-                itemDateStartInput.value = item.dateStart || '';
-                itemDateEndInput.value = item.dateEnd || '';
-                itemHoursPlayedInput.value = item.hours || '';
-                itemTotalChaptersInput.value = '';
-                itemProtagonistInput.value = '';
-                itemChaptersReadInput.value = '';
-
-            } else { 
-                fieldsGames.classList.add('hidden');
-                fieldsHQs.classList.remove('hidden');
-                itemTotalChaptersInput.value = item.totalChapters || '';
-                itemProtagonistInput.value = item.protagonist || ''; // NOVO CAMPO
-                itemChaptersReadInput.value = item.hours || ''; // Popula Capítulos Lidos (usa a key 'hours' do Firestore)
-                itemDateStartInput.value = '';
-                itemDateEndInput.value = '';
-                itemHoursPlayedInput.value = '';
-            }
-            
-            deleteItemBtn.classList.remove('hidden');
-            itemModal.classList.remove('hidden');
-        };
-
-        // Fecha o modal
-        const closeModal = () => {
-            itemModal.classList.add('hidden');
-        };
-
-        // Lida com o envio do formulário (Adicionar/Editar)
-        itemForm.onsubmit = async (e) => {
-            e.preventDefault();
-            if (!userId) {
-                showMessage("Por favor, faça login para salvar itens.", true);
+            if (items.length === 0) {
+                emptyState.classList.remove('hidden');
                 return;
-            }
-            toggleLoading(true);
-
-            const itemId = itemIdInput.value;
-            const config = viewConfigs[currentView];
-            
-            let itemData = {
-                name: itemNameInput.value,
-                image: itemImageInput.value || 'https://placehold.co/400x200/555/eee?text=No+Image',
-                stars: parseInt(itemStarsInput.value) || 0,
-                status: itemStatusSelect.value,
-                notes: itemNotesInput.value,
-            };
-            
-            if (currentView === 'games') {
-                itemData = {
-                    ...itemData,
-                    hours: parseInt(itemHoursPlayedInput.value) || 0, // Horas Jogadas
-                    dateStart: itemDateStartInput.value,
-                    dateEnd: itemDateEndInput.value,
-                    totalChapters: null,
-                    protagonist: null
-                };
-            } else { 
-                itemData = {
-                    ...itemData,
-                    hours: parseInt(itemChaptersReadInput.value) || 0, // Capítulos Lidos
-                    totalChapters: parseInt(itemTotalChaptersInput.value) || 0,
-                    protagonist: itemProtagonistInput.value.trim(), // NOVO CAMPO
-                    dateStart: null,
-                    dateEnd: null
-                };
+            } else {
+                emptyState.classList.add('hidden');
             }
 
-            const collectionPath = config.collection.replace('{userId}', userId);
-            
-            try {
-                if (itemId) {
-                    await setDoc(doc(db, collectionPath, itemId), itemData);
-                    showMessage(`${config.title.slice(0, -1)} atualizado com sucesso!`);
-                } else {
-                    await addDoc(collection(db, collectionPath), { ...itemData, createdAt: serverTimestamp() });
-                    showMessage(`${config.title.slice(0, -1)} adicionado com sucesso!`);
+            const currentConfig = viewConfigs[currentView];
+
+            items.forEach(item => {
+                let badgeClass = 'bg-gray-700';
+                if (item.status === 'Zerado' || item.status === 'Lido') badgeClass = 'bg-green-600';
+                else if (item.status === 'Jogando' || item.status === 'Lendo') badgeClass = 'bg-blue-600';
+                else if (item.status === 'Dropei') badgeClass = 'bg-red-600';
+                
+                let detailsHtml = '';
+                if (currentView === 'games') {
+                    const hoursText = item.hoursPlayed > 0 ? `${item.hoursPlayed}h` : '';
+                    const dateText = formatDate(item.dateStart);
+                    detailsHtml = `
+                        <p class="text-sm text-gray-400">Início: ${dateText || 'N/A'}</p>
+                        <p class="text-sm text-gray-400">${currentConfig.countLabel}: ${hoursText || 'N/A'}</p>
+                    `;
+                } else { // HQs
+                    const progressText = item.totalChapters > 0 
+                        ? `${item.chaptersRead || 0} / ${item.totalChapters}`
+                        : `${item.chaptersRead || 0} Capítulos`;
+                    detailsHtml = `
+                        <p class="text-sm text-gray-400">Protagonista: ${item.protagonist || 'N/A'}</p>
+                        <p class="text-sm text-gray-400">Progresso: ${progressText}</p>
+                    `;
                 }
-                closeModal();
-            } catch (error) {
-                console.error("Erro ao salvar o item: ", error);
-                showMessage(`Erro ao salvar o item: ${error.message}`, true);
-            } finally {
-                toggleLoading(false);
-            }
-        };
 
-        // Lida com a exclusão de um item
-        deleteItemBtn.onclick = async () => {
-            toggleLoading(true);
-            const itemId = itemIdInput.value;
-            const config = viewConfigs[currentView];
-            const collectionPath = config.collection.replace('{userId}', userId);
+                const cardHtml = `
+                    <div class="card bg-[#2a2a2a] rounded-lg p-4 shadow-xl flex flex-col cursor-pointer" data-id="${item.id}">
+                        <div class="flex-shrink-0 mb-4 h-40 bg-gray-800 rounded-md overflow-hidden relative">
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" 
+                                onerror="this.onerror=null; this.src='https://placehold.co/400x200/333333/ffffff?text=Sem+Imagem';"
+                            >
+                            <span class="absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full ${badgeClass}">${item.status}</span>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="text-xl font-semibold mb-2 truncate text-white">${item.name}</h3>
+                            <div class="mb-2">
+                                ${renderStarRating(item.stars)}
+                            </div>
+                            ${detailsHtml}
+                        </div>
+                    </div>
+                `;
+                cardsView.insertAdjacentHTML('beforeend', cardHtml);
+            });
             
-            try {
-                await deleteDoc(doc(db, collectionPath, itemId));
-                showMessage(`${config.title.slice(0, -1)} excluído com sucesso!`);
-                closeModal();
-            } catch (error) {
-                console.error("Erro ao excluir o item: ", error);
-                showMessage(`Erro ao excluir o item: ${error.message}`, true);
-            } finally {
-                toggleLoading(false);
-            }
+            // Adiciona listener de clique aos cards para edição
+            cardsView.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', () => openModal(card.dataset.id));
+            });
         };
 
-        // Lidar com eventos de UI
-        addItemBtn.addEventListener('click', () => {
-            if (userId) {
-                openAddModal();
-            } else {
-                showMessage("Por favor, faça login para adicionar itens.", true);
-            }
-        });
-        closeModalBtn.addEventListener('click', closeModal);
-        searchBtn.onclick = () => {
-            searchContainer.classList.toggle('hidden');
-            if (!searchContainer.classList.contains('hidden')) {
-                searchInput.focus();
-            }
+        const refreshDisplay = () => {
+            const currentDataArray = currentView === 'games' ? allGames : allHQs;
+            const itemsToRender = filterAndSortItems(currentDataArray);
+            renderCards(itemsToRender);
         };
 
-        // Eventos de filtro e ordenação
-        searchInput.oninput = refreshDisplay;
-        sortSelect.onchange = refreshDisplay;
-        starsFilter.onchange = refreshDisplay;
-        statusFilter.onchange = refreshDisplay;
-        protagonistFilter.onchange = refreshDisplay; // NOVO EVENTO DE FILTRO
-        
-        // Eventos de Navegação
-        navGames.addEventListener('click', () => switchView('games'));
-        navHQs.addEventListener('click', () => switchView('hqs'));
+        const populateProtagonistDatalist = () => {
+            const protagonistSet = new Set();
+            allHQs.forEach(item => {
+                if (item.protagonist) {
+                    protagonistSet.add(item.protagonist);
+                }
+            });
 
-        // Auth Modal & Logic
-        authBtn.addEventListener('click', () => {
-            if (userId) {
-                logoutModal.classList.remove('hidden');
-            } else {
-                authModal.classList.remove('hidden');
-            }
-        });
-        
-        closeAuthModalBtn.addEventListener('click', () => {
-            authModal.classList.add('hidden');
-            authErrorMessage.classList.add('hidden');
-        });
-        
-        cancelLogoutBtn.addEventListener('click', () => {
-            logoutModal.classList.add('hidden');
-        });
+            protagonistList.innerHTML = '';
+            protagonistSet.forEach(protagonist => {
+                const option = document.createElement('option');
+                option.value = protagonist;
+                protagonistList.appendChild(option);
+            });
+        };
 
-        confirmLogoutBtn.addEventListener('click', async () => {
-            await signOut(auth);
-            logoutModal.classList.add('hidden');
-            showMessage("Você saiu da sua conta.");
-        });
+        // --- Lógica de Autenticação ---
 
-        registerBtn.addEventListener('click', async () => {
-            const email = authEmailInput.value;
-            const password = authPasswordInput.value;
-            try {
-                toggleLoading(true);
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Conta criada e login realizado com sucesso!");
-                authModal.classList.add('hidden');
-            } catch (error) {
-                authErrorMessage.textContent = "Erro ao cadastrar: " + error.message;
-                authErrorMessage.classList.remove('hidden');
-                console.error("Erro de cadastro: ", error);
-            } finally {
-                toggleLoading(false);
-            }
-        });
-        
-        loginBtn.addEventListener('click', async (e) => {
+        const handleAuthSubmit = async (e) => {
             e.preventDefault();
             const email = authEmailInput.value;
             const password = authPasswordInput.value;
+            const action = e.submitter.id;
+
+            authErrorMessage.classList.add('hidden');
+
             try {
-                toggleLoading(true);
-                await signInWithEmailAndPassword(auth, email, password);
-                showMessage("Login realizado com sucesso!");
-                authModal.classList.add('hidden');
+                if (action === 'login-btn') {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showMessage("Login realizado com sucesso!");
+                } else if (action === 'register-btn') {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showMessage("Cadastro realizado com sucesso! Você está logado.");
+                }
+                closeAuthModal();
             } catch (error) {
-                authErrorMessage.textContent = "Erro de login: " + error.message;
+                console.error("Erro de autenticação:", error);
+                let message = "Ocorreu um erro na autenticação.";
+                if (error.code === 'auth/user-not-found') message = "Usuário não encontrado.";
+                else if (error.code === 'auth/wrong-password') message = "Senha incorreta.";
+                else if (error.code === 'auth/email-already-in-use') message = "Este email já está cadastrado.";
+                else if (error.code === 'auth/weak-password') message = "A senha deve ter pelo menos 6 caracteres.";
+                
+                authErrorMessage.textContent = message;
                 authErrorMessage.classList.remove('hidden');
-                console.error("Erro de login: ", error);
-            } finally {
+            }
+        };
+        
+        const handleLogout = async () => {
+            try {
+                await signOut(auth);
+                showMessage("Você saiu da sua conta.");
+                closeLogoutModal();
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                showMessage(`Erro ao sair: ${error.message}`, true);
+            }
+        };
+
+        // --- Lógica de Visualização (Switch View) ---
+
+        const switchView = (view) => {
+            if (currentView === view && (view === 'games' ? allGames.length > 0 : allHQs.length > 0)) return;
+
+            currentView = view;
+            toggleLoading(true);
+
+            // 1. Atualiza o estado visual da nav bar
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`nav-${view}`).classList.add('active');
+
+            // 2. Atualiza títulos e labels
+            const config = viewConfigs[view];
+            mainTitle.textContent = config.title;
+            labelName.textContent = config.nameLabel;
+
+            // 3. Controla a visibilidade dos campos específicos
+            fieldsGames.classList.toggle('hidden', view !== 'games');
+            fieldsHQs.classList.toggle('hidden', view !== 'hqs');
+            
+            // 4. Ajusta as labels de ordenação específicas
+            sortSelect.querySelector('option[value="dateStart-asc"]').textContent = config.sortLabelProtagonist;
+            sortSelect.querySelector('option[value="hours-desc"]').textContent = config.sortLabelCount;
+
+            // 5. Preenche as opções de Status (Modal e Filtro)
+            const populateSelect = (selectElement) => {
+                selectElement.innerHTML = selectElement === statusFilter 
+                    ? '<option value="">Filtrar por Status...</option>'
+                    : '<option value="">Selecione o Status</option>';
+
+                config.statusOptions.forEach(option => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.text;
+                    selectElement.appendChild(opt);
+                });
+            };
+            populateSelect(itemStatusSelect);
+            populateSelect(statusFilter);
+
+            // 6. Limpa filtros/pesquisa e atualiza display
+            searchInput.value = '';
+            starsFilter.value = '';
+            statusFilter.value = '';
+
+            // Se o usuário estiver logado, sincroniza os dados
+            if (userId) {
+                const currentDataArray = view === 'games' ? allGames : allHQs;
+                if (currentDataArray.length === 0) {
+                     syncData(view);
+                } else {
+                     refreshDisplay();
+                     toggleLoading(false);
+                }
+            } else {
+                // Se deslogado, mostra o estado vazio/limpo
+                allGames = [];
+                allHQs = [];
+                refreshDisplay();
                 toggleLoading(false);
             }
-        });
-        
-        // --- Inicialização e Autenticação ---
-        toggleLoading(true);
+        };
 
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        if (initialAuthToken) {
-            // Tentativa de login com token personalizado
-            signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                console.warn("Custom token sign-in failed. Falling back to anonymous.", e);
-                signInAnonymously(auth);
-            });
-        } else {
-             // Login anônimo se não houver token
-             signInAnonymously(auth);
-        }
+        // --- Inicialização e Event Listeners ---
         
+        const setupEventListeners = () => {
+            addItemBtn.addEventListener('click', () => openModal());
+            closeModalBtn.addEventListener('click', closeModal);
+            itemForm.addEventListener('submit', handleFormSubmit);
+            deleteItemBtn.addEventListener('click', deleteItem);
+            
+            // Eventos de Autenticação
+            authBtn.addEventListener('click', () => {
+                if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                    openLogoutModal();
+                } else {
+                    openAuthModal();
+                }
+            });
+            document.getElementById('close-auth-modal-btn').addEventListener('click', closeAuthModal);
+            document.getElementById('cancel-logout-btn').addEventListener('click', closeLogoutModal);
+            document.getElementById('confirm-logout-btn').addEventListener('click', handleLogout);
+            authForm.addEventListener('submit', handleAuthSubmit);
+
+            // Eventos de Navegação e Filtros
+            navGames.addEventListener('click', () => switchView('games'));
+            navHQs.addEventListener('click', () => switchView('hqs'));
+
+            searchBtn.addEventListener('click', () => searchContainer.classList.toggle('hidden'));
+            
+            // Dispara refreshDisplay em qualquer alteração de filtro/sort
+            searchInput.addEventListener('input', refreshDisplay);
+            sortSelect.addEventListener('change', refreshDisplay);
+            starsFilter.addEventListener('change', refreshDisplay);
+            statusFilter.addEventListener('change', refreshDisplay);
+        };
+        
+        const initAuth = async () => {
+             // 1. Tenta autenticar usando o token personalizado do Canvas (se disponível)
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("[Auth] Signed in with custom token.");
+                } catch (error) {
+                    console.error("[Auth Error] Custom token failed, signing in anonymously:", error);
+                    // 2. Se o token falhar ou não existir, faz login anônimo
+                    await signInAnonymously(auth);
+                }
+            } else {
+                // 2. Se o token falhar ou não existir, faz login anônimo
+                await signInAnonymously(auth);
+            }
+        };
+
+        // Listener principal de estado de autenticação
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
-                userIdDisplay.textContent = user.uid;
+                userIdDisplay.textContent = user.isAnonymous ? `${userId} (Anônimo)` : userId;
+                authBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
                 
-                // Inicia a sincronização de ambas as coleções
+                // Inicia a sincronização para a view padrão ('games')
                 syncData('games');
-                syncData('hqs');
-                
-                // Exibe a view inicial (games)
-                switchView('games');
+                // Sincroniza a view secundária também, se necessário (para datalist)
+                syncData('hqs'); 
 
             } else {
                 // Usuário deslogado
                 userId = null;
                 userIdDisplay.textContent = 'Não autenticado';
+                authBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                `;
                 allGames = [];
                 allHQs = [];
-                // Sincroniza a view atual para o estado vazio/não autenticado
-                switchView(currentView); 
+                switchView(currentView); // Atualiza para o estado vazio
+                toggleLoading(false);
             }
         });
+
+        // Executa a inicialização principal
+        window.onload = () => {
+            setupEventListeners();
+            toggleLoading(true);
+            initAuth();
+            switchView(currentView); // Configura o display inicial (Games)
+        };
     </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            padding-bottom: 6rem; /* Garante que o conteúdo role acima da barra de navegação */
+        }
+        .card {
+            background-color: #333;
+            border: 2px solid #555;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #3a7bc0;
+        }
+        .nav-item {
+            color: #777;
+            transition: color 0.2s;
+        }
+        .nav-item.active {
+            color: #4a90e2;
+            font-weight: 600;
+        }
+        /* Estilo para garantir que o modal cubra tudo no iOS */
+        .fixed {
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+        }
+    </style>
+</head>
+<body class="bg-[#1a1a1a] text-gray-200">
+    <!-- Spinner de Carregamento -->
+    <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+
+    <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
+        <!-- Header Section -->
+        <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
+            <h1 id="main-title" class="text-3xl sm:text-4xl font-bold">Games</h1>
+            <div class="flex space-x-2 sm:space-x-4">
+                <button id="auth-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition" title="Autenticação">
+                    <!-- Icone será atualizado via JS -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </button>
+                <button id="add-item-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition btn-primary" title="Adicionar Item">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+                <button id="search-btn" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition" title="Pesquisar/Filtrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- User ID Display -->
+        <div class="mb-4 bg-gray-800 p-2 rounded-lg break-words">
+            <span class="text-xs text-gray-500">ID do Usuário: </span><span id="user-id-display" class="text-xs text-blue-400 font-mono">Não autenticado</span>
+        </div>
+
+        <!-- Search, Sort and Filter Section -->
+        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden transition-all duration-300 ease-in-out p-4 bg-[#2a2a2a] rounded-lg">
+            <input type="text" id="search-input" placeholder="Pesquisar por nome ou protagonista..." class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="sort-select" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Ordenar por...</option>
+                <option value="name-asc">Nome (A-Z)</option>
+                <option value="stars-desc">Estrelas (Maior)</option>
+                <option value="createdAt-desc">Mais Recentes</option>
+                <!-- Estas opções terão o texto dinamicamente ajustado pelo JS -->
+                <option value="dateStart-asc">Data de Início</option>
+                <option value="hours-desc">Horas Jogadas/Páginas (Maior)</option>
+            </select>
+            <select id="stars-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Filtrar por Estrelas...</option>
+                <option value="5">5 Estrelas</option>
+                <option value="4">4 Estrelas</option>
+                <option value="3">3 Estrelas</option>
+                <option value="2">2 Estrelas</option>
+                <option value="1">1 Estrela</option>
+                <option value="0">Nenhuma Estrela</option>
+            </select>
+            <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Filtrar por Status...</option>
+                <!-- Options will be dynamically populated in JS -->
+            </select>
+        </div>
+
+        <!-- Main Content Section -->
+        <main id="main-content">
+            <!-- Cards View -->
+            <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Cards serão inseridos aqui -->
+            </div>
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center p-12 bg-[#2a2a2a] rounded-lg border-2 border-dashed border-gray-600 hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 11l7.68-7.68a1 1 0 011.41 0L21 11" />
+                </svg>
+                <p class="text-xl text-gray-400">Nenhum item cadastrado. Comece adicionando um novo item!</p>
+            </div>
+        </main>
+
+        <!-- Modal for Add/Edit Item (Game/HQ) -->
+        <div id="item-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+            <div class="relative w-11/12 max-w-lg mx-auto my-10 p-6 bg-[#2a2a2a] rounded-xl shadow-2xl transform transition-all duration-300">
+                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
+                    <h2 id="modal-title" class="text-2xl font-semibold text-white">Adicionar Item</h2>
+                    <button id="close-modal-btn" type="button" class="p-2 rounded-full hover:bg-gray-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="item-form" class="mt-4 space-y-4">
+                    <input type="hidden" id="item-id">
+                    <div>
+                        <label for="item-name" class="block text-sm font-medium text-gray-400"><span id="label-name">Nome</span> *</label>
+                        <input type="text" id="item-name" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="item-image" class="block text-sm font-medium text-gray-400">URL da Imagem</label>
+                        <input type="url" id="item-image" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="item-stars" class="block text-sm font-medium text-gray-400">Estrelas</label>
+                            <select id="item-stars" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Avaliar</option>
+                                <option value="1">1 Estrela</option>
+                                <option value="2">2 Estrelas</option>
+                                <option value="3">3 Estrelas</option>
+                                <option value="4">4 Estrelas</option>
+                                <option value="5">5 Estrelas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="item-status" class="block text-sm font-medium text-gray-400">Status *</label>
+                            <select id="item-status" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <!-- Options will be dynamically populated -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Campos específicos para GAMES -->
+                    <div id="fields-games" class="space-y-4 p-4 border border-gray-700 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-400">Detalhes do Jogo</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="item-date-start" class="block text-sm font-medium text-gray-400">Data de Início</label>
+                                <input type="date" id="item-date-start" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="item-date-end" class="block text-sm font-medium text-gray-400">Data de Término</label>
+                                <input type="date" id="item-date-end" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="item-count-games" class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
+                            <input type="number" id="item-count-games" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Campos específicos para HQs -->
+                    <div id="fields-hqs" class="space-y-4 hidden p-4 border border-gray-700 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-400">Detalhes da HQ</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="item-total-chapters" class="block text-sm font-medium text-gray-400">Capítulos Totais</label>
+                                <input type="number" id="item-total-chapters" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                            </div>
+                            <div>
+                                <label for="item-count-hqs" class="block text-sm font-medium text-gray-400">Capítulos Lidos</label>
+                                <input type="number" id="item-count-hqs" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="item-protagonist" class="block text-sm font-medium text-gray-400">Protagonista</label>
+                            <input type="text" id="item-protagonist" list="protagonist-list" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <datalist id="protagonist-list">
+                                <!-- Opções de protagonistas serão preenchidas via JS -->
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="item-notes" class="block text-sm font-medium text-gray-400">Observações</label>
+                        <textarea id="item-notes" rows="4" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full px-4 py-3 rounded-md font-semibold btn-primary text-lg shadow-md hover:shadow-lg">Salvar Item</button>
+                    <button type="button" id="delete-item-btn" class="w-full px-4 py-3 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg hidden">Excluir Item</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="auth-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-xl shadow-2xl">
+                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
+                    <h2 class="text-2xl font-semibold text-white">Entrar ou Cadastrar</h2>
+                    <button id="close-auth-modal-btn" type="button" class="p-2 rounded-full hover:bg-gray-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="auth-form" class="mt-4 space-y-4">
+                    <div>
+                        <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
+                        <input type="email" id="auth-email" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="auth-password" class="block text-sm font-medium text-gray-400">Senha</label>
+                        <input type="password" id="auth-password" class="mt-1 w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div id="auth-error-message" class="mt-4 text-red-400 text-sm hidden p-2 bg-red-900 bg-opacity-30 rounded-md"></div>
+                    <button type="submit" id="login-btn" class="w-full px-4 py-3 rounded-md font-semibold btn-primary">Entrar</button>
+                    <button type="submit" id="register-btn" class="w-full px-4 py-3 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+            <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-xl shadow-2xl text-center">
+                <p class="text-white text-lg">Tem certeza que deseja sair?</p>
+                <div class="mt-6 flex justify-around">
+                    <button id="confirm-logout-btn" class="px-5 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700">Sair</button>
+                    <button id="cancel-logout-btn" class="px-5 py-2 rounded-md font-semibold bg-gray-600 text-white hover:bg-gray-700">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Message Box -->
+        <div id="message-box" class="fixed bottom-20 sm:bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden transition-all duration-300 transform translate-y-full"></div>
+    </div>
+
+    <!-- Bottom Navigation Bar (Mobile-style) -->
+    <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 bg-[#2a2a2a] border-t border-gray-700 shadow-xl z-40">
+        <div class="flex justify-around max-w-lg mx-auto">
+            <button id="nav-games" data-view="games" class="nav-item active p-3 flex-1 flex flex-col items-center">
+                <!-- Icone de Controle de Jogo -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+                <span class="text-xs mt-1">Games</span>
+            </button>
+            <button id="nav-hqs" data-view="hqs" class="nav-item p-3 flex-1 flex flex-col items-center">
+                <!-- Icone de Livro/HQ -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="text-xs mt-1">HQs</span>
+            </button>
+        </div>
+    </nav>
 </body>
 </html>
