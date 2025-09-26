@@ -12,7 +12,7 @@
             background-color: #1a1a1a;
             color: #e0e0e0;
             /* Garante que o conteúdo role acima da barra de navegação */
-            padding-bottom: 6rem;
+            padding-bottom: 6rem; 
         }
         .card {
             background-color: #333;
@@ -41,13 +41,37 @@
             color: #4a90e2; /* Cor ativa */
             font-weight: 600;
         }
+        
+        /* --- ESTILOS PARA FORMATO RETRATO (3:4) - NOVO --- */
+        /* Contêiner para forçar a proporção 3:4 (largura:altura) */
+        .card-image-hqs {
+            width: 100%;
+            /* 3:4 Aspect Ratio (Padding-Bottom é altura / largura * 100 -> 4/3 * 100 = 133.33%) */
+            padding-bottom: 133.33%; 
+            position: relative;
+            overflow: hidden;
+        }
+        .card-image-hqs img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* Estilo padrão para Games (paisagem) */
+        .card-image-games {
+             width: 100%;
+             height: 10rem; /* 160px padrão */
+             object-fit: cover;
+        }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-gray-200">
     <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
         <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-300"></div>
     </div>
-
+    
     <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
         <!-- Header Section -->
         <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
@@ -70,24 +94,24 @@
                 </button>
             </div>
         </header>
-
+        
         <!-- User ID Display -->
         <div class="mb-4">
             <span class="text-xs text-gray-500">ID do Usuário: </span><span id="user-id-display" class="text-xs text-gray-400 truncate">Não autenticado</span>
         </div>
 
         <!-- Search, Sort and Filter Section -->
-        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden">
-            <input type="text" id="search-input" placeholder="Pesquisar..." class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select id="sort-select" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 flex-wrap hidden">
+            <input type="text" id="search-input" placeholder="Pesquisar..." class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="sort-select" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Ordenar por...</option>
                 <option value="name-asc">Nome (A-Z)</option>
                 <option value="stars-desc">Estrelas (Maior)</option>
                 <option value="createdAt-desc">Mais Recentes</option>
-                <option value="dateStart-asc">Data de Início</option>
-                <option value="hours-desc">Horas Jogadas/Páginas (Maior)</option>
+                <option value="dateStart-asc">Data de Início/Protagonista</option>
+                <option value="hours-desc">Horas/Capítulos (Maior)</option>
             </select>
-            <select id="stars-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="stars-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filtrar por Estrelas...</option>
                 <option value="5">5 Estrelas</option>
                 <option value="4">4 Estrelas</option>
@@ -96,8 +120,13 @@
                 <option value="1">1 Estrela</option>
                 <option value="0">Nenhuma Estrela</option>
             </select>
-            <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="status-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filtrar por Status...</option>
+                <!-- Options will be dynamically populated in JS -->
+            </select>
+             <!-- NOVO FILTRO DE PROTAGONISTA -->
+            <select id="protagonist-filter" class="mt-1 w-full sm:flex-1 p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 hidden">
+                <option value="">Filtrar por Protagonista...</option>
                 <!-- Options will be dynamically populated in JS -->
             </select>
         </div>
@@ -105,7 +134,7 @@
         <!-- Main Content Section -->
         <main id="main-content">
             <!-- Cards View -->
-            <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Game/HQ cards will be dynamically inserted here -->
             </div>
             <!-- Empty State -->
@@ -176,21 +205,21 @@
                             <label for="item-total-chapters" class="block text-sm font-medium text-gray-400">Capítulos Totais</label>
                             <input type="number" id="item-total-chapters" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
                         </div>
-                         <!-- CAMPO CAPÍTULOS LIDOS (Para HQs, posicionado após Capítulos Totais) -->
+                         <!-- CAMPO CAPÍTULOS LIDOS (Para HQs) -->
                         <div>
                             <label for="item-count-hqs" class="block text-sm font-medium text-gray-400">Capítulos Lidos</label>
                             <input type="number" id="item-count-hqs" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
                         </div>
+                        <!-- NOVO CAMPO PROTAGONISTA -->
                         <div>
                             <label for="item-protagonist" class="block text-sm font-medium text-gray-400">Protagonista</label>
-                            <!-- Input com datalist para sugestões de protagonistas -->
                             <input type="text" id="item-protagonist" list="protagonist-list" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <datalist id="protagonist-list">
                                 <!-- Opções de protagonistas serão preenchidas via JS -->
                             </datalist>
                         </div>
                     </div>
-
+                    
                     <div>
                         <label for="item-notes" class="block text-sm font-medium text-gray-400">Observações</label>
                         <textarea id="item-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
@@ -227,7 +256,7 @@
                 <div id="auth-error-message" class="mt-4 text-red-400 text-sm hidden"></div>
             </div>
         </div>
-
+        
         <!-- Logout Confirmation Modal -->
         <div id="logout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
             <div class="relative w-11/12 max-w-sm mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg text-center">
@@ -242,7 +271,7 @@
         <!-- Notification Message Box -->
         <div id="message-box" class="fixed bottom-20 sm:bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden transition-all duration-300 transform translate-y-full"></div>
     </div>
-
+    
     <!-- Bottom Navigation Bar (Mobile-style) -->
     <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 bg-[#2a2a2a] border-t border-gray-700 shadow-xl z-40">
         <div class="flex justify-around max-w-lg mx-auto">
@@ -264,45 +293,39 @@
     <script type="module">
         // Importa as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+        
         // --- Configuração do Firebase usando suas credenciais ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-            authDomain: "list-games-9bddd.firebaseapp.com",
-            projectId: "list-games-9bddd",
-            storageBucket: "list-games-9bddd.firebaseapp.com",
-            messagingSenderId: "756898313156",
-            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-            measurementId: "G-GLM50YVLXP"
-        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
+        
         // --- Variáveis Globais ---
         let allGames = [];
         let allHQs = [];
         let userId = null;
         let currentView = 'games'; // Novo estado para controlar a aba
-
+        
         const mainApp = document.getElementById('main-app');
         const loadingSpinner = document.getElementById('loading-spinner');
         const messageBox = document.getElementById('message-box');
-
+        
         // UI Elements
         const mainTitle = document.getElementById('main-title');
         const authBtn = document.getElementById('auth-btn');
         const userIdDisplay = document.getElementById('user-id-display');
-        const addItemBtn = document.getElementById('add-item-btn');
+        const addItemBtn = document.getElementById('add-item-btn'); 
         const searchBtn = document.getElementById('search-btn');
         const searchContainer = document.getElementById('search-and-sort-container');
         const searchInput = document.getElementById('search-input');
         const sortSelect = document.getElementById('sort-select');
         const starsFilter = document.getElementById('stars-filter');
         const statusFilter = document.getElementById('status-filter');
+        const protagonistFilter = document.getElementById('protagonist-filter'); // NOVO FILTRO
         const cardsView = document.getElementById('cards-view');
         const emptyState = document.getElementById('empty-state');
 
@@ -326,14 +349,14 @@
         const fieldsGames = document.getElementById('fields-games');
         const itemDateStartInput = document.getElementById('item-date-start');
         const itemDateEndInput = document.getElementById('item-date-end');
-        const itemHoursPlayedInput = document.getElementById('item-count-games'); // Novo campo para Games
-
+        const itemHoursPlayedInput = document.getElementById('item-count-games'); 
+        
         // Form Fields (Específicos para HQs)
         const fieldsHQs = document.getElementById('fields-hqs');
         const itemTotalChaptersInput = document.getElementById('item-total-chapters');
-        const itemProtagonistInput = document.getElementById('item-protagonist');
-        const protagonistList = document.getElementById('protagonist-list');
-        const itemChaptersReadInput = document.getElementById('item-count-hqs'); // Novo campo para HQs
+        const itemProtagonistInput = document.getElementById('item-protagonist'); // NOVO CAMPO
+        const protagonistList = document.getElementById('protagonist-list'); // NOVO DATALIST
+        const itemChaptersReadInput = document.getElementById('item-count-hqs'); 
 
         const authModal = document.getElementById('auth-modal');
         const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
@@ -355,7 +378,7 @@
         const viewConfigs = {
             'games': {
                 title: 'Games',
-                collection: 'users/{userId}/games',
+                collection: `artifacts/${appId}/users/{userId}/games`,
                 data: allGames,
                 nameLabel: 'Nome do Jogo',
                 countLabel: 'Horas Jogadas',
@@ -371,7 +394,7 @@
             },
             'hqs': {
                 title: 'HQs',
-                collection: 'users/{userId}/hqs',
+                collection: `artifacts/${appId}/users/{userId}/hqs`,
                 data: allHQs,
                 nameLabel: 'Título da HQ',
                 countLabel: 'Capítulos Lidos',
@@ -405,12 +428,10 @@
             } else {
                 messageBox.classList.add('bg-green-600');
             }
-            messageBox.classList.remove('hidden', 'translate-y-full'); // Remove hidden and initial translation class
-
-            // Forces reflow to restart animation
-            void messageBox.offsetWidth;
-
-            // Add a temporary class that causes the transition effect
+            messageBox.classList.remove('hidden', 'translate-y-full');
+            
+            void messageBox.offsetWidth; 
+            
             messageBox.style.transition = 'transform 0.3s ease-out';
             messageBox.style.transform = 'translateY(0)';
 
@@ -419,9 +440,9 @@
                 messageBox.style.transform = 'translateY(100%)';
                 setTimeout(() => {
                     messageBox.classList.add('hidden');
-                    messageBox.style.transform = ''; // Reset transform for next use
-                }, 300); // tempo de espera para a animação
-            }, 3000); // 3 segundos antes de começar a animação de esconder
+                    messageBox.style.transform = '';
+                }, 300);
+            }, 3000);
         };
 
 
@@ -429,33 +450,42 @@
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const [year, month, day] = dateString.split('-');
-            // Verifica se a string tem o formato YYYY-MM-DD
-            if (year.length === 4) {
+            if (year && year.length === 4) {
                  return `${day}/${month}/${year}`;
             }
-            // Retorna a string original se o formato for desconhecido
             return dateString;
         };
-
-        // Extrai a lista de protagonistas únicos para o datalist
-        const populateProtagonistDatalist = () => {
+        
+        // NOVO: Extrai a lista de protagonistas únicos para o datalist e o filtro
+        const populateProtagonistData = () => {
             const protagonistSet = new Set();
             allHQs.forEach(item => {
                 if (item.protagonist) {
                     protagonistSet.add(item.protagonist);
                 }
             });
+            
+            const protagonists = Array.from(protagonistSet).sort();
 
+            // Atualiza Datalist (sugestões no modal)
             protagonistList.innerHTML = '';
-            protagonistSet.forEach(protagonist => {
+            protagonists.forEach(protagonist => {
                 const option = document.createElement('option');
                 option.value = protagonist;
                 protagonistList.appendChild(option);
             });
+            
+            // Atualiza Filtro (select)
+            protagonistFilter.innerHTML = '<option value="">Filtrar por Protagonista...</option>';
+            protagonists.forEach(protagonist => {
+                const opt = document.createElement('option');
+                opt.value = protagonist;
+                opt.textContent = protagonist;
+                protagonistFilter.appendChild(opt);
+            });
         };
 
         // --- Funções do Firestore ---
-        // Sincroniza a lista de itens (Games ou HQs)
         const syncData = (view) => {
             if (!userId) {
                 console.error("Usuário não autenticado.");
@@ -464,8 +494,7 @@
 
             const config = viewConfigs[view];
             const collectionPath = config.collection.replace('{userId}', userId);
-
-            console.log(`Tentando sincronizar dados de: ${view} em ${collectionPath}`);
+            
             const q = query(collection(db, collectionPath));
 
             onSnapshot(q, (querySnapshot) => {
@@ -478,10 +507,9 @@
                     allGames = items;
                 } else {
                     allHQs = items;
-                    populateProtagonistDatalist(); // Atualiza a lista de protagonistas
+                    populateProtagonistData(); // NOVO: Atualiza a lista de protagonistas e filtro
                 }
-
-                // Apenas atualiza a exibição se esta for a aba ativa
+                
                 if (currentView === view) {
                     refreshDisplay();
                 }
@@ -494,55 +522,56 @@
         };
 
         // --- Funções de UI e Lógica ---
-
-        // Altera a aba (Games/HQs)
+        
         const switchView = (view) => {
             if (currentView === view) return;
             toggleLoading(true);
             currentView = view;
-
-            // Atualiza o estado visual da nav bar
+            
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`nav-${view}`).classList.add('active');
-
-            // Atualiza o título, filtros e visibilidade dos campos específicos
+            
             const config = viewConfigs[view];
             mainTitle.textContent = config.title;
             labelName.textContent = config.nameLabel;
-
-            // Controla a visibilidade dos campos específicos
+            
+            // Controla a visibilidade dos campos específicos e filtros
             if (view === 'games') {
                 fieldsGames.classList.remove('hidden');
                 fieldsHQs.classList.add('hidden');
-                // Ajusta a opção de ordenação específica de games
-                sortSelect.querySelector('option[value="dateStart-asc"]').textContent = "Data de Início";
-                sortSelect.querySelector('option[value="hours-desc"]').textContent = "Horas Jogadas (Maior)";
+                protagonistFilter.classList.add('hidden'); // Esconde o filtro de protagonista
             } else { // 'hqs'
                 fieldsGames.classList.add('hidden');
                 fieldsHQs.classList.remove('hidden');
-                // Ajusta a opção de ordenação para HQs
-                 sortSelect.querySelector('option[value="dateStart-asc"]').textContent = "Protagonista"; // Usando o slot para protagonista por simplicidade
-                 sortSelect.querySelector('option[value="hours-desc"]').textContent = "Capítulos Lidos (Maior)";
+                protagonistFilter.classList.remove('hidden'); // Mostra o filtro de protagonista
             }
 
 
-            // Atualiza as opções de status (do Modal)
+            // Atualiza as opções de status (do Modal e Filtro)
             itemStatusSelect.innerHTML = '';
-            config.statusOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option.value;
-                opt.textContent = option.text;
-                itemStatusSelect.appendChild(opt);
-            });
-
-            // Atualiza as opções de status (do Filtro) - CORREÇÃO DO FILTRO
             statusFilter.innerHTML = '<option value="">Filtrar por Status...</option>';
             config.statusOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option.value;
-                opt.textContent = option.text;
-                statusFilter.appendChild(opt);
+                const optModal = document.createElement('option');
+                optModal.value = option.value;
+                optModal.textContent = option.text;
+                itemStatusSelect.appendChild(optModal);
+                
+                const optFilter = document.createElement('option');
+                optFilter.value = option.value;
+                optFilter.textContent = option.text;
+                statusFilter.appendChild(optFilter);
             });
+            
+            // Popula o filtro de protagonista (se for HQ)
+            if (view === 'hqs') {
+                populateProtagonistData(); 
+            }
+
+            // Limpa os filtros
+            searchInput.value = '';
+            starsFilter.value = '';
+            statusFilter.value = '';
+            protagonistFilter.value = '';
 
 
             // Re-sincroniza e atualiza a exibição
@@ -552,37 +581,40 @@
                      refreshDisplay();
                      toggleLoading(false);
                 } else {
-                    syncData(view);
+                    syncData(view); 
                 }
             } else {
                 refreshDisplay(); // Exibe vazio se deslogado
                 toggleLoading(false);
             }
-
-            // Limpa o campo de pesquisa e filtros
-            searchInput.value = '';
-            starsFilter.value = '';
-            statusFilter.value = '';
         };
 
-        // Atualiza a exibição com base nos filtros e ordenação atuais
         const refreshDisplay = () => {
             const currentDataArray = currentView === 'games' ? allGames : allHQs;
             let itemsToRender = [...currentDataArray];
-
-            // Aplicar Filtros
+            
+            // 1. Aplicar Filtro de Estrelas
             const starValue = starsFilter.value;
             if (starValue) {
                 const starInt = parseInt(starValue);
                 itemsToRender = itemsToRender.filter(item => (item.stars || 0) === starInt);
             }
 
+            // 2. Aplicar Filtro de Status
             const statusValue = statusFilter.value;
             if (statusValue) {
                 itemsToRender = itemsToRender.filter(item => item.status === statusValue);
             }
+            
+            // 3. NOVO: Aplicar Filtro de Protagonista (Apenas para HQs)
+            if (currentView === 'hqs') {
+                const protagonistValue = protagonistFilter.value;
+                if (protagonistValue) {
+                    itemsToRender = itemsToRender.filter(item => item.protagonist === protagonistValue);
+                }
+            }
 
-            // Aplicar Pesquisa
+            // 4. Aplicar Pesquisa
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
                 itemsToRender = itemsToRender.filter(item =>
@@ -590,7 +622,7 @@
                 );
             }
 
-            // Aplicar Ordenação
+            // 5. Aplicar Ordenação
             const criteria = sortSelect.value;
             switch (criteria) {
                 case 'name-asc':
@@ -606,7 +638,7 @@
                         return dateB - dateA;
                     });
                     break;
-                case 'dateStart-asc': // Para Games: Data de Início | Para HQs: Protagonista
+                case 'dateStart-asc': // Games: Data de Início | HQs: Protagonista
                     if (currentView === 'games') {
                         itemsToRender.sort((a, b) => {
                             if (!a.dateStart) return 1;
@@ -626,9 +658,11 @@
             renderItems(itemsToRender);
         };
 
-        // Renderiza os cards na tela
         const renderItems = (itemsToRender) => {
             cardsView.innerHTML = '';
+            const isHQView = currentView === 'hqs';
+            const countLabel = viewConfigs[currentView].countLabel;
+
             if (itemsToRender.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
@@ -637,13 +671,14 @@
                     const card = document.createElement('div');
                     card.className = 'card rounded-lg overflow-hidden shadow-lg cursor-pointer flex flex-col items-center p-4';
                     card.onclick = () => openEditModal(item);
-
+                    
                     const starRating = '<div class="flex text-3xl text-yellow-400">' + Array(item.stars || 0).fill('★').join('') + '</div>';
-
+                    
                     let secondaryInfo = '';
-                    const countLabel = viewConfigs[currentView].countLabel;
+                    let imageContent;
 
-                    if (currentView === 'games') {
+                    if (!isHQView) {
+                        // GAMES (Paisagem padrão)
                         let dateString = '';
                         if (item.dateStart && item.dateEnd) {
                             dateString = `${formatDate(item.dateStart)} - ${formatDate(item.dateEnd)}`;
@@ -653,17 +688,31 @@
                         if (dateString) {
                             secondaryInfo += `<p class="text-sm text-gray-400">${dateString}</p>`;
                         }
-                    } else { // HQs
-                        if (item.protagonist) {
+                        
+                        imageContent = `
+                            <img src="${item.image}" alt="${item.name}" class="card-image-games w-full object-cover rounded-md mb-4" 
+                                onerror="this.src='https://placehold.co/400x200/555/eee?text=No+Image';">
+                        `;
+
+                    } else { 
+                        // HQs (Retrato 3:4) - NOVO
+                         if (item.protagonist) {
                             secondaryInfo += `<p class="text-sm text-gray-400">Protagonista: ${item.protagonist}</p>`;
                         }
-                        if (item.totalChapters) {
+                        if (item.totalChapters && item.totalChapters > 0) {
                             secondaryInfo += `<p class="text-sm text-gray-400">Total Capítulos: ${item.totalChapters}</p>`;
                         }
+                        
+                        imageContent = `
+                            <div class="card-image-hqs rounded-md mb-4">
+                                <img src="${item.image}" alt="${item.name}" 
+                                    onerror="this.src='https://placehold.co/210x280/555/eee?text=Capa';">
+                            </div>
+                        `;
                     }
-
+                    
                     card.innerHTML = `
-                        <img src="${item.image}" alt="${item.name}" class="w-full h-40 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/400x200/555/eee?text=No+Image';">
+                        ${imageContent}
                         <div class="text-center w-full">
                             <h3 class="text-lg font-semibold text-white truncate">${item.name}</h3>
                             ${secondaryInfo}
@@ -684,21 +733,19 @@
             itemForm.reset();
             itemIdInput.value = '';
             deleteItemBtn.classList.add('hidden');
-
-            // Controla a visibilidade e reseta campos específicos
+            
             if (currentView === 'games') {
                 fieldsGames.classList.remove('hidden');
                 fieldsHQs.classList.add('hidden');
-                itemHoursPlayedInput.value = ''; // Reseta o campo de Games
-            } else { // 'hqs'
+                itemHoursPlayedInput.value = '';
+            } else { 
                 fieldsGames.classList.add('hidden');
                 fieldsHQs.classList.remove('hidden');
-                itemTotalChaptersInput.value = ''; // Reseta campos de HQs
-                itemProtagonistInput.value = '';
+                itemTotalChaptersInput.value = '';
+                itemProtagonistInput.value = ''; // NOVO CAMPO
                 itemChaptersReadInput.value = '';
             }
-
-            // Popula os status corretamente
+            
             itemStatusSelect.innerHTML = '';
             config.statusOptions.forEach(option => {
                 const opt = document.createElement('option');
@@ -706,21 +753,20 @@
                 opt.textContent = option.text;
                 itemStatusSelect.appendChild(opt);
             });
-
+            
             itemModal.classList.remove('hidden');
         };
 
         const openEditModal = (item) => {
             const config = viewConfigs[currentView];
             modalTitle.textContent = `Editar ${config.title.slice(0, -1)}`;
-
+            
             itemIdInput.value = item.id;
             itemNameInput.value = item.name;
             itemImageInput.value = item.image;
             itemStarsInput.value = item.stars;
             itemNotesInput.value = item.notes;
-
-            // Popula os status corretamente
+            
             itemStatusSelect.innerHTML = '';
             config.statusOptions.forEach(option => {
                 const opt = document.createElement('option');
@@ -728,31 +774,29 @@
                 opt.textContent = option.text;
                 itemStatusSelect.appendChild(opt);
             });
-            // Tenta selecionar o status do item
             itemStatusSelect.value = item.status || config.statusOptions[0].value;
-
-            // Campos específicos
+            
             if (currentView === 'games') {
                 fieldsGames.classList.remove('hidden');
                 fieldsHQs.classList.add('hidden');
                 itemDateStartInput.value = item.dateStart || '';
                 itemDateEndInput.value = item.dateEnd || '';
-                itemHoursPlayedInput.value = item.hours || ''; // Popula campo de Games
-                itemTotalChaptersInput.value = ''; // Limpa o campo de HQ (por precaução)
+                itemHoursPlayedInput.value = item.hours || '';
+                itemTotalChaptersInput.value = '';
                 itemProtagonistInput.value = '';
                 itemChaptersReadInput.value = '';
 
-            } else { // 'hqs'
+            } else { 
                 fieldsGames.classList.add('hidden');
                 fieldsHQs.classList.remove('hidden');
                 itemTotalChaptersInput.value = item.totalChapters || '';
-                itemProtagonistInput.value = item.protagonist || '';
-                itemChaptersReadInput.value = item.hours || ''; // Popula campo de HQs (usa a key 'hours' do Firestore)
-                itemDateStartInput.value = ''; // Limpa campos de Game (por precaução)
+                itemProtagonistInput.value = item.protagonist || ''; // NOVO CAMPO
+                itemChaptersReadInput.value = item.hours || ''; // Popula Capítulos Lidos (usa a key 'hours' do Firestore)
+                itemDateStartInput.value = '';
                 itemDateEndInput.value = '';
                 itemHoursPlayedInput.value = '';
             }
-
+            
             deleteItemBtn.classList.remove('hidden');
             itemModal.classList.remove('hidden');
         };
@@ -773,8 +817,7 @@
 
             const itemId = itemIdInput.value;
             const config = viewConfigs[currentView];
-
-            // Campos comuns
+            
             let itemData = {
                 name: itemNameInput.value,
                 image: itemImageInput.value || 'https://placehold.co/400x200/555/eee?text=No+Image',
@@ -782,39 +825,34 @@
                 status: itemStatusSelect.value,
                 notes: itemNotesInput.value,
             };
-
-            // Campos específicos
+            
             if (currentView === 'games') {
                 itemData = {
                     ...itemData,
                     hours: parseInt(itemHoursPlayedInput.value) || 0, // Horas Jogadas
                     dateStart: itemDateStartInput.value,
                     dateEnd: itemDateEndInput.value,
-                    // Garante que campos de HQ não sejam salvos no item Game
                     totalChapters: null,
                     protagonist: null
                 };
-            } else { // 'hqs'
+            } else { 
                 itemData = {
                     ...itemData,
-                    hours: parseInt(itemChaptersReadInput.value) || 0, // Capítulos Lidos (mantendo a key 'hours')
+                    hours: parseInt(itemChaptersReadInput.value) || 0, // Capítulos Lidos
                     totalChapters: parseInt(itemTotalChaptersInput.value) || 0,
-                    protagonist: itemProtagonistInput.value.trim(),
-                    // Garante que campos de Game não sejam salvos no item HQ
+                    protagonist: itemProtagonistInput.value.trim(), // NOVO CAMPO
                     dateStart: null,
                     dateEnd: null
                 };
             }
 
             const collectionPath = config.collection.replace('{userId}', userId);
-
+            
             try {
                 if (itemId) {
-                    // Editar um item existente
                     await setDoc(doc(db, collectionPath, itemId), itemData);
                     showMessage(`${config.title.slice(0, -1)} atualizado com sucesso!`);
                 } else {
-                    // Adicionar um novo item
                     await addDoc(collection(db, collectionPath), { ...itemData, createdAt: serverTimestamp() });
                     showMessage(`${config.title.slice(0, -1)} adicionado com sucesso!`);
                 }
@@ -833,7 +871,7 @@
             const itemId = itemIdInput.value;
             const config = viewConfigs[currentView];
             const collectionPath = config.collection.replace('{userId}', userId);
-
+            
             try {
                 await deleteDoc(doc(db, collectionPath, itemId));
                 showMessage(`${config.title.slice(0, -1)} excluído com sucesso!`);
@@ -867,12 +905,13 @@
         sortSelect.onchange = refreshDisplay;
         starsFilter.onchange = refreshDisplay;
         statusFilter.onchange = refreshDisplay;
-
+        protagonistFilter.onchange = refreshDisplay; // NOVO EVENTO DE FILTRO
+        
         // Eventos de Navegação
         navGames.addEventListener('click', () => switchView('games'));
         navHQs.addEventListener('click', () => switchView('hqs'));
 
-        // Auth Modal & Logic (Código de autenticação sem alterações, mantendo a compatibilidade)
+        // Auth Modal & Logic
         authBtn.addEventListener('click', () => {
             if (userId) {
                 logoutModal.classList.remove('hidden');
@@ -880,12 +919,12 @@
                 authModal.classList.remove('hidden');
             }
         });
-
+        
         closeAuthModalBtn.addEventListener('click', () => {
             authModal.classList.add('hidden');
             authErrorMessage.classList.add('hidden');
         });
-
+        
         cancelLogoutBtn.addEventListener('click', () => {
             logoutModal.classList.add('hidden');
         });
@@ -912,7 +951,7 @@
                 toggleLoading(false);
             }
         });
-
+        
         loginBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const email = authEmailInput.value;
@@ -930,19 +969,31 @@
                 toggleLoading(false);
             }
         });
-
+        
         // --- Inicialização e Autenticação ---
         toggleLoading(true);
 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (initialAuthToken) {
+            // Tentativa de login com token personalizado
+            signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                console.warn("Custom token sign-in failed. Falling back to anonymous.", e);
+                signInAnonymously(auth);
+            });
+        } else {
+             // Login anônimo se não houver token
+             signInAnonymously(auth);
+        }
+        
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
                 userIdDisplay.textContent = user.uid;
-
+                
                 // Inicia a sincronização de ambas as coleções
                 syncData('games');
                 syncData('hqs');
-
+                
                 // Exibe a view inicial (games)
                 switchView('games');
 
@@ -952,7 +1003,8 @@
                 userIdDisplay.textContent = 'Não autenticado';
                 allGames = [];
                 allHQs = [];
-                switchView(currentView); // Atualiza a view para o estado vazio
+                // Sincroniza a view atual para o estado vazio/não autenticado
+                switchView(currentView); 
             }
         });
     </script>
