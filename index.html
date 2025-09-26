@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Mídia</title>
+    <title>Gerenciador de Média</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -98,7 +98,7 @@
             </select>
             <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filtrar por Status...</option>
-                <!-- Options will be dynamically populated -->
+                <!-- Options will be dynamically populated in JS -->
             </select>
         </div>
 
@@ -153,7 +153,7 @@
                         </select>
                     </div>
 
-                    <!-- Campos específicos para GAMES (Visíveis por padrão, mas controlados por JS) -->
+                    <!-- Campos específicos para GAMES -->
                     <div id="fields-games" class="space-y-4">
                         <div>
                             <label for="item-date-start" class="block text-sm font-medium text-gray-400">Data de Início</label>
@@ -163,6 +163,11 @@
                             <label for="item-date-end" class="block text-sm font-medium text-gray-400">Data de Término</label>
                             <input type="date" id="item-date-end" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
+                        <!-- CAMPO HORAS JOGADAS (Para Games) -->
+                        <div>
+                            <label for="item-count-games" class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
+                            <input type="number" id="item-count-games" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                        </div>
                     </div>
 
                     <!-- Campos específicos para HQs (Inicialmente ocultos) -->
@@ -170,6 +175,11 @@
                          <div>
                             <label for="item-total-chapters" class="block text-sm font-medium text-gray-400">Capítulos Totais</label>
                             <input type="number" id="item-total-chapters" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
+                        </div>
+                         <!-- CAMPO CAPÍTULOS LIDOS (Para HQs, posicionado após Capítulos Totais) -->
+                        <div>
+                            <label for="item-count-hqs" class="block text-sm font-medium text-gray-400">Capítulos Lidos</label>
+                            <input type="number" id="item-count-hqs" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
                         </div>
                         <div>
                             <label for="item-protagonist" class="block text-sm font-medium text-gray-400">Protagonista</label>
@@ -181,10 +191,6 @@
                         </div>
                     </div>
                     
-                    <div>
-                        <label for="item-count" class="block text-sm font-medium text-gray-400"><span id="label-count">Horas Jogadas</span></label>
-                        <input type="number" id="item-count" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
-                    </div>
                     <div>
                         <label for="item-notes" class="block text-sm font-medium text-gray-400">Observações</label>
                         <textarea id="item-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
@@ -266,7 +272,7 @@
             apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
             authDomain: "list-games-9bddd.firebaseapp.com",
             projectId: "list-games-9bddd",
-            storageBucket: "list-games-9bddd.firebasestorage.app",
+            storageBucket: "list-games-9bddd.firebaseapp.com",
             messagingSenderId: "756898313156",
             appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
             measurementId: "G-GLM50YVLXP"
@@ -309,25 +315,25 @@
 
         // Form Fields (Gerais)
         const labelName = document.getElementById('label-name');
-        const labelCount = document.getElementById('label-count');
         const itemIdInput = document.getElementById('item-id');
         const itemNameInput = document.getElementById('item-name');
         const itemImageInput = document.getElementById('item-image');
         const itemStarsInput = document.getElementById('item-stars');
         const itemStatusSelect = document.getElementById('item-status');
-        const itemCountInput = document.getElementById('item-count'); // Horas ou Páginas Lidas
         const itemNotesInput = document.getElementById('item-notes');
 
         // Form Fields (Específicos para Games)
         const fieldsGames = document.getElementById('fields-games');
         const itemDateStartInput = document.getElementById('item-date-start');
         const itemDateEndInput = document.getElementById('item-date-end');
+        const itemHoursPlayedInput = document.getElementById('item-count-games'); // Novo campo para Games
         
         // Form Fields (Específicos para HQs)
         const fieldsHQs = document.getElementById('fields-hqs');
         const itemTotalChaptersInput = document.getElementById('item-total-chapters');
         const itemProtagonistInput = document.getElementById('item-protagonist');
         const protagonistList = document.getElementById('protagonist-list');
+        const itemChaptersReadInput = document.getElementById('item-count-hqs'); // Novo campo para HQs
 
         const authModal = document.getElementById('auth-modal');
         const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
@@ -368,7 +374,7 @@
                 collection: 'users/{userId}/hqs',
                 data: allHQs,
                 nameLabel: 'Título da HQ',
-                countLabel: 'Capítulos Lidos', // Mantendo 'Capítulos Lidos' para o contador de progresso
+                countLabel: 'Capítulos Lidos',
                 statusOptions: [
                     { value: "Lido", text: "Lido" },
                     { value: "Lendo", text: "Lendo" },
@@ -503,7 +509,6 @@
             const config = viewConfigs[view];
             mainTitle.textContent = config.title;
             labelName.textContent = config.nameLabel;
-            labelCount.textContent = config.countLabel;
             
             // Controla a visibilidade dos campos específicos
             if (view === 'games') {
@@ -516,12 +521,12 @@
                 fieldsGames.classList.add('hidden');
                 fieldsHQs.classList.remove('hidden');
                 // Ajusta a opção de ordenação para HQs
-                 sortSelect.querySelector('option[value="dateStart-asc"]').textContent = "Protagonista"; // Usando o slot para protagonista por simplicidade, embora o campo seja de data
+                 sortSelect.querySelector('option[value="dateStart-asc"]').textContent = "Protagonista"; // Usando o slot para protagonista por simplicidade
                  sortSelect.querySelector('option[value="hours-desc"]').textContent = "Capítulos Lidos (Maior)";
             }
 
 
-            // Atualiza as opções de status
+            // Atualiza as opções de status (do Modal)
             itemStatusSelect.innerHTML = '';
             config.statusOptions.forEach(option => {
                 const opt = document.createElement('option');
@@ -529,16 +534,24 @@
                 opt.textContent = option.text;
                 itemStatusSelect.appendChild(opt);
             });
+            
+            // Atualiza as opções de status (do Filtro) - CORREÇÃO DO FILTRO
+            statusFilter.innerHTML = '<option value="">Filtrar por Status...</option>';
+            config.statusOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.textContent = option.text;
+                statusFilter.appendChild(opt);
+            });
+
 
             // Re-sincroniza e atualiza a exibição
             if (userId) {
-                // Se os dados já foram carregados, apenas exibe. Se não, a onSnapshot cuidará.
                 const currentDataArray = view === 'games' ? allGames : allHQs;
                 if (currentDataArray.length > 0) {
                      refreshDisplay();
                      toggleLoading(false);
                 } else {
-                    // Garante que o listener esteja ativo e força a primeira leitura
                     syncData(view); 
                 }
             } else {
@@ -546,8 +559,10 @@
                 toggleLoading(false);
             }
             
-            // Limpa o campo de pesquisa
+            // Limpa o campo de pesquisa e filtros
             searchInput.value = '';
+            starsFilter.value = '';
+            statusFilter.value = '';
         };
 
         // Atualiza a exibição com base nos filtros e ordenação atuais
@@ -626,7 +641,7 @@
                     const starRating = '<div class="flex text-3xl text-yellow-400">' + Array(item.stars || 0).fill('★').join('') + '</div>';
                     
                     let secondaryInfo = '';
-                    const countLabel = currentView === 'games' ? 'Horas Jogadas' : 'Capítulos Lidos';
+                    const countLabel = viewConfigs[currentView].countLabel;
 
                     if (currentView === 'games') {
                         let dateString = '';
@@ -652,7 +667,7 @@
                         <div class="text-center w-full">
                             <h3 class="text-lg font-semibold text-white truncate">${item.name}</h3>
                             ${secondaryInfo}
-                            ${item.hours ? `<p class="text-sm text-gray-400">${countLabel}: ${item.hours}</p>` : ''}
+                            ${(item.hours || 0) > 0 ? `<p class="text-sm text-gray-400">${countLabel}: ${item.hours}</p>` : ''}
                             <p class="text-sm text-gray-400">Status: ${item.status}</p>
                             <div class="flex justify-center mt-2">${starRating}</div>
                         </div>
@@ -670,6 +685,19 @@
             itemIdInput.value = '';
             deleteItemBtn.classList.add('hidden');
             
+            // Controla a visibilidade e reseta campos específicos
+            if (currentView === 'games') {
+                fieldsGames.classList.remove('hidden');
+                fieldsHQs.classList.add('hidden');
+                itemHoursPlayedInput.value = ''; // Reseta o campo de Games
+            } else { // 'hqs'
+                fieldsGames.classList.add('hidden');
+                fieldsHQs.classList.remove('hidden');
+                itemTotalChaptersInput.value = ''; // Reseta campos de HQs
+                itemProtagonistInput.value = '';
+                itemChaptersReadInput.value = '';
+            }
+            
             // Popula os status corretamente
             itemStatusSelect.innerHTML = '';
             config.statusOptions.forEach(option => {
@@ -678,15 +706,6 @@
                 opt.textContent = option.text;
                 itemStatusSelect.appendChild(opt);
             });
-
-            // Controla a visibilidade dos campos específicos
-            if (currentView === 'games') {
-                fieldsGames.classList.remove('hidden');
-                fieldsHQs.classList.add('hidden');
-            } else { // 'hqs'
-                fieldsGames.classList.add('hidden');
-                fieldsHQs.classList.remove('hidden');
-            }
             
             itemModal.classList.remove('hidden');
         };
@@ -699,7 +718,6 @@
             itemNameInput.value = item.name;
             itemImageInput.value = item.image;
             itemStarsInput.value = item.stars;
-            itemCountInput.value = item.hours;
             itemNotesInput.value = item.notes;
             
             // Popula os status corretamente
@@ -719,11 +737,20 @@
                 fieldsHQs.classList.add('hidden');
                 itemDateStartInput.value = item.dateStart || '';
                 itemDateEndInput.value = item.dateEnd || '';
+                itemHoursPlayedInput.value = item.hours || ''; // Popula campo de Games
+                itemTotalChaptersInput.value = ''; // Limpa o campo de HQ (por precaução)
+                itemProtagonistInput.value = '';
+                itemChaptersReadInput.value = '';
+
             } else { // 'hqs'
                 fieldsGames.classList.add('hidden');
                 fieldsHQs.classList.remove('hidden');
                 itemTotalChaptersInput.value = item.totalChapters || '';
                 itemProtagonistInput.value = item.protagonist || '';
+                itemChaptersReadInput.value = item.hours || ''; // Popula campo de HQs (usa a key 'hours' do Firestore)
+                itemDateStartInput.value = ''; // Limpa campos de Game (por precaução)
+                itemDateEndInput.value = '';
+                itemHoursPlayedInput.value = '';
             }
             
             deleteItemBtn.classList.remove('hidden');
@@ -753,7 +780,6 @@
                 image: itemImageInput.value || 'https://placehold.co/400x200/555/eee?text=No+Image',
                 stars: parseInt(itemStarsInput.value) || 0,
                 status: itemStatusSelect.value,
-                hours: parseInt(itemCountInput.value) || 0, // Mantendo 'hours' para o contador de progresso (Horas/Capítulos Lidos)
                 notes: itemNotesInput.value,
             };
             
@@ -761,18 +787,20 @@
             if (currentView === 'games') {
                 itemData = {
                     ...itemData,
+                    hours: parseInt(itemHoursPlayedInput.value) || 0, // Horas Jogadas
                     dateStart: itemDateStartInput.value,
                     dateEnd: itemDateEndInput.value,
-                    // Remove campos de HQ se presentes (para edição de item antigo)
+                    // Garante que campos de HQ não sejam salvos no item Game
                     totalChapters: null,
                     protagonist: null
                 };
             } else { // 'hqs'
                 itemData = {
                     ...itemData,
+                    hours: parseInt(itemChaptersReadInput.value) || 0, // Capítulos Lidos (mantendo a key 'hours')
                     totalChapters: parseInt(itemTotalChaptersInput.value) || 0,
                     protagonist: itemProtagonistInput.value.trim(),
-                    // Remove campos de Game se presentes (para edição de item antigo)
+                    // Garante que campos de Game não sejam salvos no item HQ
                     dateStart: null,
                     dateEnd: null
                 };
