@@ -1,81 +1,505 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciador de Games</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gerenciador — Games</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #1a1a1a;
-      color: #e0e0e0;
-      padding-bottom: 6rem;
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; color: #e0e0e0; padding-bottom: 6rem; }
+    .card { background-color: #333; border: 2px solid #555; transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    .btn-primary { background-color: #4a90e2; color: white; transition: background-color 0.2s; }
+    .btn-primary:hover { background-color: #3a7bc0; }
+    .nav-item { color: #777; }
+    .nav-item.active { color: #4a90e2; font-weight: 600; }
   </style>
 </head>
 <body class="bg-[#1a1a1a] text-gray-200">
+  <!-- Loading overlay -->
   <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-    <div class="animate-spin rounded-full h-32 w-32 border-b-4 border-blue-500 border-t-4 border-transparent"></div>
+    <div class="animate-spin rounded-full h-24 w-24 border-b-4 border-blue-500 border-t-4 border-transparent"></div>
   </div>
 
   <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
+    <!-- Header -->
     <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
-      <h1 class="text-3xl sm:text-4xl font-bold">Games</h1>
-      <div class="flex space-x-2 sm:space-x-4">
+      <h1 id="main-title" class="text-3xl sm:text-4xl font-bold">Games</h1>
+      <div class="flex space-x-2 sm:space-x-4 items-center">
+        <!-- Voltar ao Hub -->
         <button onclick="window.location.href='index.html'" title="Voltar ao Hub" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
-      </div>
-    </header>
-    <main>
-      <p class="text-gray-400">Sistema carregado com sucesso! Em breve você verá seus jogos aqui.</p>
-    </main>
+
+```
+    <!-- Auth -->
+    <button id="auth-btn" title="Autenticação" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    </button>
+
+    <!-- Add -->
+    <button id="add-item-btn" title="Adicionar Jogo" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    </button>
+
+    <!-- Toggle filtros -->
+    <button id="search-btn" title="Mostrar/Ocultar Filtros" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </button>
   </div>
+</header>
+
+<!-- User ID -->
+<div class="mb-4">
+  <span class="text-xs text-gray-500">ID do Usuário: </span>
+  <span id="user-id-display" class="text-xs text-gray-400 truncate">Não autenticado</span>
+</div>
+
+<!-- Filtros (oculto por padrão) -->
+<div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden">
+  <input id="search-input" type="text" placeholder="Pesquisar..." class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  <select id="sort-select" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">Ordenar por...</option>
+    <option value="name-asc">Nome (A-Z)</option>
+    <option value="stars-desc">Estrelas (Maior)</option>
+    <option value="createdAt-desc">Mais Recentes</option>
+    <option value="dateStart-asc">Data de Início</option>
+    <option value="hours-desc">Horas Jogadas (Maior)</option>
+  </select>
+  <select id="stars-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">Filtrar por Estrelas...</option>
+    <option value="5">5 Estrelas</option>
+    <option value="4">4 Estrelas</option>
+    <option value="3">3 Estrelas</option>
+    <option value="2">2 Estrelas</option>
+    <option value="1">1 Estrela</option>
+    <option value="0">Nenhuma Estrela</option>
+  </select>
+  <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">Filtrar por Status...</option>
+    <!-- será preenchido dinamicamente -->
+  </select>
+</div>
+
+<!-- Conteúdo principal -->
+<main id="main-content">
+  <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  <div id="empty-state" class="text-center p-8 hidden">
+    <p class="text-xl text-gray-400">Nenhum jogo cadastrado. Comece adicionando um novo jogo!</p>
+  </div>
+</main>
+
+<!-- Modal de adição/edição (Games only) -->
+<div id="item-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
+  <div class="relative w-11/12 max-w-lg mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg">
+    <div class="flex justify-between items-center pb-3 border-b border-gray-600">
+      <h2 id="modal-title" class="text-2xl font-semibold text-white">Adicionar Jogo</h2>
+      <button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="item-form" class="mt-4 space-y-4">
+      <input type="hidden" id="item-id">
+      <div>
+        <label class="block text-sm font-medium text-gray-400">Nome</label>
+        <input id="item-name" type="text" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-400">URL da Imagem</label>
+        <input id="item-image" type="url" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-sm font-medium text-gray-400">Estrelas</label>
+          <select id="item-stars" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none">
+            <option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-400">Data de Início</label>
+          <input id="item-date-start" type="date" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
+          <input id="item-count-games" type="number" min="0" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-400">Status</label>
+        <select id="item-status" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none"></select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-400">Observações</label>
+        <textarea id="item-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none"></textarea>
+      </div>
+
+      <button type="submit" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Salvar Jogo</button>
+      <button id="delete-item-btn" type="button" class="w-full px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 hidden">Excluir Jogo</button>
+    </form>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- Bottom nav (links rápidos) -->
+
+  <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 bg-[#2a2a2a] border-t border-gray-700 shadow-xl z-40">
+    <div class="flex justify-around max-w-lg mx-auto">
+      <button id="nav-games" class="nav-item active p-3 flex-1 flex flex-col items-center" onclick="/* já está nesta página */">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        <span class="text-xs mt-1">Games</span>
+      </button>
+      <button id="nav-lists" class="nav-item p-3 flex-1 flex flex-col items-center" onclick="window.location.href='Lists.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        <span class="text-xs mt-1">Listas</span>
+      </button>
+      <button id="nav-hqs" class="nav-item p-3 flex-1 flex flex-col items-center" onclick="window.location.href='hqs.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13"/></svg>
+        <span class="text-xs mt-1">HQs</span>
+      </button>
+    </div>
+  </nav>
+
+  <div id="message-box" class="fixed bottom-24 right-4 p-4 rounded-lg text-white font-medium z-50 hidden"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getAuth, signInAnonymously, onAuthStateChanged,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore, collection, query, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 🔥 Adicione sua configuração Firebase aqui manualmente, caso o hub não injete automaticamente:
+    // --- Uso da config que você forneceu ---
     const firebaseConfig = {
         apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
         authDomain: "list-games-9bddd.firebaseapp.com",
         projectId: "list-games-9bddd",
-        storageBucket: "list-games-9bddd.firebaseapp.com",
+        storageBucket: "list-games-9bddd.appspot.com",
         messagingSenderId: "756898313156",
         appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
         measurementId: "G-GLM50YVLXP"
     };
 
+    // inicializa
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
+    // estado simples
+    let userId = null;
+    let allGames = [];
+    let currentView = 'games';
+
+    // DOM
     const loadingSpinner = document.getElementById('loading-spinner');
     const mainApp = document.getElementById('main-app');
+    const cardsView = document.getElementById('cards-view');
+    const emptyState = document.getElementById('empty-state');
+    const messageBox = document.getElementById('message-box');
+    const searchContainer = document.getElementById('search-and-sort-container');
 
+    const searchInput = document.getElementById('search-input');
+    const sortSelect = document.getElementById('sort-select');
+    const starsFilter = document.getElementById('stars-filter');
+    const statusFilter = document.getElementById('status-filter');
+
+    const addItemBtn = document.getElementById('add-item-btn');
+    const searchBtn = document.getElementById('search-btn');
+    const authBtn = document.getElementById('auth-btn');
+
+    const itemModal = document.getElementById('item-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const itemForm = document.getElementById('item-form');
+    const modalTitle = document.getElementById('modal-title');
+    const deleteItemBtn = document.getElementById('delete-item-btn');
+
+    const itemIdInput = document.getElementById('item-id');
+    const itemNameInput = document.getElementById('item-name');
+    const itemImageInput = document.getElementById('item-image');
+    const itemStarsInput = document.getElementById('item-stars');
+    const itemDateStartInput = document.getElementById('item-date-start');
+    const itemHoursPlayedInput = document.getElementById('item-count-games');
+    const itemStatusSelect = document.getElementById('item-status');
+    const itemNotesInput = document.getElementById('item-notes');
+    const userIdDisplay = document.getElementById('user-id-display');
+
+    // status options para games
+    const statusOptionsGames = [
+      { value: "Não Jogou", text: "Não Jogou" },
+      { value: "Jogando", text: "Jogando" },
+      { value: "Zerado", text: "Zerado" },
+      { value: "Dropei", text: "Dropei" },
+      { value: "Jogado", text: "Jogado" },
+      { value: "Não Lançado", text: "Não Lançado" }
+    ];
+
+    // utilidades
     const toggleLoading = (show) => {
-      if (show) {
-        loadingSpinner.classList.remove('hidden');
-        mainApp.classList.add('hidden');
-      } else {
-        loadingSpinner.classList.add('hidden');
-        mainApp.classList.remove('hidden');
+      if (show) { loadingSpinner.classList.remove('hidden'); mainApp.classList.add('hidden'); }
+      else { loadingSpinner.classList.add('hidden'); mainApp.classList.remove('hidden'); }
+    };
+
+    const showMessage = (txt, isError = false) => {
+      messageBox.textContent = txt;
+      messageBox.className = `fixed bottom-24 right-4 p-4 rounded-lg text-white font-medium z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+      messageBox.classList.remove('hidden');
+      setTimeout(()=> messageBox.classList.add('hidden'), 3000);
+    };
+
+    const renderStars = (count) => {
+      count = parseInt(count) || 0;
+      let out = '';
+      for (let i=0;i<5;i++) out += `<span class="${i < count ? 'text-yellow-400' : 'text-gray-600'}">★</span>`;
+      return out;
+    };
+
+    // render de cards
+    const renderCard = (item) => {
+      const countValue = (item.hoursPlayed || 0) + 'h';
+      const statusClass = item.status === 'Zerado' ? 'bg-green-700' :
+                          item.status === 'Jogando' ? 'bg-blue-700' :
+                          item.status === 'Dropei' ? 'bg-red-700' : 'bg-gray-600';
+
+      return `
+        <div id="card-${item.id}" data-id="${item.id}" class="card rounded-xl p-4 cursor-pointer flex flex-col items-center text-center">
+          <img src="${item.image || 'https://placehold.co/300x400/2a2a2a/e0e0e0?text=CAPA'}"
+               onerror="this.onerror=null;this.src='https://placehold.co/300x400/2a2a2a/e0e0e0?text=CAPA';"
+               alt="${item.name || ''}" class="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700">
+          <h3 class="text-lg font-semibold truncate w-full mb-1 text-white">${item.name || 'Sem título'}</h3>
+          <div class="mb-2">${renderStars(item.stars)}</div>
+          <span class="text-sm font-medium px-3 py-1 rounded-full ${statusClass} text-white mb-3">${item.status || 'Sem Status'}</span>
+          <div class="flex justify-between w-full text-sm text-gray-400">
+            <div>
+              <p class="font-medium">Horas</p>
+              <p class="text-base font-bold text-gray-300">${countValue}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-medium">Início</p>
+              <p class="text-base font-bold text-gray-300">${formatDate(item.dateStart)}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    const formatDate = (d) => {
+      if (!d) return '';
+      if (typeof d === 'string' && d.includes('-')) {
+        const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`;
+      }
+      try {
+        const dt = new Date(d.seconds ? d.seconds * 1000 : d);
+        return dt.toLocaleDateString('pt-BR');
+      } catch(e) { return d; }
+    };
+
+    // sincroniza jogos do Firestore
+    const syncGames = () => {
+      if (!userId) return;
+      const gamesRef = collection(db, 'users', userId, 'games');
+      const q = query(gamesRef);
+      onSnapshot(q, (snap) => {
+        const items = [];
+        snap.forEach(docSnap => { items.push({ id: docSnap.id, ...docSnap.data() }); });
+        allGames = items;
+        refreshDisplay();
+        toggleLoading(false);
+      }, (err) => {
+        console.error('Erro syncGames', err);
+        showMessage('Erro ao sincronizar jogos: ' + err.message, true);
+        toggleLoading(false);
+      });
+    };
+
+    // filtros, ordenação e render
+    const filterAndSortItems = () => {
+      let itemsToRender = [...allGames];
+      const searchValue = (searchInput?.value || '').toLowerCase();
+      const starValue = starsFilter?.value;
+      const statusValue = statusFilter?.value;
+      const sortValue = sortSelect?.value;
+
+      itemsToRender = itemsToRender.filter(it => {
+        const nameMatch = (it.name || '').toLowerCase().includes(searchValue);
+        const starMatch = !starValue || (it.stars || 0) === parseInt(starValue);
+        const statusMatch = !statusValue || (it.status === statusValue);
+        return nameMatch && starMatch && statusMatch;
+      });
+
+      itemsToRender.sort((a,b) => {
+        switch(sortValue) {
+          case 'name-asc': return (a.name||'').localeCompare(b.name||'');
+          case 'stars-desc': return (b.stars||0) - (a.stars||0);
+          case 'createdAt-desc': return (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0);
+          case 'dateStart-asc': return (new Date(a.dateStart || 0) - new Date(b.dateStart || 0));
+          case 'hours-desc': return (b.hoursPlayed || 0) - (a.hoursPlayed || 0);
+          default: return (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0);
+        }
+      });
+
+      cardsView.innerHTML = itemsToRender.map(it => renderCard(it)).join('');
+      emptyState.classList.toggle('hidden', itemsToRender.length > 0);
+    };
+
+    const refreshDisplay = () => filterAndSortItems();
+
+    // abre modal (novo/editar)
+    const openItemModal = (itemId = null) => {
+      itemForm.reset();
+      itemIdInput.value = '';
+      deleteItemBtn.classList.add('hidden');
+      modalTitle.textContent = itemId ? 'Editar Jogo' : 'Adicionar Jogo';
+
+      if (itemId) {
+        const item = allGames.find(i => i.id === itemId);
+        if (item) {
+          itemIdInput.value = item.id;
+          itemNameInput.value = item.name || '';
+          itemImageInput.value = item.image || '';
+          itemStarsInput.value = item.stars || '';
+          itemDateStartInput.value = item.dateStart || '';
+          itemHoursPlayedInput.value = item.hoursPlayed || '';
+          itemStatusSelect.value = item.status || '';
+          itemNotesInput.value = item.notes || '';
+          deleteItemBtn.classList.remove('hidden');
+        }
+      }
+      itemModal.classList.remove('hidden');
+    };
+
+    const closeItemModal = () => {
+      itemModal.classList.add('hidden');
+      itemForm.reset();
+      itemIdInput.value = '';
+      deleteItemBtn.classList.add('hidden');
+    };
+
+    // salvar (add / update)
+    const handleFormSubmit = async (e) => {
+      e.preventDefault();
+      if (!userId) { showMessage('Você precisa logar para salvar.', true); return; }
+
+      const gamesRef = collection(db, 'users', userId, 'games');
+      const itemId = itemIdInput.value;
+      const data = {
+        name: itemNameInput.value.trim() || 'Sem título',
+        image: itemImageInput.value.trim() || '',
+        stars: parseInt(itemStarsInput.value) || 0,
+        dateStart: itemDateStartInput.value || '',
+        hoursPlayed: parseInt(itemHoursPlayedInput.value) || 0,
+        status: itemStatusSelect.value || '',
+        notes: itemNotesInput.value.trim() || '',
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (itemId) {
+          await setDoc(doc(db, 'users', userId, 'games', itemId), data, { merge: true });
+          showMessage('Jogo atualizado com sucesso!');
+        } else {
+          data.createdAt = serverTimestamp();
+          await addDoc(gamesRef, data);
+          showMessage('Jogo adicionado com sucesso!');
+        }
+        closeItemModal();
+      } catch (err) {
+        console.error('Erro salvar', err);
+        showMessage('Erro ao salvar: ' + err.message, true);
       }
     };
 
+    // excluir
+    const handleDeleteItem = async () => {
+      const itemId = itemIdInput.value;
+      if (!itemId || !userId) return;
+      try {
+        await deleteDoc(doc(db, 'users', userId, 'games', itemId));
+        showMessage('Jogo excluído com sucesso!');
+        closeItemModal();
+      } catch (err) {
+        console.error('Erro excluir', err);
+        showMessage('Erro ao excluir: ' + err.message, true);
+      }
+    };
+
+    // preenche selects de status
+    const fillStatusSelects = () => {
+      // Modal status
+      itemStatusSelect.innerHTML = '<option value=\"\"></option>';
+      statusOptionsGames.forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.text; itemStatusSelect.appendChild(opt); });
+
+      // Filtro status
+      statusFilter.innerHTML = '<option value=\"\">Filtrar por Status...</option>';
+      statusOptionsGames.forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.text; statusFilter.appendChild(opt); });
+    };
+
+    // listeners e init
+    const setupEventListeners = () => {
+      addItemBtn.addEventListener('click', () => openItemModal());
+      searchBtn.addEventListener('click', () => searchContainer.classList.toggle('hidden'));
+      closeModalBtn.addEventListener('click', closeItemModal);
+      itemForm.addEventListener('submit', handleFormSubmit);
+      deleteItemBtn.addEventListener('click', handleDeleteItem);
+      cardsView.addEventListener('click', (e) => {
+        const card = e.target.closest('.card');
+        if (card) openItemModal(card.dataset.id);
+      });
+
+      // filtros
+      searchInput.addEventListener('input', refreshDisplay);
+      sortSelect.addEventListener('change', refreshDisplay);
+      starsFilter.addEventListener('change', refreshDisplay);
+      statusFilter.addEventListener('change', refreshDisplay);
+
+      // auth button - basic: anonymous sign in is used automatically; user sign-in modal not included here
+      authBtn.addEventListener('click', () => {
+        if (auth.currentUser && !auth.currentUser.isAnonymous) {
+          // sign out
+          signOut(auth).then(() => showMessage('Você saiu.')).catch(e => showMessage(e.message, true));
+        } else {
+          // toggle anonymous sign-in if not logged
+          signInAnonymously(auth).catch(e => showMessage(e.message, true));
+        }
+      });
+    };
+
+    // onAuthState
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        toggleLoading(false);
+        userId = user.uid;
+        userIdDisplay.textContent = userId;
+        fillStatusSelects();
+        syncGames();
+      } else {
+        userId = null;
+        userIdDisplay.textContent = 'Não autenticado / Anônimo';
+        allGames = [];
+        refreshDisplay();
       }
+      toggleLoading(false);
     });
 
+    // inicialização
     window.onload = () => {
-      signInAnonymously(auth);
+      setupEventListeners();
+      toggleLoading(true);
+      // tenta logar anonimamente (Lists.html faz isso também)
+      signInAnonymously(auth).catch(err => {
+        console.warn('Erro signInAnonymously:', err);
+        // se houver erro, continua mas mostra main pra não travar
+        toggleLoading(false);
+      });
     };
   </script>
+
 </body>
 </html>
