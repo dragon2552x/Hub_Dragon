@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciador de HQs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="container mx-auto p-6">
+    <header class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+      <h1 class="text-3xl font-bold">Minhas HQs</h1>
+      <div class="flex space-x-3">
+        <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Sair</button>
+        <button id="add-btn" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Adicionar HQ</button>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="p-2 rounded bg-gray-800 border border-gray-700">
+      <select id="filter-protagonist" class="p-2 rounded bg-gray-800 border border-gray-700"></select>
+      <select id="filter-status" class="p-2 rounded bg-gray-800 border border-gray-700">
+        <option value="">Todos os status</option>
+        <option value="Lido">Lido</option>
+        <option value="Lendo">Lendo</option>
+        <option value="Quero Ler">Quero Ler</option>
+        <option value="Dropei">Dropei</option>
+      </select>
+      <select id="filter-stars" class="p-2 rounded bg-gray-800 border border-gray-700">
+        <option value="">Todas as estrelas</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </section>
+
+    <div class="flex justify-end mb-4 space-x-3">
+      <label>Ordenar por:</label>
+      <select id="sort-select" class="p-2 rounded bg-gray-800 border border-gray-700">
+        <option value="name">Nome</option>
+        <option value="stars">Estrelas</option>
+        <option value="chapters">Capítulos</option>
+        <option value="status">Status</option>
+      </select>
+    </div>
+
+    <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    <p id="empty" class="text-center text-gray-500 hidden">Nenhuma HQ encontrada.</p>
+  </div>
+
+  <!-- Modal de Edição/Cadastro -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded-lg w-11/12 max-w-lg">
+      <h2 id="modal-title" class="text-xl font-bold mb-4">Nova HQ</h2>
+      <form id="hq-form" class="space-y-3">
+        <input type="hidden" id="hq-id">
+        <div>
+          <label class="block text-sm">Título</label>
+          <input id="hq-title" type="text" class="w-full p-2 rounded bg-gray-700 border border-gray-600" required>
+        </div>
+        <div>
+          <label class="block text-sm">Imagem (URL)</label>
+          <input id="hq-img" type="url" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+        </div>
+        <div>
+          <label class="block text-sm">Protagonista</label>
+          <input id="hq-protagonist" type="text" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm">Estrelas</label>
+            <select id="hq-stars" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm">Status</label>
+            <select id="hq-status" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+              <option value="Lendo">Lendo</option>
+              <option value="Lido">Lido</option>
+              <option value="Quero Ler">Quero Ler</option>
+              <option value="Dropei">Dropei</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm">Capítulos Totais</label>
+            <input id="hq-total" type="number" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+          </div>
+          <div>
+            <label class="block text-sm">Capítulos Lidos</label>
+            <input id="hq-read" type="number" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm">Observações</label>
+          <textarea id="hq-notes" rows="3" class="w-full p-2 rounded bg-gray-700 border border-gray-600"></textarea>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Salvar</button>
+          <button id="delete-btn" type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded hidden">Excluir</button>
+          <button type="button" id="close-modal" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+      authDomain: "list-games-9bddd.firebaseapp.com",
+      projectId: "list-games-9bddd",
+      storageBucket: "list-games-9bddd.firebasestorage.app",
+      messagingSenderId: "756898313156",
+      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+      measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const cards = document.getElementById('cards');
+    const empty = document.getElementById('empty');
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('hq-form');
+    const deleteBtn = document.getElementById('delete-btn');
+    const closeModal = document.getElementById('close-modal');
+    const addBtn = document.getElementById('add-btn');
+
+    const logoutBtn = document.getElementById('logout-btn');
+    const searchInput = document.getElementById('search-input');
+    const filterProtagonist = document.getElementById('filter-protagonist');
+    const filterStatus = document.getElementById('filter-status');
+    const filterStars = document.getElementById('filter-stars');
+    const sortSelect = document.getElementById('sort-select');
+
+    let allHqs = [];
+    let currentUser = null;
+    let editingId = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return window.location.href = 'index.html';
+      currentUser = user;
+
+      const q = query(collection(db, 'users', user.uid, 'hqs'));
+      onSnapshot(q, (snap) => {
+        allHqs = [];
+        snap.forEach(doc => allHqs.push({ id: doc.id, ...doc.data() }));
+        updateFilters();
+        render();
+      });
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    });
+
+    addBtn.addEventListener('click', () => {
+      editingId = null;
+      form.reset();
+      deleteBtn.classList.add('hidden');
+      document.getElementById('modal-title').textContent = 'Nova HQ';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('hq-title').value,
+        image: document.getElementById('hq-img').value,
+        protagonist: document.getElementById('hq-protagonist').value,
+        stars: parseInt(document.getElementById('hq-stars').value) || 0,
+        status: document.getElementById('hq-status').value,
+        total: parseInt(document.getElementById('hq-total').value) || 0,
+        read: parseInt(document.getElementById('hq-read').value) || 0,
+        notes: document.getElementById('hq-notes').value
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId), data);
+      } else {
+        await addDoc(collection(db, 'users', currentUser.uid, 'hqs'), data);
+      }
+      modal.classList.add('hidden');
+    });
+
+    cards.addEventListener('click', async (e) => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      const id = card.dataset.id;
+      editingId = id;
+      const docSnap = await getDoc(doc(db, 'users', currentUser.uid, 'hqs', id));
+      const data = docSnap.data();
+      document.getElementById('hq-title').value = data.name;
+      document.getElementById('hq-img').value = data.image;
+      document.getElementById('hq-protagonist').value = data.protagonist;
+      document.getElementById('hq-stars').value = data.stars;
+      document.getElementById('hq-status').value = data.status;
+      document.getElementById('hq-total').value = data.total;
+      document.getElementById('hq-read').value = data.read;
+      document.getElementById('hq-notes').value = data.notes;
+      deleteBtn.classList.remove('hidden');
+      document.getElementById('modal-title').textContent = 'Editar HQ';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+
+    deleteBtn.addEventListener('click', async () => {
+      if (!editingId) return;
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId));
+      modal.classList.add('hidden');
+    });
+
+    function updateFilters() {
+      const protagonists = [...new Set(allHqs.map(hq => hq.protagonist).filter(Boolean))];
+      filterProtagonist.innerHTML = '<option value="">Todos os protagonistas</option>' + protagonists.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+
+    function render() {
+      let filtered = allHqs.filter(hq => {
+        return (
+          (!searchInput.value || hq.name.toLowerCase().includes(searchInput.value.toLowerCase())) &&
+          (!filterProtagonist.value || hq.protagonist === filterProtagonist.value) &&
+          (!filterStatus.value || hq.status === filterStatus.value) &&
+          (!filterStars.value || hq.stars == filterStars.value)
+        );
+      });
+
+      switch (sortSelect.value) {
+        case 'name': filtered.sort((a,b) => a.name.localeCompare(b.name)); break;
+        case 'stars': filtered.sort((a,b) => b.stars - a.stars); break;
+        case 'chapters': filtered.sort((a,b) => (b.total || 0) - (a.total || 0)); break;
+        case 'status': filtered.sort((a,b) => a.status.localeCompare(b.status)); break;
+      }
+
+      cards.innerHTML = '';
+      if (filtered.length === 0) return empty.classList.remove('hidden');
+      empty.classList.add('hidden');
+
+      filtered.forEach(hq => {
+        cards.innerHTML += `
+          <div class='card p-4 rounded-xl bg-gray-800 border border-gray-700 cursor-pointer' data-id='${hq.id}'>
+            <img src='${hq.image || 'https://placehold.co/300x400?text=Capa'}' class='w-full h-48 object-cover rounded mb-3'>
+            <h3 class='text-lg font-semibold mb-1'>${hq.name}</h3>
+            <p class='text-sm text-gray-400 mb-1'>${hq.protagonist || ''}</p>
+            <div>${'★'.repeat(hq.stars)}${'☆'.repeat(5 - hq.stars)}</div>
+            <span class='text-sm px-2 py-1 rounded-full bg-gray-700 mt-2 inline-block'>${hq.status}</span>
+          </div>`;
+      });
+    }
+
+    [searchInput, filterProtagonist, filterStatus, filterStars, sortSelect].forEach(el => el.addEventListener('input', render));
+  </script>
+</body>
+</html>
