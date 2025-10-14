@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gerenciador — Diário</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: Inter, system-ui, -apple-system, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    .card { background:#151515; border:1px solid #2a2a2a; }
+    .card:hover { border-color:#16a34a; transform:translateY(-4px); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-green-500 rounded-full"></div>
+  </div>
+
+  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Minha Academia</h1>
+        <div class="text-sm text-gray-400 mt-1">Usuário: <span id="user-email" class="text-green-300 font-mono"></span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+      </div>
+    </header>
+
+    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3">
+      <button class="text-lg font-medium" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
+      <button class="text-lg font-medium" onclick="window.location.href='academia_grupos.html'">Grupos</button>
+      <button class="text-lg font-medium text-green-300" onclick="window.location.href='academia_diario.html'">Diário</button>
+    </nav>
+
+    <section id="tab-logs">
+      <div class="flex justify-end mb-4">
+        <button id="add-log" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700">+ Registrar Treino</button>
+      </div>
+      <div id="log-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="log-empty" class="text-center text-gray-500 hidden">Nenhum registro encontrado.</p>
+    </section>
+  </div>
+
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50">
+    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-5">
+      <h2 id="modal-title" class="text-xl font-semibold text-white mb-3">Modal</h2>
+      <form id="modal-form" class="space-y-3"></form>
+      <div class="flex justify-end gap-3 mt-4">
+        <button id="modal-save" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
+        <button id="modal-delete" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
+        <button id="modal-cancel" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+      authDomain: "list-games-9bddd.firebaseapp.com",
+      projectId: "list-games-9bddd",
+      storageBucket: "list-games-9bddd.appspot.com",
+      messagingSenderId: "756898313156",
+      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+      measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loading = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const userEmailEl = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const logList = document.getElementById('log-list');
+    const logEmpty = document.getElementById('log-empty');
+    const addLogBtn = document.getElementById('add-log');
+
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalForm = document.getElementById('modal-form');
+    const modalSave = document.getElementById('modal-save');
+    const modalDelete = document.getElementById('modal-delete');
+    const modalCancel = document.getElementById('modal-cancel');
+
+    let uid = null;
+    let editingId = null;
+    let allLogs = [];
+
+    function renderLogCard(l) {
+      const dateStr = l.date ? new Date(l.date).toLocaleDateString('pt-BR') : 'Sem data';
+      return `<div class='card p-4 rounded-xl cursor-pointer' data-id='${l.id}'>
+        <h3 class='text-lg font-semibold text-green-300'>${dateStr}</h3>
+        <p class='text-sm text-gray-400 mt-1'>Grupo: ${l.groupName || '-'}</p>
+      </div>`;
+    }
+
+    function renderLogs(list) {
+      logList.innerHTML = '';
+      if (!list.length) { logEmpty.classList.remove('hidden'); return; }
+      logEmpty.classList.add('hidden');
+      list.forEach(it => logList.insertAdjacentHTML('beforeend', renderLogCard(it)));
+      logList.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', () => openModal(allLogs.find(x=>x.id===el.dataset.id))));
+    }
+
+    function openModal(data = null) {
+      editingId = data ? data.id : null;
+      modalTitle.textContent = editingId ? 'Editar Registro' : 'Novo Registro';
+      modalForm.innerHTML = `
+        <label class='text-sm'>Data</label>
+        <input id='f-date' type='date' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.date||'') : ''}'>
+        <label class='text-sm'>Nome do Grupo</label>
+        <input id='f-groupName' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.groupName||'') : ''}'>
+        <label class='text-sm'>Observações</label>
+        <textarea id='f-notes' class='w-full p-2 rounded bg-gray-800 border border-gray-700'>${data ? (data.notes||'') : ''}</textarea>`;
+      modalDelete.classList.toggle('hidden', !editingId);
+      modal.classList.remove('hidden');
+    }
+
+    modalCancel.addEventListener('click', () => modal.classList.add('hidden'));
+
+    modalSave.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!uid) return alert('Usuário não autenticado');
+      const payload = {
+        date: document.getElementById('f-date').value,
+        groupName: document.getElementById('f-groupName').value.trim(),
+        notes: document.getElementById('f-notes').value.trim()
+      };
+      const coll = collection(db, 'users', uid, 'academia_diario');
+      if (editingId) await updateDoc(doc(coll, editingId), payload);
+      else await addDoc(coll, payload);
+      modal.classList.add('hidden');
+    });
+
+    modalDelete.addEventListener('click', async () => {
+      if (!uid || !editingId) return;
+      if (!confirm('Deseja realmente excluir?')) return;
+      await deleteDoc(doc(collection(db, 'users', uid, 'academia_diario'), editingId));
+      modal.classList.add('hidden');
+    });
+
+    function startListeners() {
+      if (!uid) return;
+      onSnapshot(query(collection(db, 'users', uid, 'academia_diario')), snap => {
+        const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+        allLogs = arr;
+        renderLogs(arr);
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      uid = user.uid;
+      userEmailEl.textContent = user.email || user.uid;
+      loading.classList.add('hidden');
+      appEl.classList.remove('hidden');
+      startListeners();
+    });
+
+    logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
+    addLogBtn.addEventListener('click', () => openModal());
+
+  </script>
+</body>
+</html>
