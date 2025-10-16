@@ -7,9 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    .card { background:#151515; border:1px solid #2a2a2a; }
-    .card:hover { border-color:#16a34a; transform:translateY(-4px); }
+    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
+    .card:hover { border-color:#16a34a; transform:translateY(-3px); }
+    @media (max-width:640px) {
+      .card { padding: 0.8rem; }
+      h1 { font-size: 1.6rem !important; }
+      .card-btns { flex-wrap: wrap; gap: 4px !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -17,48 +22,75 @@
     <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-green-500 rounded-full"></div>
   </div>
 
-  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold">Minha Academia</h1>
-        <div class="text-sm text-gray-400 mt-1">Usuário: <span id="user-email" class="text-green-300 font-mono"></span></div>
+  <div id="app" class="container mx-auto px-3 sm:p-6 max-w-6xl hidden">
+    <!-- CABEÇALHO -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+      <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3">
+        <button onclick="window.location.href='home.html'"
+                class="px-4 py-2 rounded bg-gray-1000 hover:border-green-500 hover:text-green-300 text-white font-medium text-sm sm:text-base transition-colors">
+          ⬅️ Home
+        </button>
+        <h1 class="text-3xl font-bold text-center sm:text-left">Diário de Treino</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+
+      <div class="text-center sm:text-left">
+        <div class="text-sm text-gray-400 mt-1">
+          Usuário: <span id="user-email" class="text-green-300 font-mono"></span>
+        </div>
       </div>
+
+      <button id="logout-btn"
+              class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 w-full sm:w-auto">
+        Sair
+      </button>
     </header>
 
-    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3">
-      <button class="text-lg font-medium" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
-      <button class="text-lg font-medium" onclick="window.location.href='academia_grupos.html'">Grupos</button>
+    <!-- MENU -->
+    <nav class="flex flex-wrap justify-center sm:justify-start gap-4 mb-6 border-b border-gray-800 pb-3 text-center">
+      <button class="text-lg font-medium hover:text-green-300" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
+      <button class="text-lg font-medium hover:text-green-300" onclick="window.location.href='academia_grupos.html'">Grupos</button>
       <button class="text-lg font-medium text-green-300" onclick="window.location.href='academia_diario.html'">Diário</button>
     </nav>
 
-    <section id="tab-logs">
-      <div class="flex justify-end mb-4">
-        <button id="add-log" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700">+ Registrar Treino</button>
-      </div>
-      <div id="log-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <p id="log-empty" class="text-center text-gray-500 hidden">Nenhum registro encontrado.</p>
-    </section>
+    <!-- BOTÃO REGISTRAR -->
+    <div class="flex justify-end mb-4">
+      <button id="btn-registrar" class="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Registrar Treino</button>
+    </div>
+
+    <!-- LISTA DE TREINOS -->
+    <div id="treinos-lista" class="space-y-3"></div>
   </div>
 
-  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50">
-    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-5">
-      <h2 id="modal-title" class="text-xl font-semibold text-white mb-3">Modal</h2>
-      <form id="modal-form" class="space-y-3"></form>
-      <div class="flex justify-end gap-3 mt-4">
-        <button id="modal-save" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
-        <button id="modal-delete" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
-        <button id="modal-cancel" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
-      </div>
+  <!-- MODAL -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50 overflow-auto">
+    <div class="bg-gray-900 rounded-lg w-11/12 max-w-3xl p-6 mb-10">
+      <h2 class="text-xl font-semibold text-white mb-4">Registrar Treino</h2>
+      <form id="form-treino" class="space-y-4">
+        <div>
+          <label class="block text-sm mb-1">Data</label>
+          <input id="treino-data" type="date" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white">
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Grupo</label>
+          <select id="treino-grupo" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"></select>
+        </div>
+        <div id="exercicios-detalhes" class="space-y-4 hidden"></div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+          <button id="salvar-treino" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
+          <button id="cancelar" type="button" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- SCRIPT -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-    import { getFirestore, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    import {
+      getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
+      onSnapshot, query, doc, getDoc
+    } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
@@ -78,96 +110,196 @@
     const appEl = document.getElementById('app');
     const userEmailEl = document.getElementById('user-email');
     const logoutBtn = document.getElementById('logout-btn');
-
-    const logList = document.getElementById('log-list');
-    const logEmpty = document.getElementById('log-empty');
-    const addLogBtn = document.getElementById('add-log');
-
     const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalForm = document.getElementById('modal-form');
-    const modalSave = document.getElementById('modal-save');
-    const modalDelete = document.getElementById('modal-delete');
-    const modalCancel = document.getElementById('modal-cancel');
+    const btnRegistrar = document.getElementById('btn-registrar');
+    const cancelar = document.getElementById('cancelar');
+    const treinoGrupo = document.getElementById('treino-grupo');
+    const treinoData = document.getElementById('treino-data');
+    const exerciciosDetalhes = document.getElementById('exercicios-detalhes');
+    const listaTreinos = document.getElementById('treinos-lista');
+    const formTreino = document.getElementById('form-treino');
 
     let uid = null;
-    let editingId = null;
-    let allLogs = [];
+    let grupos = [];
+    let treinoEditando = null;
 
-    function renderLogCard(l) {
-      const dateStr = l.date ? new Date(l.date).toLocaleDateString('pt-BR') : 'Sem data';
-      return `<div class='card p-4 rounded-xl cursor-pointer' data-id='${l.id}'>
-        <h3 class='text-lg font-semibold text-green-300'>${dateStr}</h3>
-        <p class='text-sm text-gray-400 mt-1'>Grupo: ${l.groupName || '-'}</p>
-      </div>`;
-    }
-
-    function renderLogs(list) {
-      logList.innerHTML = '';
-      if (!list.length) { logEmpty.classList.remove('hidden'); return; }
-      logEmpty.classList.add('hidden');
-      list.forEach(it => logList.insertAdjacentHTML('beforeend', renderLogCard(it)));
-      logList.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', () => openModal(allLogs.find(x=>x.id===el.dataset.id))));
-    }
-
-    function openModal(data = null) {
-      editingId = data ? data.id : null;
-      modalTitle.textContent = editingId ? 'Editar Registro' : 'Novo Registro';
-      modalForm.innerHTML = `
-        <label class='text-sm'>Data</label>
-        <input id='f-date' type='date' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.date||'') : ''}'>
-        <label class='text-sm'>Nome do Grupo</label>
-        <input id='f-groupName' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.groupName||'') : ''}'>
-        <label class='text-sm'>Observações</label>
-        <textarea id='f-notes' class='w-full p-2 rounded bg-gray-800 border border-gray-700'>${data ? (data.notes||'') : ''}</textarea>`;
-      modalDelete.classList.toggle('hidden', !editingId);
-      modal.classList.remove('hidden');
-    }
-
-    modalCancel.addEventListener('click', () => modal.classList.add('hidden'));
-
-    modalSave.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!uid) return alert('Usuário não autenticado');
-      const payload = {
-        date: document.getElementById('f-date').value,
-        groupName: document.getElementById('f-groupName').value.trim(),
-        notes: document.getElementById('f-notes').value.trim()
-      };
-      const coll = collection(db, 'users', uid, 'academia_diario');
-      if (editingId) await updateDoc(doc(coll, editingId), payload);
-      else await addDoc(coll, payload);
-      modal.classList.add('hidden');
-    });
-
-    modalDelete.addEventListener('click', async () => {
-      if (!uid || !editingId) return;
-      if (!confirm('Deseja realmente excluir?')) return;
-      await deleteDoc(doc(collection(db, 'users', uid, 'academia_diario'), editingId));
-      modal.classList.add('hidden');
-    });
-
-    function startListeners() {
-      if (!uid) return;
-      onSnapshot(query(collection(db, 'users', uid, 'academia_diario')), snap => {
-        const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-        allLogs = arr;
-        renderLogs(arr);
+    async function carregarGrupos() {
+      const snap = await getDocs(collection(db, 'users', uid, 'academia_grupos'));
+      grupos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      treinoGrupo.innerHTML = '<option value="">Selecione um grupo</option>';
+      grupos.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.name;
+        treinoGrupo.appendChild(opt);
       });
     }
 
-    onAuthStateChanged(auth, (user) => {
+    async function carregarExercicioPorId(id) {
+      const ref = doc(db, 'users', uid, 'academia_exercicios', id);
+      const snap = await getDoc(ref);
+      return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    }
+
+    async function gerarCamposExercicios(grupo, exerciciosExistentes = null) {
+      exerciciosDetalhes.innerHTML = '';
+      if (!grupo) return exerciciosDetalhes.classList.add('hidden');
+      exerciciosDetalhes.classList.remove('hidden');
+
+      for (const ex of (grupo.exercises || []).slice().sort((a,b)=>a.order-b.order)) {
+        const exData = await carregarExercicioPorId(ex.id);
+        if (!exData) continue;
+        const feito = exerciciosExistentes?.find(e => e.id === ex.id);
+        const card = document.createElement('div');
+        card.className = 'p-3 border border-gray-700 rounded flex gap-4 items-center flex-wrap sm:flex-nowrap';
+        card.innerHTML = `
+          <img src='${exData.image || 'https://placehold.co/100x100/2a2a2a/e0e0e0?text=IMG'}'
+               class='w-20 h-20 rounded object-cover border border-gray-700'>
+          <div class='flex-1 min-w-[200px]'>
+            <h4 class='text-lg font-semibold text-green-400 mb-1'>${exData.name}</h4>
+            <p class='text-sm text-gray-400'>Peso: ${exData.weight || '-'} kg | Séries: ${exData.series || '-'} | Tempo: ${exData.time || '-'} s</p>
+            <div id='reps-${ex.id}' class='mt-2 flex flex-wrap gap-2'></div>
+          </div>`;
+
+        exerciciosDetalhes.appendChild(card);
+        const repsDiv = card.querySelector(`#reps-${ex.id}`);
+        const seriesCount = parseInt(exData.series) || 1;
+        const repsFeitas = feito?.repsDia || [];
+        for (let i = 0; i < seriesCount; i++) {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = '0';
+          input.placeholder = `Série ${i+1}`;
+          input.value = repsFeitas[i] || '';
+          input.className = 'p-2 w-24 rounded bg-gray-800 border border-gray-700 text-white';
+          repsDiv.appendChild(input);
+        }
+      }
+    }
+
+    treinoGrupo.addEventListener('change', async () => {
+      const grupo = grupos.find(g => g.id === treinoGrupo.value);
+      await gerarCamposExercicios(grupo);
+    });
+
+    formTreino.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const grupo = grupos.find(g => g.id === treinoGrupo.value);
+      if (!grupo) return alert('Selecione um grupo válido.');
+
+      const exerciciosSalvos = [];
+      for (const ex of (grupo.exercises || []).slice().sort((a,b)=>a.order-b.order)) {
+        const exData = await carregarExercicioPorId(ex.id);
+        if (!exData) continue;
+        const repsInputs = Array.from(document.querySelectorAll(`#reps-${ex.id} input`));
+        const repsDia = repsInputs.map(i => i.value ? parseInt(i.value) : 0);
+        exerciciosSalvos.push({
+          id: ex.id,
+          name: exData.name,
+          image: exData.image || null,
+          weight: exData.weight || exData.peso || null,
+          time: exData.time || exData.tempo || null,
+          series: exData.series || null,
+          repsDia
+        });
+      }
+
+      const data = {
+        date: treinoData.value || new Date().toISOString().slice(0,10),
+        groupName: grupo.name,
+        groupId: grupo.id,
+        exercises: exerciciosSalvos,
+        createdAt: new Date()
+      };
+
+      if (treinoEditando) {
+        await updateDoc(doc(db, 'users', uid, 'academia_diario', treinoEditando), data);
+        alert('Treino atualizado!');
+      } else {
+        await addDoc(collection(db, 'users', uid, 'academia_diario'), data);
+        alert('Treino salvo!');
+      }
+
+      modal.classList.add('hidden');
+      formTreino.reset();
+      exerciciosDetalhes.innerHTML = '';
+      treinoEditando = null;
+    });
+
+    function renderTreinoCard(t) {
+      return `
+        <div class="card p-3 sm:p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <h3 class="text-base sm:text-lg font-semibold">${t.groupName}</h3>
+            <span class="text-sm text-gray-400">${t.date}</span>
+          </div>
+          <div class="flex gap-2 card-btns">
+            <button class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm" data-edit="${t.id}">Editar</button>
+            <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm" data-del="${t.id}">Excluir</button>
+          </div>
+        </div>`;
+    }
+
+    function carregarTreinos() {
+      const q = query(collection(db, 'users', uid, 'academia_diario'));
+      onSnapshot(q, (snap) => {
+        listaTreinos.innerHTML = '';
+        if (snap.empty) {
+          listaTreinos.innerHTML = `<p class='text-gray-500 text-center mt-6'>Nenhum treino registrado ainda.</p>`;
+          return;
+        }
+
+        const treinos = [];
+        snap.forEach(d => treinos.push({ id: d.id, ...d.data() }));
+        treinos.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        listaTreinos.innerHTML = treinos.map(renderTreinoCard).join('');
+
+        document.querySelectorAll('[data-del]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.dataset.del;
+            if (confirm('Deseja excluir este treino?')) {
+              await deleteDoc(doc(db, 'users', uid, 'academia_diario', id));
+            }
+          });
+        });
+
+        document.querySelectorAll('[data-edit]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.dataset.edit;
+            treinoEditando = id;
+            const ref = doc(db, 'users', uid, 'academia_diario', id);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) return alert('Treino não encontrado.');
+            const treino = snap.data();
+            treinoData.value = treino.date;
+            treinoGrupo.value = treino.groupId;
+            modal.classList.remove('hidden');
+            await gerarCamposExercicios(grupos.find(g => g.id === treino.groupId), treino.exercises);
+          });
+        });
+      });
+    }
+
+    btnRegistrar.addEventListener('click', () => {
+      treinoEditando = null;
+      formTreino.reset();
+      exerciciosDetalhes.innerHTML = '';
+      modal.classList.remove('hidden');
+    });
+
+    cancelar.addEventListener('click', () => modal.classList.add('hidden'));
+
+    onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       uid = user.uid;
       userEmailEl.textContent = user.email || user.uid;
       loading.classList.add('hidden');
       appEl.classList.remove('hidden');
-      startListeners();
+      await carregarGrupos();
+      carregarTreinos();
     });
 
     logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
-    addLogBtn.addEventListener('click', () => openModal());
-
   </script>
 </body>
 </html>
