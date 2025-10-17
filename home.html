@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Hub Pessoal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0b0b0b; color: #e6e6e6; font-family: 'Inter', sans-serif; }
+        .bg-panel { background: #151515; border: 1px solid #2a2a2a; }
+        .accent { color: #B9314F; }
+        .btn-red { background: #B9314F; }
+        .btn-red:hover { background: #a12745; }
+        .hover-panel:hover { background: #1f1f1f; }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -52,38 +60,38 @@
         }
     </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col md:flex-row">
+<body class="bg-[#0b0b0b] text-[#e6e6e6] min-h-screen flex flex-col md:flex-row">
 
     <!-- Sidebar (Desktop) -->
-    <aside class="hidden md:flex md:flex-col bg-gray-800 w-64 h-screen p-6 border-r border-gray-700 fixed">
-        <h1 class="text-2xl font-bold mb-8 text-center">Meu Hub</h1>
+    <aside class="hidden md:flex md:flex-col bg-panel w-64 h-screen p-6 border-r border-gray-800 fixed">
+        <h1 class="text-2xl font-bold mb-8 text-center accent">Meu Hub</h1>
         <nav class="space-y-4">
-            <a href="home.html" class="block px-3 py-2 rounded hover:bg-gray-700">Início</a>
-            <a href="games_manager.html" class="block px-3 py-2 rounded hover:bg-gray-700">Games</a>
-            <a href="hqs_manager.html" class="block px-3 py-2 rounded hover:bg-gray-700">HQs</a>
-            <a href="Lists.html" class="block px-3 py-2 rounded hover:bg-gray-700">Listas</a>
-            <a href="academia_exercicios.html" class="block px-3 py-2 rounded hover:bg-gray-700">Academia</a>
+            <a href="home.html" class="block px-3 py-2 rounded hover-panel">Início</a>
+            <a href="games_manager.html" class="block px-3 py-2 rounded hover-panel">Games</a>
+            <a href="hqs_manager.html" class="block px-3 py-2 rounded hover-panel">HQs</a>
+            <a href="Lists.html" class="block px-3 py-2 rounded hover-panel">Listas</a>
+            <a href="academia_exercicios.html" class="block px-3 py-2 rounded hover-panel">Academia</a>
         </nav>
-        <button id="logout-btn" class="mt-auto bg-red-500 hover:bg-red-600 text-white w-full py-2 rounded-lg transition">Sair</button>
+        <button id="logout-btn" class="mt-auto btn-red text-white w-full py-2 rounded-lg transition">Sair</button>
     </aside>
 
     <!-- Conteúdo Principal -->
     <div class="flex-1 md:ml-64 flex flex-col justify-between">
-        <header class="bg-gray-800 p-4 flex justify-between items-center shadow-lg md:hidden">
-            <h1 class="text-2xl font-bold">Hub Pessoal</h1>
-            <button id="logout-btn-mobile" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">Sair</button>
+        <header class="bg-panel p-4 flex justify-between items-center shadow-lg md:hidden">
+            <h1 class="text-2xl font-bold accent">My Hub</h1>
+            <button id="logout-btn-mobile" class="btn-red text-white px-4 py-2 rounded-lg transition">Sair</button>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
-            <h2 class="text-3xl font-bold mb-4">Bem-vindo(a)!</h2>
+            <h2 class="text-3xl font-bold mb-4 accent">Bem-vindo(a)!</h2>
             <p id="user-info" class="text-lg text-gray-300"></p>
         </main>
 
         <!-- Menu inferior (modo celular) -->
-        <nav class="bg-gray-800 p-4 md:hidden fixed bottom-0 w-full border-t border-gray-700">
+        <nav class="bg-panel p-4 md:hidden fixed bottom-0 w-full border-t border-gray-800">
             <div class="flex justify-between items-center">
                 <span class="text-gray-300">Menu</span>
-                <button id="menu-btn" class="text-white bg-blue-600 px-3 py-1 rounded">Mostrar</button>
+                <button id="menu-btn" class="btn-red text-white px-3 py-1 rounded">Mostrar</button>
             </div>
             <ul id="menu-list" class="hidden mt-3 space-y-2 text-gray-300">
                 <li><a href="games_manager.html" class="block hover:text-white">Games</a></li>
