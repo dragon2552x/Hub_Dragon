@@ -8,15 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Inter', 0b0b0b-serif;
+            background-color: #151515;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
+            background: linear-gradient(90deg, #B9314F 0%, #a12745 100%);
             transition: all 0.2s ease;
         }
         .btn-primary:hover {
@@ -27,16 +27,16 @@
 </head>
 <body>
 
-    <div id="auth-container" class="w-full max-w-sm mx-4 p-8 bg-white rounded-xl shadow-2xl border border-gray-100 transition-all duration-300">
+    <div id="auth-container" class="w-full max-w-sm mx-4 p-8 bg-#151515 rounded-xl shadow-2xl border border-gray-100 transition-all duration-300">
         
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Aceder ao Hub</h1>
+        <h1 class="text-3xl font-bold text-center text-white mb-6">Acessar My Hub</h1>
 
         <!-- Área de Mensagens (Erros/Sucesso) -->
         <div id="message-box" class="hidden p-3 mb-4 rounded-lg text-sm transition-all duration-300"></div>
 
         <!-- Formulário de Login/Registo -->
         <div id="login-form">
-            <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required>
+            <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border border-#B9314F rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required>
             <input type="password" id="password" placeholder="Senha (mín. 6 caracteres)" class="w-full p-3 mb-6 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required>
             
             <button id="loginBtn" class="btn-primary w-full text-white font-semibold py-3 rounded-lg mb-3 shadow-md">
