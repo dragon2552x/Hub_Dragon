@@ -5,73 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerenciador de HQs</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Estilos e Fonte do academia_diario.html -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
+    .card:hover { border-color:#B9314F; transform:translateY(-4px); }
+    .btn-primary { background:#B9314F; color: white; }
+    .btn-primary:hover { background:#99233b; }
+    /* Ajuste para inputs do modal */
+    .modal-input {
+      background-color: #1f2937; /* bg-gray-800 */
+      border: 1px solid #374151; /* border-gray-700 */
+    }
+    .modal-input:focus {
+      outline: none;
+      border-color: #B9314F;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <div class="container mx-auto p-6">
-    <header class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-      <h1 class="text-3xl font-bold">Minhas HQs</h1>
-      <div class="flex space-x-3">
-        <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Sair</button>
-        <button id="add-btn" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Adicionar HQ</button>
+<body class="min-h-screen">
+
+  <!-- LOADING SPINNER -->
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
+  </div>
+
+  <!-- APP (Container principal) -->
+  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
+    <header class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 border-b border-gray-800 pb-4">
+      <!-- Info do Usuário -->
+      <div>
+        <h1 class="text-3xl font-bold">Minhas HQs</h1>
+        <div class="text-sm text-gray-400 mt-1">
+          Usuário: <span id="user-email" class="text-[#B9314F] font-mono">...</span>
+        </div>
+      </div>
+      <!-- Botões do Header -->
+      <div class="flex items-center gap-3">
+        <button onclick="window.location.href='home.html'" class="px-3 py-1 rounded btn-primary">Home</button>
+        <button id="add-btn" class="px-3 py-1 rounded btn-primary">Adicionar HQ</button>
+        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
       </div>
     </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="p-2 rounded bg-gray-800 border border-gray-700">
-      <select id="filter-protagonist" class="p-2 rounded bg-gray-800 border border-gray-700"></select>
-      <select id="filter-status" class="p-2 rounded bg-gray-800 border border-gray-700">
-        <option value="">Todos os status</option>
-        <option value="Lido">Lido</option>
-        <option value="Lendo">Lendo</option>
-        <option value="Quero Ler">Quero Ler</option>
-        <option value="Dropei">Dropei</option>
-      </select>
-      <select id="filter-stars" class="p-2 rounded bg-gray-800 border border-gray-700">
-        <option value="">Todas as estrelas</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
-    </section>
-
-    <div class="flex justify-end mb-4 space-x-3">
-      <label>Ordenar por:</label>
-      <select id="sort-select" class="p-2 rounded bg-gray-800 border border-gray-700">
-        <option value="name">Nome</option>
-        <option value="stars">Estrelas</option>
-        <option value="chapters">Capítulos</option>
-        <option value="status">Status</option>
-      </select>
+    <!-- Botão para Togglar Filtros -->
+    <div class="mb-4">
+      <button id="toggle-filter-btn" class="w-full md:w-auto bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md">
+        Mostrar Filtros
+      </button>
     </div>
 
-    <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    <!-- Contêiner Colapsável de Filtros e Ordenação (Estilizado como card) -->
+    <div id="filter-container" class="hidden bg-[#151515] border border-[#2a2a2a] p-4 rounded-lg mb-6">
+      <!-- Seção de Filtros -->
+      <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="p-2 rounded bg-gray-800 border border-gray-700">
+        <select id="filter-protagonist" class="p-2 rounded bg-gray-800 border border-gray-700"></select>
+        <select id="filter-status" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="">Todos os status</option>
+          <option value="Lido">Lido</option>
+          <option value="Lendo">Lendo</option>
+          <option value="Quero Ler">Quero Ler</option>
+          <option value="Dropei">Dropei</option>
+        </select>
+        <select id="filter-stars" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="">Todas as estrelas</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </section>
+
+      <!-- Seção de Ordenação -->
+      <div class="flex justify-end space-x-3">
+        <label class="my-auto">Ordenar por:</label>
+        <select id="sort-select" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="name">Nome</option>
+          <option value="stars">Estrelas</option>
+          <option value="chapters">Capítulos</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+    </div>
+    <!-- Fim do Contêiner Colapsável -->
+
+    <!-- Contêiner dos Cards -->
+    <div id="cards" class="flex flex-col gap-4"></div>
     <p id="empty" class="text-center text-gray-500 hidden">Nenhuma HQ encontrada.</p>
   </div>
+  <!-- Fim do #app -->
 
-  <!-- Modal de Edição/Cadastro -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-lg w-11/12 max-w-lg">
+
+  <!-- Modal de Edição/Cadastro (Movido para fora do #app) -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 overflow-auto">
+    <!-- Estilo do Modal do academia_diario.html -->
+    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-6 m-4">
       <h2 id="modal-title" class="text-xl font-bold mb-4">Nova HQ</h2>
       <form id="hq-form" class="space-y-3">
         <input type="hidden" id="hq-id">
         <div>
           <label class="block text-sm">Título</label>
-          <input id="hq-title" type="text" class="w-full p-2 rounded bg-gray-700 border border-gray-600" required>
+          <input id="hq-title" type="text" class="w-full p-2 rounded modal-input" required>
         </div>
         <div>
           <label class="block text-sm">Imagem (URL)</label>
-          <input id="hq-img" type="url" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+          <input id="hq-img" type="url" class="w-full p-2 rounded modal-input">
         </div>
         <div>
           <label class="block text-sm">Protagonista</label>
-          <input id="hq-protagonist" type="text" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+          <input id="hq-protagonist" type="text" class="w-full p-2 rounded modal-input">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-sm">Estrelas</label>
-            <select id="hq-stars" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+            <select id="hq-stars" class="w-full p-2 rounded modal-input">
               <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -82,7 +132,7 @@
           </div>
           <div>
             <label class="block text-sm">Status</label>
-            <select id="hq-status" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+            <select id="hq-status" class="w-full p-2 rounded modal-input">
               <option value="Lendo">Lendo</option>
               <option value="Lido">Lido</option>
               <option value="Quero Ler">Quero Ler</option>
@@ -93,31 +143,35 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-sm">Capítulos Totais</label>
-            <input id="hq-total" type="number" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+            <input id="hq-total" type="number" min="0" class="w-full p-2 rounded modal-input">
           </div>
           <div>
             <label class="block text-sm">Capítulos Lidos</label>
-            <input id="hq-read" type="number" class="w-full p-2 rounded bg-gray-700 border border-gray-600">
+            <input id="hq-read" type="number" min="0" class="w-full p-2 rounded modal-input">
           </div>
         </div>
         <div>
           <label class="block text-sm">Observações</label>
-          <textarea id="hq-notes" rows="3" class="w-full p-2 rounded bg-gray-700 border border-gray-600"></textarea>
+          <textarea id="hq-notes" rows="3" class="w-full p-2 rounded modal-input"></textarea>
         </div>
         <div class="flex justify-end space-x-3 pt-3">
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Salvar</button>
-          <button id="delete-btn" type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded hidden">Excluir</button>
-          <button type="button" id="close-modal" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Cancelar</button>
+          <!-- Botões com estilo atualizado -->
+          <button type="submit" class="px-4 py-2 rounded btn-primary">Salvar</button>
+          <button id="delete-btn" type="button" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
+          <button type="button" id="close-modal" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
+  <!-- Fim do Modal -->
+
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // Configuração do Firebase (mantida)
     const firebaseConfig = {
       apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
       authDomain: "list-games-9bddd.firebaseapp.com",
@@ -132,6 +186,12 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // --- Novos Seletores de UI ---
+    const loading = document.getElementById('loading');
+    const appEl = document.getElementById('app'); // Renomeado de 'app' para 'appEl' para evitar conflito com 'app' do Firebase
+    const userEmailEl = document.getElementById('user-email');
+
+    // Seletores de Elementos (mantidos)
     const cards = document.getElementById('cards');
     const empty = document.getElementById('empty');
     const modal = document.getElementById('modal');
@@ -147,13 +207,23 @@
     const filterStars = document.getElementById('filter-stars');
     const sortSelect = document.getElementById('sort-select');
 
+    // Novos seletores para o filtro
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+    const filterContainer = document.getElementById('filter-container');
+
     let allHqs = [];
     let currentUser = null;
     let editingId = null;
+    let isFirstLoad = true; // Flag para controlar o loading
 
+    // Autenticação (Atualizada com Loading e User Email)
     onAuthStateChanged(auth, (user) => {
-      if (!user) return window.location.href = 'index.html';
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
       currentUser = user;
+      userEmailEl.textContent = user.email || user.uid; // Define o email
 
       const q = query(collection(db, 'users', user.uid, 'hqs'));
       onSnapshot(q, (snap) => {
@@ -161,14 +231,43 @@
         snap.forEach(doc => allHqs.push({ id: doc.id, ...doc.data() }));
         updateFilters();
         render();
+
+        // Esconde o loading e mostra o app apenas na primeira carga
+        if (isFirstLoad) {
+          loading.classList.add('hidden');
+          appEl.classList.remove('hidden');
+          isFirstLoad = false;
+        }
+      }, (error) => {
+        // Trata erro do listener
+        console.error("Erro ao buscar HQs: ", error);
+        if (isFirstLoad) {
+          loading.classList.add('hidden');
+          appEl.classList.remove('hidden');
+          isFirstLoad = false;
+        }
+        // Você pode querer mostrar uma mensagem de erro na UI
+        cards.innerHTML = "<p class='text-center text-red-400'>Erro ao carregar dados.</p>";
       });
     });
 
+    // Logout (mantido)
     logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = 'index.html';
     });
 
+    // Event Listener para Togglar Filtros (mantido)
+    toggleFilterBtn.addEventListener('click', () => {
+      const isHidden = filterContainer.classList.toggle('hidden');
+      if (isHidden) {
+        toggleFilterBtn.textContent = 'Mostrar Filtros';
+      } else {
+        toggleFilterBtn.textContent = 'Esconder Filtros';
+      }
+    });
+
+    // Abrir Modal para Adicionar (mantido)
     addBtn.addEventListener('click', () => {
       editingId = null;
       form.reset();
@@ -178,8 +277,10 @@
       modal.classList.add('flex');
     });
 
+    // Fechar Modal (mantido)
     closeModal.addEventListener('click', () => modal.classList.add('hidden'));
 
+    // Submit do Formulário (Add/Edit) (mantido)
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {
@@ -193,46 +294,72 @@
         notes: document.getElementById('hq-notes').value
       };
 
-      if (editingId) {
-        await updateDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId), data);
-      } else {
-        await addDoc(collection(db, 'users', currentUser.uid, 'hqs'), data);
+      try {
+        if (editingId) {
+          await updateDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId), data);
+        } else {
+          await addDoc(collection(db, 'users', currentUser.uid, 'hqs'), data);
+        }
+        modal.classList.add('hidden');
+      } catch (error) {
+        console.error("Erro ao salvar HQ: ", error);
       }
-      modal.classList.add('hidden');
     });
 
+    // Abrir Modal para Editar (lógica de clique mantida)
     cards.addEventListener('click', async (e) => {
       const card = e.target.closest('.card');
       if (!card) return;
+      
       const id = card.dataset.id;
+      if (!id) return;
+      
       editingId = id;
-      const docSnap = await getDoc(doc(db, 'users', currentUser.uid, 'hqs', id));
-      const data = docSnap.data();
-      document.getElementById('hq-title').value = data.name;
-      document.getElementById('hq-img').value = data.image;
-      document.getElementById('hq-protagonist').value = data.protagonist;
-      document.getElementById('hq-stars').value = data.stars;
-      document.getElementById('hq-status').value = data.status;
-      document.getElementById('hq-total').value = data.total;
-      document.getElementById('hq-read').value = data.read;
-      document.getElementById('hq-notes').value = data.notes;
-      deleteBtn.classList.remove('hidden');
-      document.getElementById('modal-title').textContent = 'Editar HQ';
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      
+      try {
+        const docSnap = await getDoc(doc(db, 'users', currentUser.uid, 'hqs', id));
+        if (!docSnap.exists()) {
+          console.error("Documento não encontrado!");
+          return;
+        }
+        const data = docSnap.data();
+        document.getElementById('hq-title').value = data.name || '';
+        document.getElementById('hq-img').value = data.image || '';
+        document.getElementById('hq-protagonist').value = data.protagonist || '';
+        document.getElementById('hq-stars').value = data.stars || 0;
+        document.getElementById('hq-status').value = data.status || 'Lendo';
+        document.getElementById('hq-total').value = data.total || 0;
+        document.getElementById('hq-read').value = data.read || 0;
+        document.getElementById('hq-notes').value = data.notes || '';
+        
+        deleteBtn.classList.remove('hidden');
+        document.getElementById('modal-title').textContent = 'Editar HQ';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } catch (error) {
+         console.error("Erro ao buscar HQ para edição: ", error);
+      }
     });
 
+    // Deletar HQ (mantido)
     deleteBtn.addEventListener('click', async () => {
       if (!editingId) return;
-      await deleteDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId));
-      modal.classList.add('hidden');
+      // Adicionar uma confirmação visual seria uma boa prática
+      try {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId));
+        modal.classList.add('hidden');
+      } catch (error) {
+        console.error("Erro ao deletar HQ: ", error);
+      }
     });
 
+    // Atualizar Filtros (mantido)
     function updateFilters() {
       const protagonists = [...new Set(allHqs.map(hq => hq.protagonist).filter(Boolean))];
       filterProtagonist.innerHTML = '<option value="">Todos os protagonistas</option>' + protagonists.map(p => `<option value="${p}">${p}</option>`).join('');
     }
 
+    // Função de Renderização (Estilo do Card ATUALIZADO)
     function render() {
       let filtered = allHqs.filter(hq => {
         return (
@@ -251,22 +378,37 @@
       }
 
       cards.innerHTML = '';
-      if (filtered.length === 0) return empty.classList.remove('hidden');
+      if (filtered.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
       empty.classList.add('hidden');
 
+      // Template HTML ATUALIZADO
       filtered.forEach(hq => {
         cards.innerHTML += `
-          <div class='card p-4 rounded-xl bg-gray-800 border border-gray-700 cursor-pointer' data-id='${hq.id}'>
-            <img src='${hq.image || 'https://placehold.co/300x400?text=Capa'}' class='w-full h-48 object-cover rounded mb-3'>
-            <h3 class='text-lg font-semibold mb-1'>${hq.name}</h3>
-            <p class='text-sm text-gray-400 mb-1'>${hq.protagonist || ''}</p>
-            <div>${'★'.repeat(hq.stars)}${'☆'.repeat(5 - hq.stars)}</div>
-            <span class='text-sm px-2 py-1 rounded-full bg-gray-700 mt-2 inline-block'>${hq.status}</span>
+          <div class='card flex rounded-lg overflow-hidden cursor-pointer p-3' data-id='${hq.id}'>
+            <img src='${hq.image || 'https://placehold.co/200x300/151515/e0e0e0?text=Capa'}' 
+                 class='w-32 h-48 object-cover rounded-md border border-gray-700' 
+                 onerror="this.src='https://placehold.co/200x300/151515/e0e0e0?text=Capa'; this.onerror=null;">
+            <div class='ml-4 flex flex-col justify-between flex-1 py-1'>
+              <div>
+                <h3 class='text-xl font-semibold mb-1 text-[#B9314F]'>${hq.name}</h3>
+                <!-- ESTRELAS ATUALIZADAS AQUI -->
+                <div class="text-xl text-yellow-400">${'★'.repeat(hq.stars)}${'☆'.repeat(5 - hq.stars)}</div>
+                <span class='text-sm px-2 py-1 rounded-full bg-gray-700 mt-2 mb-2 inline-block'>${hq.status}</span>
+              </div>
+              <p class='text-sm text-gray-400'>Capítulos: ${hq.read || 0} / ${hq.total || 0}</p>
+            </div>
           </div>`;
       });
     }
 
+    // Event Listeners para filtros (mantidos)
     [searchInput, filterProtagonist, filterStatus, filterStars, sortSelect].forEach(el => el.addEventListener('input', render));
+  
   </script>
 </body>
 </html>
+
+
