@@ -9,55 +9,43 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
     .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
-    .card:hover { border-color:#16a34a; transform:translateY(-3px); }
-    @media (max-width:640px) {
-      .card { padding: 0.8rem; }
-      h1 { font-size: 1.6rem !important; }
-      .card-btns { flex-wrap: wrap; gap: 4px !important; }
-    }
+    .card:hover { border-color:#B9314F; transform:translateY(-4px); }
+    .btn-primary { background:#B9314F; }
+    .btn-primary:hover { background:#99233b; }
   </style>
 </head>
 <body class="min-h-screen">
+  <!-- LOADING -->
   <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-green-500 rounded-full"></div>
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
   </div>
 
-  <div id="app" class="container mx-auto px-3 sm:p-6 max-w-6xl hidden">
-    <!-- CABEÇALHO -->
-    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-      <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3">
-        <button onclick="window.location.href='home.html'"
-                class="px-4 py-2 rounded bg-gray-1000 hover:border-green-500 hover:text-green-300 text-white font-medium text-sm sm:text-base transition-colors">
-          Home
-        </button>
-        <h1 class="text-3xl font-bold text-center sm:text-left">Diário de Treino</h1>
-      </div>
-
-      <div class="text-center sm:text-left">
+  <!-- APP -->
+  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
+    <header class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3">
+      <div>
+        <h1 class="text-3xl font-bold">Diário de Treino</h1>
         <div class="text-sm text-gray-400 mt-1">
-          Usuário: <span id="user-email" class="text-green-300 font-mono"></span>
+          Usuário: <span id="user-email" class="text-[#B9314F] font-mono"></span>
         </div>
       </div>
-
-      <button id="logout-btn"
-              class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 w-full sm:w-auto">
-        Sair
-      </button>
+      <div class="flex items-center gap-3">
+        <button onclick="window.location.href='home.html'" class="px-3 py-1 rounded btn-primary text-white">Home</button>
+        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+      </div>
     </header>
 
-    <!-- MENU -->
-    <nav class="flex flex-wrap justify-center sm:justify-start gap-4 mb-6 border-b border-gray-800 pb-3 text-center">
-      <button class="text-lg font-medium hover:text-green-300" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
-      <button class="text-lg font-medium hover:text-green-300" onclick="window.location.href='academia_grupos.html'">Grupos</button>
-      <button class="text-lg font-medium text-green-300" onclick="window.location.href='academia_diario.html'">Diário</button>
+    <!-- NAV -->
+    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3 flex-wrap">
+      <button class="text-lg font-medium" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
+      <button class="text-lg font-medium" onclick="window.location.href='academia_grupos.html'">Grupos</button>
+      <button class="text-lg font-medium text-[#B9314F]" onclick="window.location.href='academia_diario.html'">Diário</button>
     </nav>
 
-    <!-- BOTÃO REGISTRAR -->
     <div class="flex justify-end mb-4">
-      <button id="btn-registrar" class="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Registrar Treino</button>
+      <button id="btn-registrar" class="px-3 py-1 rounded btn-primary hover:bg-[#99233b]">Registrar Treino</button>
     </div>
 
-    <!-- LISTA DE TREINOS -->
     <div id="treinos-lista" class="space-y-3"></div>
   </div>
 
@@ -76,20 +64,19 @@
         </div>
         <div id="exercicios-detalhes" class="space-y-4 hidden"></div>
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-          <button id="salvar-treino" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
+          <button id="salvar-treino" class="px-4 py-2 rounded btn-primary hover:bg-[#99233b]">Salvar</button>
           <button id="cancelar" type="button" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- SCRIPT -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
     import {
-      getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
-      onSnapshot, query, doc, getDoc
+      getFirestore, collection, getDocs, addDoc, onSnapshot,
+      query, doc, getDoc, where, orderBy, limit, deleteDoc
     } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -121,7 +108,31 @@
 
     let uid = null;
     let grupos = [];
-    let treinoEditando = null;
+
+    // Busca último treino do grupo (com fallback seguro)
+    async function buscarUltimoTreinoGrupo(grupoId) {
+      try {
+        const q = query(
+          collection(db, 'users', uid, 'academia_diario'),
+          where('groupId', '==', grupoId),
+          orderBy('date', 'desc'),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+        if (snap.empty) return null;
+        return { id: snap.docs[0].id, ...snap.docs[0].data() };
+      } catch (err) {
+        console.warn('Query orderBy/where falhou (fallback). Erro:', err.message || err);
+        // fallback: buscar todos os treinos e filtrar/ordenar no cliente
+        const allSnap = await getDocs(collection(db, 'users', uid, 'academia_diario'));
+        const arr = [];
+        allSnap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+        const filtered = arr.filter(x => x.groupId === grupoId);
+        if (!filtered.length) return null;
+        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+        return filtered[0];
+      }
+    }
 
     async function carregarGrupos() {
       const snap = await getDocs(collection(db, 'users', uid, 'academia_grupos'));
@@ -141,163 +152,225 @@
       return snap.exists() ? { id: snap.id, ...snap.data() } : null;
     }
 
-    async function gerarCamposExercicios(grupo, exerciciosExistentes = null) {
-      exerciciosDetalhes.innerHTML = '';
-      if (!grupo) return exerciciosDetalhes.classList.add('hidden');
-      exerciciosDetalhes.classList.remove('hidden');
-
-      for (const ex of (grupo.exercises || []).slice().sort((a,b)=>a.order-b.order)) {
-        const exData = await carregarExercicioPorId(ex.id);
-        if (!exData) continue;
-        const feito = exerciciosExistentes?.find(e => e.id === ex.id);
-        const card = document.createElement('div');
-        card.className = 'p-3 border border-gray-700 rounded flex gap-4 items-center flex-wrap sm:flex-nowrap';
-        card.innerHTML = `
-          <img src='${exData.image || 'https://placehold.co/100x100/2a2a2a/e0e0e0?text=IMG'}'
-               class='w-20 h-20 rounded object-cover border border-gray-700'>
-          <div class='flex-1 min-w-[200px]'>
-            <h4 class='text-lg font-semibold text-green-400 mb-1'>${exData.name}</h4>
-            <p class='text-sm text-gray-400'>Repetições: ${exData.reps || '-'} | Séries: ${exData.series || '-'}</p>
-            <p class='text-sm text-gray-400'>Peso: ${exData.weight || '-'} | Tempo: ${exData.time || '-'}</p>
-            <div id='reps-${ex.id}' class='mt-2 flex flex-wrap gap-2'></div>
-          </div>`;
-
-        exerciciosDetalhes.appendChild(card);
-        const repsDiv = card.querySelector(`#reps-${ex.id}`);
-        const seriesCount = parseInt(exData.series) || 1;
-        const repsFeitas = feito?.repsDia || [];
-        for (let i = 0; i < seriesCount; i++) {
-          const input = document.createElement('input');
-          input.type = 'number';
-          input.min = '0';
-          input.placeholder = `Rep. ${i+1}`;
-          input.value = repsFeitas[i] || '';
-          input.className = 'p-2 w-20 rounded bg-gray-800 border border-gray-700 text-white';
-          repsDiv.appendChild(input);
-        }
-      }
-    }
-
+    // Ao trocar de grupo, mostrar exercícios + última repetição do último treino (fallback seguro)
     treinoGrupo.addEventListener('change', async () => {
-      const grupo = grupos.find(g => g.id === treinoGrupo.value);
-      await gerarCamposExercicios(grupo);
+      try {
+        const grupo = grupos.find(g => g.id === treinoGrupo.value);
+        if (!grupo) {
+          exerciciosDetalhes.classList.add('hidden');
+          exerciciosDetalhes.innerHTML = '';
+          return;
+        }
+        exerciciosDetalhes.classList.remove('hidden');
+        exerciciosDetalhes.innerHTML = '';
+
+        // buscar último treino desse grupo (pode retornar null)
+        const ultimoTreino = await buscarUltimoTreinoGrupo(grupo.id);
+
+        for (const ex of (grupo.exercises || []).slice().sort((a,b)=> (a.order||0) - (b.order||0))) {
+          const exData = await carregarExercicioPorId(ex.id);
+          if (!exData) continue;
+
+          // pegar última repetição daquele exercício (do último treino do grupo)
+          let ultimaRepeticao = '-';
+          if (ultimoTreino?.exercises) {
+            const ultimoEx = ultimoTreino.exercises.find(e => e.id === ex.id);
+            if (ultimoEx && Array.isArray(ultimoEx.repsDia) && ultimoEx.repsDia.length) {
+              ultimaRepeticao = ultimoEx.repsDia.join(', ');
+            }
+          }
+
+          const card = document.createElement('div');
+          card.className = 'p-3 border border-gray-700 rounded flex gap-4 items-start flex-wrap sm:flex-nowrap';
+          card.innerHTML = `
+            <img src='${exData.image || 'https://placehold.co/100x100/2a2a2a/e0e0e0?text=IMG'}'
+                 class='w-24 h-24 rounded object-cover border border-gray-700'>
+            <div class='flex-1 min-w-[220px]'>
+              <h4 class='text-lg font-semibold text-[#B9314F] mb-1'>${exData.name}</h4>
+              <p class='text-sm text-gray-400'>Repetições padrão: ${exData.reps || exData.repeticoes || '-' } | Séries: ${exData.series || '-'}</p>
+              <p class='text-sm text-gray-400'>Peso: ${exData.weight || exData.peso || '-'} kg | Tempo: ${exData.time || exData.tempo || '-'} s</p>
+              <p class='text-sm text-gray-400'>Última Repetição: ${ultimaRepeticao}</p>
+              <div id='reps-${ex.id}' class='mt-2 flex flex-wrap gap-2'></div>
+            </div>`;
+
+          exerciciosDetalhes.appendChild(card);
+
+          // adicionar inputs para cada série (valores em branco para registrar o dia atual)
+          const repsDiv = card.querySelector(`#reps-${ex.id}`);
+          const seriesCount = parseInt(exData.series) || 1;
+          for (let i = 0; i < seriesCount; i++) {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.placeholder = `Série ${i+1}`;
+            input.className = 'p-2 w-28 rounded bg-gray-800 border border-gray-700 text-white';
+            input.dataset.exerciseId = ex.id;
+            input.dataset.serieIndex = i;
+            repsDiv.appendChild(input);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao renderizar exercícios do grupo:', err);
+        exerciciosDetalhes.innerHTML = `<p class="text-sm text-red-400">Erro ao carregar exercícios: ${err.message || err}</p>`;
+      }
     });
 
+    // salvar treino
     formTreino.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const grupo = grupos.find(g => g.id === treinoGrupo.value);
-      if (!grupo) return alert('Selecione um grupo válido.');
+      try {
+        const grupo = grupos.find(g => g.id === treinoGrupo.value);
+        if (!grupo) return alert('Selecione um grupo válido.');
 
-      const exerciciosSalvos = [];
-      for (const ex of (grupo.exercises || []).slice().sort((a,b)=>a.order-b.order)) {
-        const exData = await carregarExercicioPorId(ex.id);
-        if (!exData) continue;
-        const repsInputs = Array.from(document.querySelectorAll(`#reps-${ex.id} input`));
-        const repsDia = repsInputs.map(i => i.value ? parseInt(i.value) : 0);
-        exerciciosSalvos.push({
-          id: ex.id,
-          name: exData.name,
-          image: exData.image || null,
-          weight: exData.weight || exData.peso || null,
-          time: exData.time || exData.tempo || null,
-          series: exData.series || null,
-          repsDia
+        const exerciciosSalvos = [];
+        for (const ex of (grupo.exercises || []).slice().sort((a,b)=> (a.order||0)-(b.order||0))) {
+          const exData = await carregarExercicioPorId(ex.id);
+          if (!exData) continue;
+          const repsInputs = Array.from(document.querySelectorAll(`#reps-${ex.id} input`));
+          const repsDia = repsInputs.map(i => i.value ? parseInt(i.value) : 0);
+          exerciciosSalvos.push({
+            id: ex.id,
+            name: exData.name,
+            image: exData.image || null,
+            weight: exData.weight || null,
+            time: exData.time || null,
+            series: exData.series || null,
+            repsTemplate: exData.reps || null,
+            repsDia
+          });
+        }
+
+        await addDoc(collection(db, 'users', uid, 'academia_diario'), {
+          date: treinoData.value || new Date().toISOString().slice(0,10),
+          groupName: grupo.name,
+          groupId: grupo.id,
+          observation: '',
+          exercises: exerciciosSalvos,
+          createdAt: new Date()
         });
+
+        modal.classList.add('hidden');
+        formTreino.reset();
+        exerciciosDetalhes.innerHTML = '';
+        alert('Treino salvo com sucesso!');
+      } catch (err) {
+        console.error('Erro ao salvar treino:', err);
+        alert('Erro ao salvar treino: ' + (err.message || err));
       }
-
-      const data = {
-        date: treinoData.value || new Date().toISOString().slice(0,10),
-        groupName: grupo.name,
-        groupId: grupo.id,
-        exercises: exerciciosSalvos,
-        createdAt: new Date()
-      };
-
-      if (treinoEditando) {
-        await updateDoc(doc(db, 'users', uid, 'academia_diario', treinoEditando), data);
-        alert('Treino atualizado!');
-      } else {
-        await addDoc(collection(db, 'users', uid, 'academia_diario'), data);
-        alert('Treino salvo!');
-      }
-
-      modal.classList.add('hidden');
-      formTreino.reset();
-      exerciciosDetalhes.innerHTML = '';
-      treinoEditando = null;
     });
 
+    // render card e listeners para editar/excluir
     function renderTreinoCard(t) {
       return `
-        <div class="card p-3 sm:p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
+        <div class="card p-3 sm:p-4 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4">
           <div class="flex items-center gap-3 flex-wrap">
             <h3 class="text-base sm:text-lg font-semibold">${t.groupName}</h3>
             <span class="text-sm text-gray-400">${t.date}</span>
           </div>
           <div class="flex gap-2">
-            <button class="px-3 py-1 rounded bg-[#B9314F] hover:bg-[#9e2943] text-white text-sm" data-edit="${t.id}">Editar</button>
+            <button class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm" data-edit="${t.id}">Editar</button>
             <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm" data-del="${t.id}">Excluir</button>
           </div>
         </div>`;
     }
 
+    // carregar treinos e anexar listeners
     function carregarTreinos() {
-      const q = query(collection(db, 'users', uid, 'academia_diario'));
-      onSnapshot(q, (snap) => {
+      // uso onSnapshot para atualizações em tempo real
+      onSnapshot(collection(db, 'users', uid, 'academia_diario'), (snap) => {
         listaTreinos.innerHTML = '';
         if (snap.empty) {
-          listaTreinos.innerHTML = `<p class='text-gray-500 text-center mt-6'>Nenhum treino registrado ainda.</p>`;
+          listaTreinos.innerHTML = `<p class="text-gray-500 text-center">Nenhum treino registrado ainda.</p>`;
           return;
         }
+        const arr = [];
+        snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+        // ordenar por data descendente (mais recente primeiro)
+        arr.sort((a,b) => new Date(b.date) - new Date(a.date));
+        arr.forEach(t => listaTreinos.insertAdjacentHTML('beforeend', renderTreinoCard(t)));
 
-        const treinos = [];
-        snap.forEach(d => treinos.push({ id: d.id, ...d.data() }));
-        treinos.sort((a,b)=>new Date(b.date)-new Date(a.date));
-        listaTreinos.innerHTML = treinos.map(renderTreinoCard).join('');
-
+        // anexar listeners dinamicamente
         document.querySelectorAll('[data-del]').forEach(btn => {
-          btn.addEventListener('click', async () => {
+          btn.onclick = async () => {
             const id = btn.dataset.del;
-            if (confirm('Deseja excluir este treino?')) {
+            if (!confirm('Deseja excluir este treino?')) return;
+            try {
               await deleteDoc(doc(db, 'users', uid, 'academia_diario', id));
+            } catch (err) {
+              console.error('Erro excluir treino:', err);
+              alert('Erro ao excluir: ' + (err.message || err));
             }
-          });
+          };
         });
 
         document.querySelectorAll('[data-edit]').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const id = btn.dataset.edit;
-            treinoEditando = id;
-            const ref = doc(db, 'users', uid, 'academia_diario', id);
-            const snap = await getDoc(ref);
-            if (!snap.exists()) return alert('Treino não encontrado.');
-            const treino = snap.data();
-            treinoData.value = treino.date;
-            treinoGrupo.value = treino.groupId;
-            modal.classList.remove('hidden');
-            await gerarCamposExercicios(grupos.find(g => g.id === treino.groupId), treino.exercises);
-          });
+            btn.onclick = async () => {
+                const id = btn.dataset.edit;
+                try {
+                const ref = doc(db, 'users', uid, 'academia_diario', id);
+                const snap = await getDoc(ref);
+                if (!snap.exists()) { alert('Treino não encontrado'); return; }
+                const treino = snap.data();
+                treinoData.value = treino.date;
+                treinoGrupo.value = treino.groupId;
+                modal.classList.remove('hidden');
+
+                // 🔹 Aguarda renderização completa dos exercícios antes de preencher
+                await new Promise(async (resolve) => {
+                    await treinoGrupo.dispatchEvent(new Event('change'));
+                    const checkInterval = setInterval(() => {
+                    const ready = treino.exercises.every(ex => document.querySelector(`#reps-${ex.id}`));
+                    if (ready) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                    }, 150);
+                });
+
+                // 🔹 Preenche os valores corretos em cada série de cada exercício
+                for (const exItem of (treino.exercises || [])) {
+                    const inputs = Array.from(document.querySelectorAll(`#reps-${exItem.id} input`));
+                    const repsDia = exItem.repsDia || [];
+                    inputs.forEach((inp, idx) => {
+                    inp.value = repsDia[idx] ?? '';
+                    });
+                }
+
+                } catch (err) {
+                console.error('Erro ao editar treino:', err);
+                alert('Erro ao abrir edição: ' + (err.message || err));
+                }
+            };
         });
+      }, (err) => {
+        console.error('Erro onSnapshot treinos:', err);
+        listaTreinos.innerHTML = `<p class="text-red-400">Erro ao carregar treinos: ${err.message || err}</p>`;
       });
     }
 
+    // eventos do modal
     btnRegistrar.addEventListener('click', () => {
-      treinoEditando = null;
       formTreino.reset();
       exerciciosDetalhes.innerHTML = '';
+      exerciciosDetalhes.classList.add('hidden');
       modal.classList.remove('hidden');
     });
-
     cancelar.addEventListener('click', () => modal.classList.add('hidden'));
 
+    // auth init
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       uid = user.uid;
       userEmailEl.textContent = user.email || user.uid;
-      loading.classList.add('hidden');
-      appEl.classList.remove('hidden');
-      await carregarGrupos();
-      carregarTreinos();
+      try {
+        await carregarGrupos();
+        carregarTreinos();
+      } catch (err) {
+        console.error('Erro init:', err);
+      } finally {
+        loading.classList.add('hidden');
+        appEl.classList.remove('hidden');
+      }
     });
 
     logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
