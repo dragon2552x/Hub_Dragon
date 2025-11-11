@@ -68,8 +68,11 @@
         <nav class="space-y-4">
             <a href="home.html" class="block px-3 py-2 rounded hover-panel">Início</a>
             <a href="games_manager.html" class="block px-3 py-2 rounded hover-panel">Games</a>
+            <a href="animes_manager.html" class="block px-3 py-2 rounded hover-panel">Animes</a>
             <a href="hqs_manager.html" class="block px-3 py-2 rounded hover-panel">HQs</a>
-            <a href="Lists.html" class="block px-3 py-2 rounded hover-panel">Listas</a>
+            <a href="manga_manager.html" class="block px-3 py-2 rounded hover-panel">Manga</a>
+            <a href="manhwa_manager.html" class="block px-3 py-2 rounded hover-panel">Manhwa</a>
+            <a href="to_do.html" class="block px-3 py-2 rounded hover-panel">To Do</a>
             <a href="academia_exercicios.html" class="block px-3 py-2 rounded hover-panel">Academia</a>
         </nav>
         <button id="logout-btn" class="mt-auto btn-red text-white w-full py-2 rounded-lg transition">Sair</button>
@@ -78,8 +81,9 @@
     <!-- Conteúdo Principal -->
     <div class="flex-1 md:ml-64 flex flex-col justify-between">
         <header class="bg-panel p-4 flex justify-between items-center shadow-lg md:hidden">
-            <h1 class="text-2xl font-bold accent">My Hub</h1>
-            <button id="logout-btn-mobile" class="btn-red text-white px-4 py-2 rounded-lg transition">Sair</button>
+            <button 
+            onclick="window.location.href='home.html'"class="text-2xl font-bold accent hover:text-[#B9314F] transition-colors duration-200">My Hub</button>
+            <button id="logout-btn-mobile"class="btn-red text-white px-4 py-2 rounded-lg transition">Sair</button>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
@@ -95,8 +99,11 @@
             </div>
             <ul id="menu-list" class="hidden mt-3 space-y-2 text-gray-300">
                 <li><a href="games_manager.html" class="block hover:text-white">Games</a></li>
+                <li><a href="animes_manager.html" class="block hover:text-white">Animes</a></li>
                 <li><a href="hqs_manager.html" class="block hover:text-white">HQs</a></li>
-                <li><a href="Lists.html" class="block hover:text-white">Listas</a></li>
+                <li><a href="manga_manager.html" class="block hover:text-white">Manga</a></li>
+                <li><a href="manhwa_manager.html" class="block hover:text-white">Manhwa</a></li>
+                <li><a href="to_do.html" class="block hover:text-white">To Do</a></li>
                 <li><a href="academia_exercicios.html" class="block hover:text-white">Academia</a></li>
             </ul>
         </nav>
