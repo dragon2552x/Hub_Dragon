@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Class Animes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0b0b0b;
+      color: #e6e6e6;
+      padding-bottom: 80px; /* espaço pro menu fixo */
+    }
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      z-index: 50;
+    }
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+    .menu-btn.active {
+      color: #B9314F;
+    }
+    .menu-btn:hover {
+      color: #B9314F;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="p-6 text-center">
+    <h1 class="text-2xl font-bold mb-2">Class Animes</h1>
+    <p class="text-gray-400 text-sm">Escolha uma das seções abaixo para começar.</p>
+  </div>
+
+  <!-- MENU INFERIOR -->
+  <nav class="menu">
+    <button class="menu-btn active" onclick="abrirPagina('animes_cadastro.html')" id="btn-cadastro">
+      <i data-lucide="file-edit"></i>
+      <span>Cadastro</span>
+    </button>
+
+    <button class="menu-btn" onclick="abrirPagina('animes_classificacoes.html')" id="btn-classificacao">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Classificação</span>
+    </button>
+
+    <button class="menu-btn" onclick="abrirPagina('animes_estrelas.html')" id="btn-estrelas">
+      <i data-lucide="star"></i>
+      <span>Estrelas</span>
+    </button>
+
+    <button class="menu-btn" onclick="abrirPagina('animes_lista.html')" id="btn-lista">
+      <i data-lucide="list"></i>
+      <span>Lista</span>
+    </button>
+
+    <button class="menu-btn" onclick="abrirPagina('animes_torneio.html')" id="btn-torneio">
+      <i data-lucide="trophy"></i>
+      <span>Torneio</span>
+    </button>
+  </nav>
+
+  <script>
+    lucide.createIcons();
+
+    function abrirPagina(pagina) {
+      // destaque visual
+      document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      // redireciona para a página específica
+      window.location.href = pagina;
+    }
+  </script>
+</body>
+</html>

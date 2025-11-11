@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>To-Do — Lembretes e Tarefas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0b0b0b;
+      color: #e6e6e6;
+    }
+    .card {
+      background: #151515;
+      border: 1px solid #2a2a2a;
+      transition: all .2s;
+    }
+    .card:hover {
+      border-color: #B9314F;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Loading -->
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="container mx-auto p-6 max-w-5xl hidden">
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Lista de Tarefas</h1>
+        <p class="text-sm text-gray-400 mt-1">
+          Usuário: <span id="user-email" class="text-[#B9314F] font-mono"></span>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="window.location.href='home.html'"
+                class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700">Home</button>
+        <button id="logout-btn"
+                class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+      </div>
+    </header>
+
+    <!-- Formulário de nova tarefa -->
+    <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 mb-6">
+      <h2 class="text-xl font-semibold mb-3">Nova Tarefa</h2>
+      <form id="form-tarefa" class="flex flex-col gap-3">
+        <input id="tarefa-titulo" type="text" placeholder="Título da tarefa"
+               class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white" required>
+        <textarea id="tarefa-observacao" placeholder="Observação (opcional)"
+                  class="w-full p-2 h-24 rounded bg-gray-800 border border-gray-700 text-white resize-none"></textarea>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="tarefa-data" type="date"
+                 class="p-2 rounded bg-gray-800 border border-gray-700 text-white flex-1 sm:flex-none">
+          <button class="px-4 py-2 rounded bg-[#B9314F] hover:bg-[#992743] flex-1 sm:flex-none">Adicionar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de tarefas -->
+    <div id="tarefas-lista" class="space-y-3"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+      authDomain: "list-games-9bddd.firebaseapp.com",
+      projectId: "list-games-9bddd",
+      storageBucket: "list-games-9bddd.appspot.com",
+      messagingSenderId: "756898313156",
+      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+      measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loading = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userEmailEl = document.getElementById('user-email');
+    const formTarefa = document.getElementById('form-tarefa');
+    const tituloInput = document.getElementById('tarefa-titulo');
+    const dataInput = document.getElementById('tarefa-data');
+    const observacaoInput = document.getElementById('tarefa-observacao');
+    const tarefasLista = document.getElementById('tarefas-lista');
+
+    let uid = null;
+
+    // Adicionar nova tarefa
+    formTarefa.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const titulo = tituloInput.value.trim();
+      if (!titulo) return;
+      const data = dataInput.value || null;
+      const observacao = observacaoInput.value.trim() || '';
+
+      await addDoc(collection(db, 'users', uid, 'todo_tasks'), {
+        titulo,
+        data,
+        observacao,
+        feito: false,
+        criadoEm: new Date()
+      });
+
+      tituloInput.value = '';
+      dataInput.value = '';
+      observacaoInput.value = '';
+    });
+
+    // Renderizar tarefa
+    function renderTarefa(tarefa) {
+      const feito = tarefa.feito ? 'line-through text-gray-500' : '';
+      const temObs = tarefa.observacao && tarefa.observacao.trim() !== '';
+      return `
+        <div class="card p-3 flex flex-col gap-2 rounded-xl">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <input type="checkbox" data-check="${tarefa.id}" ${tarefa.feito ? 'checked' : ''} class="w-5 h-5 accent-[#B9314F]">
+              <div>
+                <h3 class="text-lg font-semibold ${feito}">${tarefa.titulo}</h3>
+                ${tarefa.data ? `<span class="text-sm text-gray-400">Prazo: ${tarefa.data}</span>` : ''}
+              </div>
+            </div>
+            <button data-del="${tarefa.id}" class="px-3 py-1 text-sm rounded bg-red-600 hover:bg-red-700">Excluir</button>
+          </div>
+          ${temObs ? `<p class="text-sm text-gray-300 border-t border-gray-700 pt-2">${tarefa.observacao}</p>` : ''}
+        </div>
+      `;
+    }
+
+    // Carregar tarefas
+    function carregarTarefas() {
+      const tarefasRef = collection(db, 'users', uid, 'todo_tasks');
+      onSnapshot(tarefasRef, (snap) => {
+        const tarefas = [];
+        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
+        tarefas.sort((a,b) => new Date(a.data || 0) - new Date(b.data || 0));
+        tarefasLista.innerHTML = tarefas.map(renderTarefa).join('');
+
+        document.querySelectorAll('[data-check]').forEach(cb => {
+          cb.onchange = async () => {
+            const ref = doc(db, 'users', uid, 'todo_tasks', cb.dataset.check);
+            await updateDoc(ref, { feito: cb.checked });
+          };
+        });
+
+        document.querySelectorAll('[data-del]').forEach(btn => {
+          btn.onclick = async () => {
+            if (confirm('Excluir tarefa?')) {
+              await deleteDoc(doc(db, 'users', uid, 'todo_tasks', btn.dataset.del));
+            }
+          };
+        });
+      });
+    }
+
+    // Inicialização
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+      uid = user.uid;
+      userEmailEl.textContent = user.email || user.uid;
+      loading.classList.add('hidden');
+      appEl.classList.remove('hidden');
+      carregarTarefas();
+    });
+
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    };
+  </script>
+</body>
+</html>
