@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Class Animes — Estrelas</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e6e6e6;
+      padding-bottom: 100px;
+    }
+
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 30;
+    }
+
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #b3b3b3;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+
+    .filter-btn {
+      border: 1px solid #3a3a3a;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .filter-btn.active {
+      background: #B9314F;
+      border-color: #992743;
+      color: white;
+    }
+
+    .anime-card:hover {
+      transform: translateY(-6px);
+      transition: .2s;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+
+    /* Custom scrollbar for filtros */
+    #stars-filter::-webkit-scrollbar {
+        height: 6px;
+        }
+
+        #stars-filter::-webkit-scrollbar-track {
+        background: #0d0d0d; /* fundo escuro */
+        border-radius: 10px;
+        }
+
+        #stars-filter::-webkit-scrollbar-thumb {
+        background: #444; /* cinza discreto */
+        border-radius: 10px;
+        }
+
+        #stars-filter::-webkit-scrollbar-thumb:hover {
+        background: #B9314F; /* cor tema ao passar */
+        }
+
+  </style>
+</head>
+
+<body>
+
+<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
+
+  <!-- MENU SUPERIOR -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors">
+        My Hub
+      </button>
+      <h1 class="text-2xl font-bold text-white">My Animes</h1>
+    </div>
+
+    <div class="text-sm text-gray-300 mt-2">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">...</span>
+    </div>
+  </header>
+
+
+  <!-- FILTRO ROLÁVEL -->
+  <section class="overflow-x-auto whitespace-nowrap pb-3 mb-6 flex gap-2" id="stars-filter">
+    <!-- Botões criados dinamicamente -->
+  </section>
+
+
+  <!-- GRID DE ANIMES -->
+  <main id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></main>
+
+
+  <p id="empty-msg" class="text-center text-gray-400 mt-8">
+    👆 Escolha uma categoria acima!
+    </p>
+
+</div>
+
+
+<!-- MENU INFERIOR -->
+<nav class="menu">
+  <button class="menu-btn" onclick="abrirPagina('animes_manager.html')"><i data-lucide="home"></i><span>Início</span></button>
+  <button class="menu-btn" onclick="abrirPagina('animes_cadastro.html')"><i data-lucide="file-edit"></i><span>Cadastro</span></button>
+  <button class="menu-btn" onclick="abrirPagina('animes_classificacoes.html')"><i data-lucide="bar-chart-2"></i><span>Classificação</span></button>
+  <button class="menu-btn active" onclick="abrirPagina('animes_estrelas.html')"><i data-lucide="star"></i><span>Estrelas</span></button>
+  <button class="menu-btn" onclick="abrirPagina('animes_lista.html')"><i data-lucide="list"></i><span>Lista</span></button>
+  <button class="menu-btn" onclick="abrirPagina('animes_torneio.html')"><i data-lucide="trophy"></i><span>Torneio</span></button>
+</nav>
+
+<script>
+  lucide.createIcons();
+  function abrirPagina(p) { window.location.href = p }
+</script>
+
+
+<!-- FIREBASE + FILTRO EM MEMÓRIA -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+    authDomain: "list-games-9bddd.firebaseapp.com",
+    projectId: "list-games-9bddd",
+    storageBucket: "list-games-9bddd.firebasestorage.app",
+    messagingSenderId: "756898313156",
+    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+    measurementId: "G-GLM50YVLXP"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const userEmailEl = document.getElementById("user-email");
+  const gridEl = document.getElementById("anime-grid");
+  const emptyMsg = document.getElementById("empty-msg");
+  const starsFilterEl = document.getElementById("stars-filter");
+
+  let allAnimes = [];
+  let selectedStars = null; // null = mostrar todos
+
+  const starOptions = [
+    { label: "🥇 R1", value: "✶" },
+    { label: "🥈 R2", value: "✶ ✶" },
+    { label: "🥉 R3", value: "✶ ✶ ✶" },
+    { label: "5 ⭐", value: 5 },
+    { label: "4 ⭐", value: 4 },
+    { label: "3 ⭐", value: 3 },
+    { label: "2 ⭐", value: 2 },
+    { label: "1 ⭐", value: 1 },
+    { label: "0 ⭐", value: 0 },
+    { label: "Sem ⭐", value: "" }
+    ];
+
+
+  function renderStarsFilter() {
+    starsFilterEl.innerHTML = starOptions.map(opt => `
+      <button class="filter-btn ${selectedStars === opt.value ? "active" : ""}"
+              data-value="${opt.value}">
+        ${opt.label}
+      </button>
+    `).join("");
+
+    starsFilterEl.querySelectorAll("button").forEach(btn => {
+      btn.onclick = () => {
+        let value = btn.dataset.value;
+
+        if (value == "") {
+            // SEM AVALIAÇÃO
+            selectedStars = "";
+        }
+        else if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(value)) {
+            // TIERS ESPECIAIS
+            selectedStars = value;
+        }
+        else {
+            // ESTRELAS NUMÉRICAS
+            selectedStars = Number(value);
+        }
+
+        renderStarsFilter();
+        renderGrid();
+        };
+    });
+  }
+
+  function animeCard(anime) {
+    return `
+        <div class="bg-[#181818] rounded-lg shadow-lg overflow-hidden hover:scale-105 transition-transform duration-200 relative">
+
+        <!-- Badge no topo (Tier ou estrelas) -->
+        <div class="absolute top-2 right-2 text-xs px-2 py-1 rounded-md bg-[#B9314F] text-white font-bold">
+            ${anime.STARS || "-"}
+        </div>
+
+        <!-- Imagem do anime -->
+        <img 
+            src="${anime.IMAGEM || 'https://via.placeholder.com/300x450?text=Sem+Imagem'}" 
+            alt="${anime.NOME}"
+            class="w-full object-cover"
+            style="aspect-ratio: 2/3;"
+        >
+
+        <!-- Conteúdo do Card -->
+        <div class="p-3 text-gray-300 text-sm">
+            <h3 class="text-lg font-bold text-white mb-1 truncate">${anime.NOME}</h3>
+
+            <p><span class="font-semibold text-white">Nota:</span> ${Number(anime.NOTA_F).toFixed(2)}</p>
+            <p><span class="font-semibold text-white">Nota M.A.L.:</span> ${anime.N_MAL || "-"}</p>
+            <p><span class="font-semibold text-white">Estado:</span> ${anime.ESTADO || "-"}</p>
+            <p><span class="font-semibold text-white">Estilo:</span> ${anime.ESTILO || "-"}</p>
+            <p><span class="font-semibold text-white">Ano:</span> ${anime.ANO || "-"}</p>
+            <p><span class="font-semibold text-white">Temporada:</span> ${anime.TEMPORADA || "-"}</p>
+        </div>
+
+        </div>
+    `;
+    }
+
+
+  function renderGrid() {
+    let filtered = [...allAnimes];
+
+    // Tier especial: ✶, ✶ ✶, ✶ ✶ ✶
+    if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(selectedStars)) {
+        filtered = filtered.filter(a => a.STARS === selectedStars);
+
+    // Sem estrela ("-")
+    } else if (selectedStars === "") {
+        filtered = filtered.filter(a =>
+        a.STARS === "" || a.STARS == null
+        );
+
+    // Zero estrela (0)
+    } else if (selectedStars === 0) {
+        filtered = filtered.filter(a =>
+        a.STARS === 0 || a.STARS === "0"
+        );
+
+    // Estrelas numéricas
+    } else if (!isNaN(selectedStars)) {
+        filtered = filtered.filter(a =>
+        Number(a.STARS) === Number(selectedStars)
+        );
+    }
+
+    gridEl.innerHTML = filtered.map(animeCard).join("");
+    emptyMsg.classList.toggle("hidden", filtered.length > 0);
+    }
+
+  async function loadAnimes(userId) {
+    const ref = collection(db, "users", userId, "animes");
+    const snap = await getDocs(ref);
+    allAnimes = snap.docs.map(doc =>
+      ({ id: doc.id, ...doc.data() })
+    );
+    gridEl.innerHTML = "";
+    emptyMsg.classList.remove("hidden");
+  }
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      userEmailEl.textContent = user.email;
+      renderStarsFilter();
+      loadAnimes(user.uid);
+    }
+  });
+</script>
+
+</body>
+</html>
