@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Class Animes</title>
+
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body {
-      font-family: Inter, system-ui, sans-serif;
       background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
       color: #e6e6e6;
-      padding-bottom: 80px; /* espaço pro menu fixo */
+      padding-bottom: 100px; /* espaço para menu inferior */
     }
+
     .menu {
       position: fixed;
       bottom: 0;
@@ -23,78 +28,127 @@
       border-top: 1px solid #2a2a2a;
       display: flex;
       justify-content: space-around;
-      align-items: center;
       padding: 10px 0;
-      z-index: 50;
     }
+
     .menu-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      color: #aaa;
+      color: #b3b3b3;
       font-size: 0.75rem;
       transition: all 0.2s;
     }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
     .menu-btn svg {
       width: 22px;
       height: 22px;
       margin-bottom: 4px;
     }
-    .menu-btn.active {
-      color: #B9314F;
-    }
-    .menu-btn:hover {
-      color: #B9314F;
-    }
   </style>
 </head>
 <body>
 
-  <div class="p-6 text-center">
-    <h1 class="text-2xl font-bold mb-2">Class Animes</h1>
-    <p class="text-gray-400 text-sm">Escolha uma das seções abaixo para começar.</p>
-  </div>
+<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
 
-  <!-- MENU INFERIOR -->
-  <nav class="menu">
-    <button class="menu-btn active" onclick="abrirPagina('animes_cadastro.html')" id="btn-cadastro">
-      <i data-lucide="file-edit"></i>
-      <span>Cadastro</span>
-    </button>
+  <!-- MENU SUPERIOR -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    
+    <!-- Linha 1 -->
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
+        My Hub
+      </button>
 
-    <button class="menu-btn" onclick="abrirPagina('animes_classificacoes.html')" id="btn-classificacao">
-      <i data-lucide="bar-chart-2"></i>
-      <span>Classificação</span>
-    </button>
+      <h1 class="text-2xl font-bold text-white">My Animes</h1>
+    </div>
 
-    <button class="menu-btn" onclick="abrirPagina('animes_estrelas.html')" id="btn-estrelas">
-      <i data-lucide="star"></i>
-      <span>Estrelas</span>
-    </button>
+    <!-- Linha 2 -->
+    <div class="text-sm text-gray-300 mt-1">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+    </div>
 
-    <button class="menu-btn" onclick="abrirPagina('animes_lista.html')" id="btn-lista">
-      <i data-lucide="list"></i>
-      <span>Lista</span>
-    </button>
+  </header>
 
-    <button class="menu-btn" onclick="abrirPagina('animes_torneio.html')" id="btn-torneio">
-      <i data-lucide="trophy"></i>
-      <span>Torneio</span>
-    </button>
-  </nav>
 
-  <script>
-    lucide.createIcons();
+  <!-- CONTEÚDO DA PÁGINA -->
+  <main class="text-center mt-10 opacity-70">
+    <p>Selecione uma das opções do menu abaixo 👇</p>
+  </main>
 
-    function abrirPagina(pagina) {
-      // destaque visual
-      document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+</div>
 
-      // redireciona para a página específica
-      window.location.href = pagina;
-    }
-  </script>
+<!-- MENU INFERIOR -->
+<nav class="menu">
+  <button class="menu-btn active" onclick="abrirPagina('animes_manager.html')">
+    <i data-lucide="home"></i>
+    <span>Início</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_cadastro.html')">
+    <i data-lucide="file-edit"></i>
+    <span>Cadastro</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_classificacoes.html')">
+    <i data-lucide="bar-chart-2"></i>
+    <span>Classificação</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_estrelas.html')">
+    <i data-lucide="star"></i>
+    <span>Estrelas</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_lista.html')">
+    <i data-lucide="list"></i>
+    <span>Lista</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_torneio.html')">
+    <i data-lucide="trophy"></i>
+    <span>Torneio</span>
+  </button>
+</nav>
+
+<script>
+  lucide.createIcons();
+  function abrirPagina(pagina) {
+    window.location.href = pagina;
+  }
+</script>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+    authDomain: "list-games-9bddd.firebaseapp.com",
+    projectId: "list-games-9bddd",
+    storageBucket: "list-games-9bddd.firebasestorage.app",
+    messagingSenderId: "756898313156",
+    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+    measurementId: "G-GLM50YVLXP"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+
+  const userEmailEl = document.getElementById("user-email");
+  const btnSignOut = document.getElementById("btn-signout");
+
+  onAuthStateChanged(auth, user => {
+    if (user?.email) userEmailEl.textContent = user.email;
+  });
+
+  btnSignOut.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "login.html"; // Pode mudar se quiser
+  });
+</script>
+
 </body>
 </html>
