@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Class Animes</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e6e6e6;
+      padding-bottom: 100px; /* espaço para menu inferior */
+    }
+
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #b3b3b3;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
+
+  <!-- MENU SUPERIOR -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    
+    <!-- Linha 1 -->
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
+        My Hub
+      </button>
+
+      <h1 class="text-2xl font-bold text-white">My Animes</h1>
+    </div>
+
+    <!-- Linha 2 -->
+    <div class="text-sm text-gray-300 mt-1">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+    </div>
+
+  </header>
+
+
+  <!-- CONTEÚDO DA PÁGINA -->
+  <main class="mt-4">
+
+    <!-- Menu interno das abas -->
+    <div class="flex justify-center gap-3 mb-5">
+        <button id="tab-cadastro"
+                class="tab-btn px-4 py-2 bg-[#B9314F] rounded-lg text-white font-bold shadow-md transition-all">
+                Cadastro
+                </button>
+
+                <button id="tab-edicao"
+                class="tab-btn px-4 py-2 bg-[#151515] text-gray-300 rounded-lg hover:bg-[#222] transition-all">
+                Edição
+                </button>
+        </div>
+
+            <!-- Conteúdo das abas -->
+            <div id="content-cadastro" class="tab-content">
+                <div class="grid gap-4 w-full max-w-3xl mx-auto text-left">
+
+        <!-- Nome -->
+        <div>
+            <label class="block font-bold mb-1">Nome</label>
+            <input id="cad_nome" type="text"
+            class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+        </div>
+
+        <!-- Estilo -->
+        <div>
+            <label class="block font-bold mb-1">Estilo</label>
+            <select id="cad_estilo"
+            class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+            <option value="">Selecione</option>
+            <option>Anime</option>
+            <option>Anime Inf.</option>
+            <option>Filme</option>
+            <option>Especial</option>
+            </select>
+        </div>
+
+        <!-- Temporada + Ano (lado a lado) -->
+        <div class="grid grid-cols-2 gap-3">
+        
+        <!-- Temporada -->
+        <div>
+            <label class="block font-bold mb-1">Temporada</label>
+            <select id="cad_temp"
+            class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+            <option value="">Selecione</option>
+            <option>Inverno (1)</option>
+            <option>Primavera (4)</option>
+            <option>Verão (7)</option>
+            <option>Outono (10)</option>
+            <option>Outro</option>
+            </select>
+        </div>
+
+        <!-- Ano -->
+        <div>
+            <label class="block font-bold mb-1">Ano</label>
+            <input id="cad_ano" type="number" min="1900" max="2100"
+            class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+        </div>
+
+        </div>
+
+        <!-- Episódios -->
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+            <label class="block font-bold mb-1">Eps. Assistidos</label>
+            <input id="cad_eps_ass" type="number"
+                class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+            </div>
+            <div>
+            <label class="block font-bold mb-1">Eps. Totais</label>
+            <input id="cad_eps_tot" type="number"
+                class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+            </div>
+        </div>
+
+        <!-- Link da imagem -->
+        <div>
+            <label class="block font-bold mb-1">Link da Imagem</label>
+            <input id="cad_img" type="text"
+            class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+        </div>
+
+        <!-- Continuação -->
+        <div class="flex items-center gap-2">
+            <label class="font-bold">Continuação?</label>
+            <input id="cad_continuacao" type="checkbox" class="w-5 h-5">
+        </div>
+
+        <!-- Última Temporada -->
+        <div class="relative">
+            <label class="block font-bold mb-1">Última Temporada</label>
+            
+            <div class="relative flex items-center">
+                <input id="cad_ult_temp"
+                type="text"
+                placeholder="Selecione ou digite..."
+                autocomplete="off"
+                class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md focus:border-[#B9314F] pr-8"
+                />
+
+                <!-- Ícone seta -->
+                <span id="cad_ult_temp_arrow" class="absolute right-2 text-gray-400 cursor-pointer select-none">▼</span>
+            </div>
+
+            <!-- Dropdown -->
+            <div id="cad_ult_temp_dropdown"
+                class="absolute z-50 bg-[#1a1a1a] border border-[#333] w-full rounded-md mt-1 max-h-48 overflow-y-auto hidden"
+            ></div>
+        </div>
+
+        <!-- Botão pegar info MAL -->
+        <button onclick="pegarDoMAL()"
+            class="px-4 py-2 bg-[#1D4ED8] hover:bg-[#163f9d] rounded-md font-bold w-full text-white">
+            Pegar do MyAnimeList
+        </button>
+
+        <!-- Botões -->
+        <div class="flex gap-2 mt-2">
+            <button id="btn_add" onclick="cadastrarAnime()"
+            class="flex-1 px-4 py-2 bg-[#B9314F] hover:bg-[#992743] rounded-md font-bold text-white">
+            Cadastrar
+            </button>
+
+            <button id="btn_clear"
+            class="px-4 py-2 bg-[#444] hover:bg-[#555] rounded-md font-bold text-white" onclick="limparCampos()">
+            Limpar
+            </button>
+        </div>
+
+        <!-- Switches -->
+        <div class="flex gap-5 mt-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+            <input id="sw_limpar_medio" type="checkbox" class="w-5 h-5">
+            Limpar Médio
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+            <input id="sw_nao_limpar" type="checkbox" class="w-5 h-5">
+            Não limpar
+            </label>
+        </div>
+
+        <!-- Últimos adicionados -->
+        <div class="mt-5">
+            <h3 class="text-lg font-bold text-center">Últimos adicionados</h3>
+            <table class="w-full mt-2 text-sm text-white">
+            <thead class="border-b border-[#444] text-[#B9314F] font-bold">
+                <tr>
+                <th class="text-left p-1">Nome</th>
+                <th class="text-center p-1">Ano</th>
+                <th class="text-center p-1">Temp.</th>
+                </tr>
+            </thead>
+            <tbody id="cad_ultimos"></tbody>
+            </table>
+        </div>
+
+        </div>
+    </div>
+
+    <div id="content-edicao" class="tab-content hidden">
+
+        <!-- Linha Nº / Serial + Botões -->
+        <div class="flex justify-between items-end mb-3">
+
+            <div class="flex gap-3 ">
+                <div class="w-20">
+                    <label class="font-bold text-sm">Nº</label>
+                    <input id="edit_n" disabled
+                        class="w-full px-2 py-1 bg-[#222] text-gray-400 rounded-md text-center">
+                </div>
+
+                <div class="w-20">
+                    <label class="font-bold text-sm">Serial</label>
+                    <input id="edit_serie" disabled
+                        class="w-full px-2 py-1 bg-[#222] text-gray-400 rounded-md text-center">
+                </div>
+            </div>
+
+            <!-- Botões CRUD -->
+            <div class="flex gap-1">
+            <button class="bg-[#7a0e20] px-2.5 py-1 rounded-md font-semibold text-sm"
+                    onclick="excluirAnime()">Excluir</button>
+
+            <button class="bg-[#B9314F] px-2 py-1 rounded-md font-semibold text-sm"
+                    onclick="limparEdicao()">Limpar</button>
+
+            <button class="bg-[#B9314F] px-2 py-1 rounded-md font-semibold text-sm"
+                    onclick="buscarAnime()">Pesquisar</button>
+
+            <button class="bg-[#7a0e20] px-2.5 py-1 rounded-md font-semibold text-sm"
+                    onclick="confirmarEdicao()">Edição</button>
+            </div>
+        </div>
+
+        <!-- Nome com ComboBox + Autocomplete -->
+        <div class="mb-3 relative">
+            <label class="block font-bold mb-1">Nome (Selecione para editar)</label>
+
+            <div class="relative flex items-center">
+                <input id="edit_nome"
+                    type="text"
+                    placeholder="Digite ou selecione..."
+                    autocomplete="off"
+                    class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] 
+                        rounded-md focus:border-[#B9314F] pr-8" />
+
+                <!-- Ícone seta -->
+                <span id="edit_nome_arrow"
+                    class="absolute right-2 text-gray-400 cursor-pointer select-none">
+                    ▼
+                </span>
+            </div>
+
+            <!-- Dropdown -->
+            <div id="edit_nome_dropdown"
+                class="absolute z-50 bg-[#1a1a1a] border border-[#333] w-full rounded-md mt-1 
+                    max-h-48 overflow-y-auto hidden">
+            </div>
+        </div>
+
+        <!-- Linha Estilo / Estado / Temporada -->
+        <div class="grid grid-cols-3 gap-4">
+
+            <div>
+            <label class="font-bold text-sm">Estilo</label>
+            <select id="edit_estilo"
+                    onchange="atualizarGrupoNotas()"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option>Anime</option>
+                <option>Anime Inf.</option>
+                <option>Filme</option>
+                <option>Especial</option>
+            </select>
+            </div>
+
+            <div>
+            <label class="font-bold text-sm">Estado</label>
+            <select id="edit_estado"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option>Completo</option>
+                <option>Andamento</option>
+                <option>Incompleto</option>
+                <option>Assistido</option>
+                <option>Desistência</option>
+                <option>N. Começado</option>
+                <option>N. Assistido</option>
+                <option>N. Lançado</option>
+                <option>N. Sei</option>
+            </select>
+            </div>
+
+            <div>
+            <label class="font-bold text-sm">Temporada</label>
+            <select id="edit_temp"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option>Inverno (1)</option>
+                <option>Primavera (4)</option>
+                <option>Verão (7)</option>
+                <option>Outono (10)</option>
+                <option>Outro</option>
+            </select>
+            </div>
+
+            <!-- Linha Eps e Ano -->
+            <div>
+            <label class="font-bold text-sm">Eps. Assistidos</label>
+            <input id="edit_eps_ass" type="number"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+            </div>
+
+            <div>
+            <label class="font-bold text-sm">Eps. Totais</label>
+            <input id="edit_eps_tot" type="number"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+            </div>
+
+            <div>
+            <label class="font-bold text-sm">Ano</label>
+            <input id="edit_ano" type="number"
+                    class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+            </div>
+        </div>
+        <!-- === Bloco Músicas + Imagem + Notas por Estilo === -->
+        <div class="mt-4">
+            <div class="grid gap-4"
+                style="grid-template-columns: 1fr 1fr 170px;"> <!-- 2 col + coluna imagem -->
+
+                <!-- MÚSICAS e NOTAS: coluna 1 e 2 -->
+                <div class="col-span-2">
+
+                <details id="musicas_group"
+                        class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a] mt-5">
+                    <summary class="cursor-pointer text-[#B9314F] font-bold">
+                    ♫ Músicas (<span id="musicas_count">0</span>)
+                    </summary>
+
+                    <div class="mt-3 grid grid-cols-3 gap-3">
+                        <!-- Tipo da música -->
+                        <select id="edit_tipo_musica"
+                            class="bg-[#111] border border-[#B9314F]/40 focus:border-[#B9314F] transition-all
+                                rounded-lg px-3 py-2 text-sm w-full shadow-inner">
+                            <option value="OP">Opening</option>
+                            <option value="ED">Ending</option>
+                            <option value="OST">Trilha Sonora</option>
+                        </select>
+
+                        <!-- Nome / Link -->
+                        <input id="edit_musica_texto"
+                            type="text"
+                            placeholder="Nome da música / URL"
+                            class="bg-[#111] border border-[#333] focus:border-[#B9314F]
+                                rounded-lg px-3 py-2 text-sm w-full col-span-2 shadow-inner" />
+
+                        <!-- Botão de adicionar -->
+                        <button type="button"
+                            onclick="adicionarMusica()"
+                            class="bg-[#B9314F] hover:bg-[#7a0e20] active:scale-95
+                                rounded-lg px-2 py-2 font-bold text-sm transition-all col-span-3 w-full">
+                            + Adicionar Música
+                        </button>
+                    </div>
+
+                    <!-- Lista de músicas -->
+                    <ul id="lista_musicas"
+                        class="mt-4 text-sm space-y-2 pl-2 max-h-44 overflow-y-auto scrollbar-thin 
+                            scrollbar-thumb-[#B9314F] scrollbar-track-[#222] pr-1">
+                    </ul>
+                </details>
+
+                <!-- 📊 GRUPO DE NOTAS -->
+                <div class="col-span-2">
+                    <details id="notas_group"
+                        class="bg-[#1f1f1f] p-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+
+                        <summary class="cursor-pointer text-[#B9314F] font-bold">
+                            Notas <span id="notas_estilo_label"></span>
+                        </summary>
+
+                        <div id="notas_content"
+                            class="mt-3 p-3 bg-[#111] border border-[#333] rounded-lg min-h-[140px]
+                                text-gray-200 text-sm">
+                            Escolha um Estilo para mostrar os campos específicos.
+                        </div>
+
+                    </details>
+                </div>
+
+                </div>
+
+                <!-- IMAGEM + LINK IMG: coluna 3 isolada -->
+                <div class="flex flex-col items-center">
+
+                    <!-- Campo do Link -->
+                    <div class="w-full mb-3">
+                        <label class="font-bold text-sm">Link da Imagem</label>
+                        <input id="edit_img"
+                            type="text"
+                            oninput="previewEditImage()"
+                            class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md" />
+                    </div>
+
+                    <!-- Prévia da Imagem -->
+                    <div class="w-40 h-56 bg-[#111] border border-[#333] rounded-lg flex items-center justify-center">
+                        <img id="edit_img_preview"
+                            class="w-full h-full object-cover rounded-md hidden">
+                        <span id="edit_img_text"
+                            class="text-gray-500 text-xs text-center">Prévia da Imagem</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 📌 Linha de Notas Finais -->
+            <div class="mt-5 grid grid-cols-3 gap-4">
+
+                <!-- Nota MAL -->
+                <div>
+                    <label class="font-bold text-sm">Nota MAL</label>
+                    <input id="edit_nota_mal"
+                        type="number" step="0.01" min="0" max="10"
+                        class="w-full px-3 py-2 bg-[#151515] border border-[#333] text-white rounded-md" />
+                </div>
+
+                <!-- Stars (Tier) -->
+                <div>
+                    <label class="font-bold text-sm">Stars</label>
+                    <select id="edit_stars"
+                        class="w-full px-3 py-2 bg-[#151515] text-white border border-[#333] rounded-md">
+                        <option value="">-</option>
+                        <option value="✶">🥇 R1</option>
+                        <option value="✶ ✶">🥈 R2</option>
+                        <option value="✶ ✶ ✶">🥉 R3</option>
+                        <option value="5">5 ⭐</option>
+                        <option value="4">4 ⭐</option>
+                        <option value="3">3 ⭐</option>
+                        <option value="2">2 ⭐</option>
+                        <option value="1">1 ⭐</option>
+                        <option value="0">0 ⭐</option>
+                    </select>
+                </div>
+
+                <!-- Nota Final -->
+                <div>
+                    <label class="font-bold text-sm text-[#B9314F]">Nota Final</label>
+                    <input id="edit_nota_final"
+                        type="text"
+                        disabled
+                        class="w-full px-3 py-1.5 bg-[#111] border border-[#B9314F] text-[#B9314F] font-bold text-lg rounded-md text-center shadow-lg" />
+                </div>
+            </div>
+    </div>
+
+    </main>
+
+    <script>
+    const tabCadastro = document.getElementById("tab-cadastro");
+    const tabEdicao = document.getElementById("tab-edicao");
+    const contentCadastro = document.getElementById("content-cadastro");
+    const contentEdicao = document.getElementById("content-edicao");
+
+    function switchTab(tab) {
+        if (tab === "cadastro") {
+        tabCadastro.classList.add("bg-[#B9314F]", "text-white", "font-bold");
+        tabEdicao.classList.remove("bg-[#B9314F]", "text-white", "font-bold");
+        tabEdicao.classList.add("bg-[#151515]");
+
+        contentCadastro.classList.remove("hidden");
+        contentEdicao.classList.add("hidden");
+        } else {
+        tabEdicao.classList.add("bg-[#B9314F]", "text-white", "font-bold");
+        tabCadastro.classList.remove("bg-[#B9314F]", "text-white", "font-bold");
+        tabCadastro.classList.add("bg-[#151515]");
+
+        contentEdicao.classList.remove("hidden");
+        contentCadastro.classList.add("hidden");
+        }
+    }
+
+    tabCadastro.onclick = () => switchTab("cadastro");
+    tabEdicao.onclick = () => switchTab("edicao");
+    </script>
+
+
+</div>
+
+<!-- MENU INFERIOR -->
+<nav class="menu">
+  <button class="menu-btn" onclick="abrirPagina('animes_manager.html')">
+    <i data-lucide="home"></i>
+    <span>Início</span>
+  </button>
+  <button class="menu-btn active" onclick="abrirPagina('animes_cadastro.html')">
+    <i data-lucide="file-edit"></i>
+    <span>Gestão</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_classificacoes.html')">
+    <i data-lucide="bar-chart-2"></i>
+    <span>Classificação</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_estrelas.html')">
+    <i data-lucide="star"></i>
+    <span>Estrelas</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_lista.html')">
+    <i data-lucide="list"></i>
+    <span>Lista</span>
+  </button>
+  <button class="menu-btn" onclick="abrirPagina('animes_torneio.html')">
+    <i data-lucide="trophy"></i>
+    <span>Torneio</span>
+  </button>
+</nav>
+
+<script>
+  lucide.createIcons();
+  function abrirPagina(pagina) {
+    window.location.href = pagina;
+  }
+</script>
+
+<!-- FIREBASE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    import { 
+        getFirestore, collection, getDocs, getDoc, setDoc, doc 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+
+    const animeNamesCache = []; // ← Necessário!
+    const userEmailEl = document.getElementById("user-email");
+    const btnSignOut = document.getElementById("btn-signout");
+
+    let musicasEditando = [];
+
+    const btnMusicRed = "bg-[#7a0e20] text-white px-2 py-1 rounded-md text-xs font-bold";
+
+    // ------------------------------------------
+    // 📌 Função carregar nomes do Firebase
+    // ------------------------------------------
+    async function loadAnimeNamesForCombo() {
+        const animeRef = collection(db, "users", auth.currentUser.uid, "animes");
+        const snapshot = await getDocs(animeRef);
+
+        animeNamesCache.length = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.NOME) animeNamesCache.push(data.NOME);
+        });
+
+        animeNamesCache.sort((a, b) => a.localeCompare(b));
+
+        setupAutoComplete();
+    }
+
+    // ------------------------------------------
+    // 📌 Autocomplete estilo ComboBox
+    // ------------------------------------------
+    function setupAutoComplete() {
+        const input = document.getElementById("cad_ult_temp");
+        const dropdown = document.getElementById("cad_ult_temp_dropdown");
+        const arrow = document.getElementById("cad_ult_temp_arrow");
+
+        if (!input || !dropdown) return;
+
+        function updateDropdown(filterText = "") {
+            dropdown.innerHTML = "";
+
+            const results = animeNamesCache.filter(nome =>
+            nome.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (!results.length) {
+            dropdown.classList.add("hidden");
+            return;
+            }
+
+            results.forEach(nome => {
+            const option = document.createElement("div");
+            option.className = "px-3 py-2 hover:bg-[#333] cursor-pointer";
+            option.textContent = nome;
+            option.addEventListener("click", () => {
+                input.value = nome;
+                dropdown.classList.add("hidden");
+            });
+            dropdown.appendChild(option);
+            });
+
+            dropdown.classList.remove("hidden");
+        }
+
+        input.addEventListener("input", () => updateDropdown(input.value));
+
+        arrow.addEventListener("click", () => {
+            dropdown.classList.toggle("hidden");
+            if (!dropdown.classList.contains("hidden")) {
+            updateDropdown("");
+            input.focus();
+            }
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!input.contains(e.target) && !arrow.contains(e.target)) {
+            dropdown.classList.add("hidden");
+            }
+        });
+    }
+
+    function limparCampos() {
+        const nome = document.getElementById("cad_nome");
+        const estilo = document.getElementById("cad_estilo");
+        const temp = document.getElementById("cad_temp");
+        const epsAssist = document.getElementById("cad_eps_ass");
+        const epsTotal = document.getElementById("cad_eps_tot");
+        const img = document.getElementById("cad_img");
+        const ano = document.getElementById("cad_ano");
+        const contSwitch = document.getElementById("cad_ult_temp");
+        const ultTemp = document.getElementById("cad_ult_temp");
+
+        const chkLimparMedio = document.getElementById("sw_limpar_medio");
+        const chkNaoLimpar = document.getElementById("sw_nao_limpar");
+
+        if (chkNaoLimpar?.checked) return;
+
+        if (chkLimparMedio?.checked) {
+            nome.value = "";
+            epsTotal.value = "";
+            contSwitch.checked = false;
+            ultTemp.value = "";
+            img.value = "";
+            return;
+        }
+
+        nome.value = "";
+        estilo.value = "";
+        temp.value = "";
+        epsAssist.value = "";
+        epsTotal.value = "";
+        img.value = "";
+        ano.value = "";
+        contSwitch.checked = false;
+        ultTemp.value = "";
+    }
+
+    // 👉 disponibiliza para onclick do HTML
+    window.limparCampos = limparCampos;
+
+    async function pegarDoMAL() {
+        const nomeInput = document.getElementById("cad_nome");
+        const imgInput = document.getElementById("cad_img");
+        const epsTotais = document.getElementById("cad_eps_tot");
+        const anoInput = document.getElementById("cad_ano");
+        const tempInput = document.getElementById("cad_temp");
+
+        const nome = nomeInput.value.trim();
+        if (!nome) {
+            alert("Digite o nome do anime antes!");
+            return;
+        }
+
+        const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(nome)}&limit=1`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!data.data?.length) {
+            alert("Anime não encontrado no MAL!");
+            return;
+            }
+
+            const anime = data.data[0];
+
+            // Imagem
+            imgInput.value = anime.images?.jpg?.image_url || "";
+
+            // Episódios
+            epsTotais.value = anime.episodes && anime.episodes > 0 ? anime.episodes : "";
+
+            // Ano
+            const year = anime.aired?.prop?.from?.year;
+            anoInput.value = year || "";
+
+            // Temporada
+            const season = anime.season?.toLowerCase() || "";
+            switch (season) {
+            case "winter":
+                tempInput.value = "Inverno (1)";
+                break;
+            case "spring":
+                tempInput.value = "Primavera (4)";
+                break;
+            case "summer":
+                tempInput.value = "Verão (7)";
+                break;
+            case "fall":
+                tempInput.value = "Outono (10)";
+                break;
+            default:
+                tempInput.value = "Outro";
+                break;
+            }
+
+            alert("Dados preenchidos com sucesso do MyAnimeList! 🎉");
+
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao buscar no MyAnimeList. Tente novamente!");
+        }
+    }
+
+    // Para usar no onclick
+    window.pegarDoMAL = pegarDoMAL;
+
+    // 🔥 Função de cadastrar Anime
+    async function cadastrarAnime() {
+        const nome = document.getElementById("cad_nome").value.trim();
+        const estilo = document.getElementById("cad_estilo").value;
+        const temp = document.getElementById("cad_temp").value;
+        const epsAssist = parseInt(document.getElementById("cad_eps_ass").value || 0);
+        const epsTotal = parseInt(document.getElementById("cad_eps_tot").value || 0);
+        const imagem = document.getElementById("cad_img").value.trim();
+        const ano = parseInt(document.getElementById("cad_ano").value || 0);
+        const contNome = document.getElementById("cad_ult_temp").value.trim();
+
+        if (!nome || !estilo || !temp || !ano || !imagem) {
+            alert("Preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        const animeRef = collection(db, "users", auth.currentUser.uid, "animes");
+        const snapshot = await getDocs(animeRef);
+
+        let todosAnimes = [];
+        snapshot.forEach(doc => todosAnimes.push(doc.data()));
+
+        let N = 0;
+        let SERIE = 0;
+        let tipo = "";
+
+        if (!contNome) {
+            // ------- ANIME NOVO -------
+            SERIE = todosAnimes.length
+                ? Math.max(...todosAnimes.map(a => Math.floor(a.N)))
+                : 0;
+
+            SERIE = SERIE + 1;
+            N = parseFloat((SERIE + 0.01).toFixed(2));
+            tipo = "NEW";
+
+        } else {
+            // ------- CONTINUAÇÃO -------
+            const baseAnime = todosAnimes.find(a => a.NOME === contNome);
+
+            if (!baseAnime) {
+                alert("Selecione corretamente o anime base da continuação!");
+                return;
+            }
+
+            tipo = "CONT.";
+            SERIE = Math.floor(baseAnime.N);
+
+            const qtd = todosAnimes.filter(a => Math.floor(a.N) === SERIE).length;
+
+            N = parseFloat((SERIE + qtd * 0.01).toFixed(2));
+        }
+
+        // Definição do ESTADO automático
+        const estado =
+            estilo === "Filme" || estilo === "Especial"
+                ? "N. Assistido"
+                : "N. Começado";
+
+        const novoAnime = {
+            N,
+            NOME: nome,
+            ESTADO: estado,
+            ESTILO: estilo,
+            TIPO: tipo,
+            TOTAIS: epsTotal,
+            ASSIS: epsAssist,
+            TEMPORADA: temp,
+            ANO: ano,
+            NOTA_F: 0,
+            STARS: "",
+            N_MAL: 0,
+            OP: 0,
+            OPENING: "",
+            "1": "",
+            "2 à 3": "",
+            "4 à 6": "",
+            "7 à 9": "",
+            "10 à 12": "",
+            "13 à 15": "",
+            "16 à 18": "",
+            "19 à 22": "",
+            "23 à 26": "",
+            N_A_PLUS: "",
+            F_EP: "",
+            "N. FILME ESP.": "",
+            N_INFT: "",
+            "N. A+ e INFT.": "",
+            "Sem OP.": "",
+            IMAGEM: imagem,
+            SERIE: SERIE.toString(),
+            sincronizado: 0,
+            ultima_atualizacao: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "users", auth.currentUser.uid, "animes", nome), novoAnime);
+
+        // Adicionar aos "Últimos adicionados"
+        const ultTab = document.getElementById("cad_ultimos");
+        if (ultTab) {
+            const linha = document.createElement("tr");
+            linha.innerHTML = `
+                <td class="text-left p-1">${nome}</td>
+                <td class="text-center p-1">${ano}</td>
+                <td class="text-center p-1">${temp}</td>
+            `;
+            ultTab.prepend(linha);
+
+            // Mantém apenas os últimos 5 visíveis
+            while (ultTab.children.length > 5) {
+                ultTab.lastChild.remove();
+            }
+        }
+
+        alert("Anime cadastrado com sucesso!");
+        limparCampos();
+    }
+
+    window.cadastrarAnime = cadastrarAnime;
+
+    async function buscarAnime() {
+        const nome = document.getElementById("edit_nome").value.trim();
+
+        if (!nome) {
+            alert("Digite o nome do anime que deseja buscar!");
+            return;
+        }
+
+        const ref = doc(db, "users", auth.currentUser.uid, "animes", nome);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+            alert("Anime não encontrado!");
+            return;
+        }
+
+        const d = snap.data();
+
+        limparEdicao()
+
+        // ------------------------------
+        // CAMPOS BÁSICOS
+        // ------------------------------
+        document.getElementById("edit_nome").value = d.NOME ?? "";
+        document.getElementById("edit_n").value = d.N ?? "";
+        document.getElementById("edit_serie").value = d.SERIE ?? "";
+        document.getElementById("edit_nome_dropdown").value = d.NOME ?? "";
+        document.getElementById("edit_estado").value = d.ESTADO ?? "";
+        document.getElementById("edit_estilo").value = d.ESTILO ?? "";
+        document.getElementById("edit_temp").value = d.TEMPORADA ?? "";
+        document.getElementById("edit_ano").value = d.ANO ?? "";
+        document.getElementById("edit_eps_ass").value = d.ASSIS ?? 0;
+        document.getElementById("edit_eps_tot").value = d.TOTAIS ?? 0;
+
+        // ------------------------------
+        // IMAGEM
+        // ------------------------------
+        const imgInput = document.getElementById("edit_img");
+        const imgPrev = document.getElementById("edit_img_preview");
+        const imgText = document.getElementById("edit_img_text");
+
+        imgInput.value = d.IMAGEM ?? "";
+
+        if (d.IMAGEM) {
+            imgPrev.src = d.IMAGEM;
+            imgPrev.classList.remove("hidden");
+            imgText.classList.add("hidden");
+        } else {
+            imgPrev.classList.add("hidden");
+            imgText.classList.remove("hidden");
+        }
+
+        // ------------------------------
+        // ★ STARS / MAL / FINAL
+        // ------------------------------
+        document.getElementById("edit_stars").value = d.STARS ?? "";
+        document.getElementById("edit_nota_mal").value = d.N_MAL ?? 0;
+        document.getElementById("edit_nota_final").value = 
+            (d.NOTA_F !== undefined && d.NOTA_F !== null)
+            ? d.NOTA_F.toFixed(2)
+            : "";
+
+        // ------------------------------
+        // 🎵 MÚSICAS
+        // ------------------------------
+        musicasEditando = []; // limpa lista atual
+
+        if (d.M_Opening) {
+            const arr = d.M_Opening.split(",").filter(x => x.trim());
+            arr.forEach(m => musicasEditando.push({ tipo: "OP", nome: m }));
+        }
+
+        if (d.M_End) {
+            const arr = d.M_End.split(",").filter(x => x.trim());
+            arr.forEach(m => musicasEditando.push({ tipo: "ED", nome: m }));
+        }
+
+        if (d.M_Trilha) {
+            const arr = d.M_Trilha.split(",").filter(x => x.trim());
+            arr.forEach(m => musicasEditando.push({ tipo: "OST", nome: m }));
+        }
+
+        // Atualiza contador e lista visual
+        document.getElementById("musicas_count").textContent = musicasEditando.length;
+        renderListaMusicas();
+
+        // ------------------------------
+        // 🧩 GRUPO DE NOTAS (dinâmico)
+        // ------------------------------
+        atualizarGrupoNotas();
+
+        const estilo = d.ESTILO;
+
+        // Atualiza o layout visual primeiro
+        atualizarGrupoNotas(estilo);
+
+        // Referência ao container onde os campos são criados
+        const notasContent = document.getElementById("notas_content");
+
+        // FILME:
+        if (d.ESTILO === "Filme") {
+            const campoNota = document.getElementById("edit_nota_filme");
+            if (campoNota) campoNota.value = d["N. FILME ESP."] ?? "";
+        }
+
+        // ESPECIAL:
+        if (d.ESTILO === "Especial") {
+            const campoNota = document.getElementById("edit_nota_especial");
+            if (campoNota) campoNota.value = d["N. FILME ESP."] ?? "";
+        }
+
+        // ---------------------------------------------------- 
+        // ANIME
+        // ----------------------------------------------------
+        if (estilo === "Anime") {
+            //--------------------------------------
+            // 🔹 CARREGAR NOTAS DO ANIME
+            //--------------------------------------
+            let notasAnime = []; // <-- será usado para edição depois
+            let notaEp1 = "";
+            let notaEpFinal = "";
+
+            notaEp1 = d.N_Ep_1 ?? "";
+
+            // Notas agrupadas (2-3, 4-6, ...)
+            if (d.N_Eps) {
+                notasAnime = d.N_Eps
+                    .split(",")
+                    .map(n => n.trim())
+                    .filter(n => n !== "");
+            } else {
+                notasAnime = [];
+            }
+
+            // Episódio Final
+            notaEpFinal = d.N_Ep_F ?? "";
+
+            //--------------------------------------
+            // 🔹 MONTAR VISUALIZAÇÃO
+            //--------------------------------------
+            const box = document.getElementById("anime_notas_visualizacao");
+            box.innerHTML = ""; // limpa
+
+            let html = `<div class="flex gap-3 items-center whitespace-nowrap">`;
+
+            // EP 1
+            html += `
+                <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                    <span class="text-[#B9314F] font-bold">1:</span> ${notaEp1 || "-"}
+                </div>
+            `;
+
+            // Faixas 2–3, 4–6, 7–9, ...
+            for (let i = 0; i < notasAnime.length; i++) {
+                let faixaIni, faixaFim;
+
+                if (i === 0) {
+                    // primeiro grupo -> 2-3 (2 episódios)
+                    faixaIni = 2;
+                    faixaFim = 3;
+                } else {
+                    // a partir do segundo grupo cada faixa tem 3 episódios
+                    // i = 1 -> 4-6, i = 2 -> 7-9, ...
+                    faixaIni = 4 + (i - 1) * 3;
+                    faixaFim = faixaIni + 2;
+                }
+
+                html += `
+                    <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                        <span class="text-[#B9314F] font-bold">${faixaIni}-${faixaFim}:</span> ${notasAnime[i]}
+                    </div>
+                `;
+            }
+
+            // Final
+            html += `
+                <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                    <span class="text-[#B9314F] font-bold">Final:</span> ${notaEpFinal || "-"}
+                </div>
+            `;
+
+            html += `</div>`;
+            box.innerHTML = html;
+
+            //--------------------------------------
+            // 🔹 ARMAZENAR PARA EDIÇÃO
+            //--------------------------------------
+            window._notasAnime = {
+                ep1: notaEp1,
+                eps: notasAnime,
+                epf: notaEpFinal
+            };
+
+            // ----------------------------------------------------
+            // 🔹 Carregar Opening — Música
+            // ----------------------------------------------------
+            if (d.OPENING) {
+                const parts = d.OPENING.split(",").filter(x => x.trim());
+
+                document.getElementById("op_musica_1").value = parts[0] ?? "";
+                document.getElementById("op_musica_2").value = parts[2] ?? "";
+                document.getElementById("op_musica_3").value = parts[4] ?? "";
+
+                document.getElementById("op_anim_1").value = parts[1] ?? "";
+                document.getElementById("op_anim_2").value = parts[3] ?? "";
+                document.getElementById("op_anim_3").value = parts[5] ?? "";
+            }
+
+            // ----------------------------------------------------
+            // 🔹 Nota Final da OP
+            // ----------------------------------------------------
+            const opFinal = document.getElementById("op_final");
+            if (opFinal) {
+                opFinal.value = d.OP ?? "";
+            }
+
+            // ----------------------------------------------------
+            // 🔹 Sem OP
+            // ----------------------------------------------------
+            const semOp = document.getElementById("sem_op_nota");
+            if (semOp) {
+                semOp.value = d["Sem OP."] ?? "";
+            }
+        }
+        
+        // ---------------------------------------------------- 
+        // ANIME INF.
+        // ----------------------------------------------------
+    }
+
+    window.buscarAnime = buscarAnime;
+
+    // CACHE GLOBAL (garanta que exista apenas uma vez)
+    window.editAnimeNamesCache = window.editAnimeNamesCache || [];
+
+    function atualizarGrupoNotas() {
+        const estilo = document.getElementById("edit_estilo")?.value || "";
+        const content = document.getElementById("notas_content");
+        const label = document.getElementById("notas_estilo_label");
+
+        if (!content || !label) return;
+
+        label.textContent = estilo ? `(${estilo})` : "";
+
+        // Limpa antes de aplicar o novo layout
+        content.innerHTML = "";
+
+        // ------------------------------
+        // ESTILO: FILME
+        // ------------------------------
+        if (estilo === "Filme") {
+            content.innerHTML = `
+                <div class="grid grid-cols-1 gap-2 w-full">
+                    <div>
+                        <label class="font-bold text-sm">Nota</label>
+                        <input id="edit_nota_filme" type="number" step="0.01"
+                            class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] 
+                                text-white rounded-md">
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // ------------------------------
+        // ESTILO: Especial
+        // ------------------------------
+        if (estilo === "Especial") {
+            content.innerHTML = `
+                <div class="grid grid-cols-1 gap-2 w-full">
+                    <div>
+                        <label class="font-bold text-sm">Nota</label>
+                        <input id="edit_nota_especial" type="number" step="0.01"
+                            class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] 
+                                text-white rounded-md">
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // ------------------------------
+        // ESTILO: Anime
+        // ------------------------------
+        if (estilo === "Anime") {
+            content.innerHTML = `
+                <div class="space-y-4">
+
+                    <!-- Faixa + Nota -->
+                    <div class="grid grid-cols-2 gap-3">
+
+                        <!-- Faixa de Episódios -->
+                        <div>
+                            <label class="font-bold text-sm">Faixa de Eps.</label>
+                            <select id="nota_faixa"
+                                class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] 
+                                    text-white rounded-md">
+                                ${gerarFaixasNota()}
+                            </select>
+                        </div>
+
+                        <!-- Nota -->
+                        <div>
+                            <label class="font-bold text-sm">Nota</label>
+                            <input id="nota_valor" type="number" step="0.01"
+                                class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] 
+                                    text-white rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-3">
+
+                        <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="addNotaAnime()">Adicionar</button>
+
+                        <button class="bg-[#B97E0F] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="editNotaAnime()">Editar</button>
+
+                        <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="deleteNotaAnime()">Excluir</button>
+
+                    </div>
+
+                    <!-- Visualização das Notas -->
+                    <div id="anime_notas_visualizacao"
+                        class="bg-[#111] border border-[#333] rounded-md p-2 overflow-x-auto 
+                                whitespace-nowrap text-sm">
+                        <span class="text-gray-500">Nenhuma nota cadastrada ainda.</span>
+                    </div>
+
+                    <!-- Opening -->
+                    <h3 class="font-bold text-[#B9314F] mt-4">Opening</h3>
+
+                    <!-- Grade responsiva -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        <!-- Música (3 campos) -->
+                        <div>
+                            <label class="font-bold text-sm">Música</label>
+                            <div class="grid grid-cols-3 gap-2 mt-1">
+                                <input id="op_musica_1" type="number" placeholder="N1"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="op_musica_2" type="number" placeholder="N2"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="op_musica_3" type="number" placeholder="N3"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                            </div>
+                        </div>
+
+                        <!-- Animação (3 campos) -->
+                        <div>
+                            <label class="font-bold text-sm">Animação</label>
+                            <div class="grid grid-cols-3 gap-2 mt-1">
+                                <input id="op_anim_1" type="number" placeholder="N1"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="op_anim_2" type="number" placeholder="N2"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="op_anim_3" type="number" placeholder="N3"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Nota Final + Sem OP -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+
+                        <!-- Nota Final OP -->
+                        <div>
+                            <label class="font-bold text-sm">Nota Final OP</label>
+                            <input id="op_final" type="text" readonly
+                                class="w-full px-3 py-2 bg-[#111] border border-[#555]
+                                    text-gray-300 rounded-md text-center font-bold">
+                        </div>
+
+                        <!-- Sem OP -->
+                        <div>
+                            <label class="font-bold text-sm">Sem OP</label>
+                            <select id="sem_op_nota"
+                                class="w-full px-3 py-2 bg-[#151515] border border-[#333] 
+                                    text-white rounded-md">
+                                <option value="">Selecione...</option>
+                                <option value="0">0</option>
+                                <option value="3">3</option>
+                                <option value="6">6</option>
+                                <option value="8">8</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    </div>
+
+                </div>
+            `;
+            instalarEventosOP();
+            return;
+        }
+
+        // ------------------------------
+        // ESTILO: Anime Inf.
+        // ------------------------------
+        if (estilo === "Anime Inf.") {
+            content.innerHTML = `
+                <div class="space-y-4">
+
+                    <!-- =========================== -->
+                    <!--     ARCO (PARTE ESQUERDA)   -->
+                    <!-- =========================== -->
+                    <div>
+                        <label class="font-bold text-sm">Arco</label>
+                        <select id="ai_arco_select"
+                            class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] 
+                                text-white rounded-md">
+                        </select>
+                    </div>
+
+                    <!-- Notas do Arco: I / M / F -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="font-bold text-sm">I</label>
+                            <input id="ai_nota_i" type="number"
+                                class="w-full px-2 py-1.5 bg-[#151515] border border-[#333]
+                                    text-white rounded-md text-center">
+                        </div>
+
+                        <div>
+                            <label class="font-bold text-sm">M</label>
+                            <input id="ai_nota_m" type="number"
+                                class="w-full px-2 py-1.5 bg-[#151515] border border-[#333]
+                                    text-white rounded-md text-center">
+                        </div>
+
+                        <div>
+                            <label class="font-bold text-sm">F</label>
+                            <input id="ai_nota_f" type="number"
+                                class="w-full px-2 py-1.5 bg-[#151515] border border-[#333]
+                                    text-white rounded-md text-center">
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="flex gap-3">
+
+                        <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiAdicionarArco()">Adicionar</button>
+
+                        <button class="bg-[#B97E0F] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiEditarArco()">Editar</button>
+
+                        <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiExcluirArco()">Excluir</button>
+
+                    </div>
+
+                    <!-- Lista dos Arcos -->
+                    <div id="ai_arco_lista"
+                        class="bg-[#111] border border-[#333] rounded-md p-2 h-28 overflow-y-auto text-sm">
+                        <span class="text-gray-500">Nenhum arco cadastrado ainda.</span>
+                    </div>
+
+
+
+                    <!-- ================================= -->
+                    <!--         OPENING (PARTE DE BAIXO)    -->
+                    <!-- ================================= -->
+                    <h3 class="font-bold text-[#B9314F] mt-4">Opening</h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        <!-- Música -->
+                        <div>
+                            <label class="font-bold text-sm">Música</label>
+                            <div class="grid grid-cols-3 gap-2 mt-1">
+                                <input id="ai_op_mus_1" type="number" placeholder="N1"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="ai_op_mus_2" type="number" placeholder="N2"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="ai_op_mus_3" type="number" placeholder="N3"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                            </div>
+                        </div>
+
+                        <!-- Animação -->
+                        <div>
+                            <label class="font-bold text-sm">Animação</label>
+                            <div class="grid grid-cols-3 gap-2 mt-1">
+                                <input id="ai_op_anim_1" type="number" placeholder="N1"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="ai_op_anim_2" type="number" placeholder="N2"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                                <input id="ai_op_anim_3" type="number" placeholder="N3"
+                                    class="px-2 py-1 bg-[#151515] border border-[#333] 
+                                        text-white rounded-md text-center">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Botões da Opening -->
+                    <div class="flex gap-3">
+                        <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiAddOpening()">Adicionar</button>
+
+                        <button class="bg-[#B97E0F] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiEditOpening()">Editar</button>
+
+                        <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75"
+                                onclick="aiDeleteOpening()">Excluir</button>
+                    </div>
+
+                    <!-- Lista das Openings -->
+                    <div id="ai_op_lista"
+                        class="bg-[#111] border border-[#333] rounded-md p-2 h-28 overflow-y-auto text-sm">
+                        <span class="text-gray-500">Nenhuma Opening cadastrada ainda.</span>
+                    </div>
+
+                </div>
+            `;
+            return;
+        }
+
+        // Caso nenhum estilo válido
+        content.innerHTML = `
+            <div class="text-gray-500 text-center">
+                Escolha um Estilo para mostrar os campos específicos.
+            </div>
+        `;
+    }
+
+    function gerarFaixasNota() {
+        let faixas = `
+            <option value="1">1</option>
+            <option value="2-3">2-3</option>
+            <option value="4-6">4-6</option>
+            <option value="7-9">7-9</option>
+        `;
+
+        for (let i = 10; i <= 50; i += 3) {
+            const fim = i + 2;
+            faixas += `<option value="${i}-${fim}">${i}-${fim}</option>`;
+        }
+
+        faixas += `<option value="Final">Final</option>`;
+        return faixas;
+    }
+
+    function obterIndiceFaixa(faixa) {
+        if (faixa === "2-3") return 0;
+
+        const [ini] = faixa.split("-").map(n => parseInt(n));
+        return Math.floor((ini - 4) / 3) + 1;
+    }
+
+    function addNotaAnime() {
+        const faixa = document.getElementById("nota_faixa").value;
+        const valor = document.getElementById("nota_valor").value;
+
+        if (!faixa || valor === "") {
+            alert("Selecione faixa e informe a nota!");
+            return;
+        }
+
+        // EP 1
+        if (faixa === "1") {
+            if (window._notasAnime.ep1) {
+                alert("Já existe nota para o Episódio 1!");
+                return;
+            }
+            window._notasAnime.ep1 = valor;
+        }
+
+        // Final
+        else if (faixa === "Final") {
+            if (window._notasAnime.epf) {
+                alert("Já existe nota para o Episódio Final!");
+                return;
+            }
+            window._notasAnime.epf = valor;
+        }
+
+        // Faixas intermediárias 2-3, 4-6, etc
+        else {
+            const pos = faixaParaIndice(faixa);
+
+            if (window._notasAnime.eps[pos]) {
+                alert("Esta faixa já tem uma nota cadastrada!");
+                return;
+            }
+
+            window._notasAnime.eps[pos] = valor;
+        }
+
+        atualizarVisualizacaoNotasAnime();
+    }
+
+    window.addNotaAnime = addNotaAnime;
+
+    function editNotaAnime() {
+        const faixa = document.getElementById("nota_faixa").value;
+        const valor = document.getElementById("nota_valor").value;
+
+        if (!faixa || valor === "") {
+            alert("Selecione uma faixa e uma nota!");
+            return;
+        }
+
+        if (faixa === "1") window._notasAnime.ep1 = valor;
+        else if (faixa === "Final") window._notasAnime.epf = valor;
+        else {
+            const pos = faixaParaIndice(faixa);
+            window._notasAnime.eps[pos] = valor;
+        }
+
+        atualizarVisualizacaoNotasAnime();
+    }
+
+    window.editNotaAnime = editNotaAnime;
+
+    function deleteNotaAnime() {
+        const faixa = document.getElementById("nota_faixa").value;
+
+        if (!faixa) {
+            alert("Selecione uma faixa para excluir.");
+            return;
+        }
+
+        if (faixa === "1") window._notasAnime.ep1 = "";
+        else if (faixa === "Final") window._notasAnime.epf = "";
+        else {
+            const pos = faixaParaIndice(faixa);
+            window._notasAnime.eps[pos] = "";
+        }
+
+        atualizarVisualizacaoNotasAnime();
+    }
+
+    window.deleteNotaAnime = deleteNotaAnime;
+
+    function atualizarVisualizacaoNotasAnime() {
+        const box = document.getElementById("anime_notas_visualizacao");
+        if (!box) return;
+
+        const { ep1, eps, epf } = window._notasAnime;
+        let html = `<div class="flex gap-3 items-center whitespace-nowrap">`;
+
+        // EP 1 (só aparece se tiver nota)
+        if (ep1 && ep1 !== "") {
+            html += `
+                <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                    <span class="text-[#B9314F] font-bold">1:</span> ${ep1}
+                </div>
+            `;
+        }
+
+        // EP 2-3, 4-6, 7-9...
+        for (let i = 0; i < eps.length; i++) {
+            if (!eps[i] || eps[i].trim() === "") continue; // ⛔ não mostrar faixa vazia
+
+            let faixaIni, faixaFim;
+
+            if (i === 0) {
+                faixaIni = 2;
+                faixaFim = 3;
+            } else {
+                faixaIni = 4 + (i - 1) * 3;
+                faixaFim = faixaIni + 2;
+            }
+
+            html += `
+                <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                    <span class="text-[#B9314F] font-bold">${faixaIni}-${faixaFim}:</span> ${eps[i]}
+                </div>
+            `;
+        }
+
+        // EP Final (só aparece se tiver nota)
+        if (epf && epf !== "") {
+            html += `
+                <div class="px-2 py-1 bg-[#222] rounded-md border border-[#444]">
+                    <span class="text-[#B9314F] font-bold">Final:</span> ${epf}
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+        box.innerHTML = html;
+    }
+
+    function faixaParaIndice(faixa) {
+        const [ini, fim] = faixa.split("-").map(n => parseInt(n));
+
+        if (ini === 2 && fim === 3) return 0;
+
+        return 1 + Math.floor((ini - 4) / 3);
+    }
+
+    function limparEdicao() {
+        // 🔹 Limpar inputs simples
+        const ids = [
+            "edit_nome",
+            "edit_n",
+            "edit_serie",
+            "edit_estado",
+            "edit_estilo",
+            "edit_temp",
+            "edit_ano",
+            "edit_eps_ass",
+            "edit_eps_tot",
+            "edit_img",
+            "edit_stars",
+            "edit_nota_mal",
+            "edit_nota_final"
+        ];
+
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+
+        // 🔹 Resetar dropdown (Nome)
+        const dd = document.getElementById("edit_nome_dropdown");
+        if (dd) dd.classList.add("hidden");
+
+        // 🔹 Resetar prévia da imagem
+        const imgPrev = document.getElementById("edit_img_preview");
+        const imgText = document.getElementById("edit_img_text");
+
+        if (imgPrev && imgText) {
+            imgPrev.src = "";
+            imgPrev.classList.add("hidden");
+            imgText.classList.remove("hidden");
+        }
+
+        // 🔹 Resetar músicas
+        const lista = document.getElementById("lista_musicas");
+        const count = document.getElementById("musicas_count");
+
+        if (lista) lista.innerHTML = "";
+        if (count) count.textContent = "0";
+
+        // 🔹 Resetar conteúdo do grupo de notas
+        const notasContent = document.getElementById("notas_content");
+        const notasLabel = document.getElementById("notas_estilo_label");
+
+        if (notasContent) {
+            notasContent.innerHTML = `
+                <div class="mt-3 p-3 bg-[#111] border border-[#333] 
+                    rounded-lg flex items-center justify-center
+                    text-gray-400 text-sm text-center">
+                    Escolha um Estilo para mostrar os campos específicos.
+                </div>`;
+        }
+
+        if (notasLabel) notasLabel.textContent = "";
+
+        // 🔹 Resetar campos internos de notas (Anime, OP etc.)
+        [
+            "nota_faixa", "nota_valor",
+            "op_musica_1", "op_musica_2", "op_musica_3",
+            "op_anim_1", "op_anim_2", "op_anim_3",
+            "op_final", "sem_op_nota",
+            "edit_nota_filme",
+            "edit_nota_especial"
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+
+        // 🔹 Limpar visualização das notas do Anime
+        const viz = document.getElementById("anime_notas_visualizacao");
+        if (viz) {
+            viz.innerHTML = `<span class="text-gray-500">Nenhuma nota cadastrada ainda.</span>`;
+        }
+
+        // 🔹 Fechar grupos <details>
+        const det1 = document.getElementById("musicas_group");
+        const det2 = document.getElementById("notas_group");
+
+        if (det1) det1.open = false;
+        if (det2) det2.open = false;
+
+        console.log("Campos limpos.");
+    }
+    
+    function calcularNotaFinalOP() {
+        const semOp = document.getElementById("sem_op_nota").value;
+        const opFinal = document.getElementById("op_final");
+
+        // Se SEM OP estiver preenchido → prioridade absoluta
+        if (semOp !== "") {
+            opFinal.value = semOp;
+            return;
+        }
+
+        // Capturar notas de música e animação
+        const m = [
+            parseFloat(document.getElementById("op_musica_1").value),
+            parseFloat(document.getElementById("op_musica_2").value),
+            parseFloat(document.getElementById("op_musica_3").value)
+        ];
+
+        const a = [
+            parseFloat(document.getElementById("op_anim_1").value),
+            parseFloat(document.getElementById("op_anim_2").value),
+            parseFloat(document.getElementById("op_anim_3").value)
+        ];
+
+        let soma = 0;
+        let gruposValidos = 0;
+
+        // Verificar cada dupla Música + Animação
+        for (let i = 0; i < 3; i++) {
+            if (!isNaN(m[i]) && !isNaN(a[i])) {
+                soma += (m[i] + a[i]);
+                gruposValidos++;
+            }
+        }
+
+        if (gruposValidos === 0) {
+            opFinal.value = "";
+            return;
+        }
+
+        // Divisão pela quantidade de grupos
+        const resultado = soma / gruposValidos;
+        opFinal.value = resultado.toFixed(2);
+    }
+
+    function instalarEventosOP() {
+        const campos = [
+            "op_musica_1", "op_musica_2", "op_musica_3",
+            "op_anim_1",   "op_anim_2",   "op_anim_3",
+            "sem_op_nota"
+        ];
+
+        campos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("input", calcularNotaFinalOP);
+        });
+    }
+
+    window.limparEdicao = limparEdicao;
+
+    function renderListaMusicas() {
+        const lista = document.getElementById("lista_musicas");
+        const count = document.getElementById("musicas_count");
+
+        lista.innerHTML = "";
+        count.textContent = musicasEditando.length;
+
+        if (musicasEditando.length === 0) {
+            lista.innerHTML = `<li class="text-gray-400">Nenhuma música adicionada.</li>`;
+            return;
+        }
+
+        musicasEditando.forEach((m, index) => {
+            const li = document.createElement("li");
+            li.className = "flex justify-between items-center";
+
+            li.innerHTML = `
+                <span>${m.tipo}: ${m.nome}</span>
+
+                <div class="flex gap-1">
+                    <button class="${btnMusicRed}" onclick="excluirMusica(${index})">🗑</button>
+                </div>
+            `;
+
+            lista.appendChild(li);
+        });
+    }
+
+    function adicionarMusica() {
+        const tipo = document.getElementById("edit_tipo_musica").value;
+        const texto = document.getElementById("edit_musica_texto").value.trim();
+
+        if (!texto) {
+            alert("Digite o nome da música!");
+            return;
+        }
+
+        // EDITANDO UMA MÚSICA EXISTENTE
+        if (window.indexMusicaEditando !== undefined) {
+            musicasEditando[window.indexMusicaEditando] = { tipo, nome: texto };
+            window.indexMusicaEditando = undefined;
+        } 
+        else {
+            // ADICIONAR NOVA
+            musicasEditando.push({ tipo, nome: texto });
+        }
+
+        document.getElementById("edit_musica_texto").value = "";
+        renderListaMusicas();
+    }
+
+    window.adicionarMusica = adicionarMusica;
+
+    function excluirMusica(index) {
+        if (!confirm("Remover esta música?")) return;
+
+        musicasEditando.splice(index, 1);
+        renderListaMusicas();
+    }
+
+    window.excluirMusica = excluirMusica;
+
+    async function confirmarEdicao() {
+        const nome = document.getElementById("edit_nome").value.trim();
+        if (!nome) {
+            alert("Selecione um anime para editar!");
+            return;
+        }
+
+        const ref = doc(db, "users", auth.currentUser.uid, "animes", nome);
+
+        // ---------------------------
+        // CAMPOS BÁSICOS
+        // ---------------------------
+        const N = document.getElementById("edit_n").value || "";
+        const SERIE = document.getElementById("edit_serie").value || "";
+        const ESTADO = document.getElementById("edit_estado").value || "";
+        const ESTILO = document.getElementById("edit_estilo").value || "";
+        const TEMP = document.getElementById("edit_temp").value || "";
+        const ANO = document.getElementById("edit_ano").value || "";
+        const ASSIS = document.getElementById("edit_eps_ass").value || "";
+        const TOTAIS = document.getElementById("edit_eps_tot").value || "";
+        const IMAGEM = document.getElementById("edit_img").value || "";
+
+        // ---------------------------
+        // MÚSICAS
+        // ---------------------------
+        let M_Opening = "";
+        let M_End = "";
+        let M_Trilha = "";
+
+        const itens = document.querySelectorAll("#lista_musicas li");
+
+        itens.forEach(li => {
+            const texto = li.textContent;
+            const tipo = texto.split(":")[0].trim();
+            const nomeMusica = texto.split(":").slice(1).join(":").trim();
+
+            if (tipo === "Opening") M_Opening += nomeMusica + ",";
+            if (tipo === "End") M_End += nomeMusica + ",";
+            if (tipo === "Trilha") M_Trilha += nomeMusica + ",";
+        });
+
+        M_Opening = M_Opening.slice(0, -1);
+        M_End = M_End.slice(0, -1);
+        M_Trilha = M_Trilha.slice(0, -1);
+
+        // ---------------------------
+        // NOTAS — ANIME
+        // ---------------------------
+        let N_Ep_1 = "";
+        let N_Ep_F = "";
+        let N_Eps = "";
+
+        if (ESTILO === "Anime") {
+            const notas = window._notasAnime || { ep1: "", eps: [], epf: "" };
+
+            N_Ep_1 = notas.ep1 || "";
+            N_Ep_F = notas.epf || "";
+            N_Eps = notas.eps.join(",");
+        }
+
+        // ---------------------------
+        // OPENING — NOTAS
+        // ---------------------------
+        let OPENING = "";
+        let OP_FINAL = document.getElementById("op_final")?.value || "";
+        let SEM_OP = document.getElementById("sem_op_nota")?.value || "";
+
+        if (ESTILO === "Anime") {
+            const m1 = document.getElementById("op_musica_1").value || "";
+            const m2 = document.getElementById("op_musica_2").value || "";
+            const m3 = document.getElementById("op_musica_3").value || "";
+            const a1 = document.getElementById("op_anim_1").value || "";
+            const a2 = document.getElementById("op_anim_2").value || "";
+            const a3 = document.getElementById("op_anim_3").value || "";
+
+            OPENING = [m1, a1, m2, a2, m3, a3].join(",");
+        }
+
+        // ---------------------------
+        // FILME / ESPECIAL / ANIME INF.
+        // ---------------------------
+        let NOTA_FILME = "";
+        let NOTA_ESPECIAL = "";
+        let NOTA_INF = "";
+
+        if (ESTILO === "Filme") {
+            NOTA_FILME = document.getElementById("edit_nota_filme")?.value || "";
+        }
+        if (ESTILO === "Especial") {
+            NOTA_ESPECIAL = document.getElementById("edit_nota_especial")?.value || "";
+        }
+        if (ESTILO === "Anime Info" || ESTILO === "Anime Inf.") {
+            NOTA_INF = document.getElementById("edit_nota_inf")?.value || "";
+        }
+
+        // ---------------------------
+        // MONTAR OBJETO PARA SALVAR
+        // ---------------------------
+
+        const payload = {
+            N: N,
+            SERIE: SERIE,
+            NOME: nome,
+            ESTADO: ESTADO,
+            ESTILO: ESTILO,
+            TEMPORADA: TEMP,
+            ANO: ANO,
+            ASSIS: ASSIS,
+            TOTAIS: TOTAIS,
+            IMAGEM: IMAGEM,
+
+            // músicas
+            M_Opening,
+            M_End,
+            M_Trilha,
+
+            // notas estilo Anime
+            N_Ep_1,
+            N_Ep_F,
+            N_Eps,
+
+            // opening
+            OPENING,
+            OP: OP_FINAL,
+            "Sem OP.": SEM_OP,
+
+            // outros estilos
+            "N. FILME ESP": NOTA_FILME,
+            "N. SPECIAL": NOTA_ESPECIAL,
+            "N. INF": NOTA_INF,
+
+            sincronizado: 2
+        };
+
+        try {
+            await setDoc(ref, payload, { merge: true });
+            alert("Anime atualizado com sucesso!");
+        } catch (e) {
+            console.error("Erro ao salvar edição:", e);
+            alert("Erro ao salvar edição!");
+        }
+    }
+    
+    window.confirmarEdicao = confirmarEdicao;
+
+    // Carrega os nomes do Firestore para o combo da aba Edição
+    async function loadAnimeNamesForEdit() {
+        try {
+            const animeRef = collection(db, "users", auth.currentUser.uid, "animes");
+            const snapshot = await getDocs(animeRef);
+
+            // Limpa cache
+            window.editAnimeNamesCache.length = 0;
+
+            snapshot.forEach(d => {
+            const data = d.data();
+            if (data && data.NOME) window.editAnimeNamesCache.push(data.NOME);
+            });
+
+            window.editAnimeNamesCache.sort((a, b) => a.localeCompare(b));
+
+            // Inicializa o autocomplete (idempotente)
+            setupEditNomeAutoComplete();
+        } catch (err) {
+            console.error("Erro ao carregar nomes para edição:", err);
+        }
+    }
+
+    // Setup do autocomplete (idempotente e mais robusto)
+    function setupEditNomeAutoComplete() {
+        const input = document.getElementById("edit_nome");
+        const dropdown = document.getElementById("edit_nome_dropdown");
+        const arrow = document.getElementById("edit_nome_arrow");
+
+        if (!input || !dropdown || !arrow) return;
+
+        // Função que atualiza o dropdown a partir de um filtro
+        function updateDropdown(filter = "") {
+            dropdown.innerHTML = "";
+
+            const results = (window.editAnimeNamesCache || []).filter(nome =>
+            nome.toLowerCase().includes(String(filter).toLowerCase())
+            );
+
+            if (!results.length) {
+            dropdown.classList.add("hidden");
+            return;
+            }
+
+            // monta opções
+            for (const nome of results) {
+            const option = document.createElement("div");
+            option.className = "px-3 py-2 hover:bg-[#333] cursor-pointer";
+            option.textContent = nome;
+            option.onclick = () => {
+                input.value = nome;
+                dropdown.classList.add("hidden");
+            };
+            dropdown.appendChild(option);
+            }
+
+            dropdown.classList.remove("hidden");
+        }
+
+        // usa atribuições (evita múltiplos listeners)
+        input.oninput = () => updateDropdown(input.value);
+
+        // abrir ao focar (opcional): atualiza a lista com o texto atual
+        input.onfocus = () => {
+            if (input.value.trim()) updateDropdown(input.value);
+        };
+
+        // seta: mostra tudo (filtragem com "")
+        arrow.onclick = (e) => {
+            e.stopPropagation();
+            if (dropdown.classList.contains("hidden")) {
+            updateDropdown("");
+            input.focus();
+            } else {
+            dropdown.classList.add("hidden");
+            }
+        };
+
+        // clicando fora fecha o dropdown
+        document.onclick = (e) => {
+            // se o click estiver dentro do input ou do dropdown ou da seta, não fecha
+            if (input.contains(e.target) || dropdown.contains(e.target) || arrow.contains(e.target)) return;
+            dropdown.classList.add("hidden");
+        };
+    }
+
+    // ------------------------------------------
+    // 📌 Login + Inicialização
+    // ------------------------------------------
+    onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        userEmailEl.textContent = user.email;
+
+        const waitField = setInterval(() => {
+            const field = document.getElementById("cad_ult_temp");
+            if (field) {
+            clearInterval(waitField);
+            loadAnimeNamesForCombo();
+            }
+        }, 200);
+
+        if (user) loadAnimeNamesForEdit();
+    });
+
+    // Logout
+    btnSignOut?.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "login.html";
+    });
+</script>
+
+</body>
+</html>
