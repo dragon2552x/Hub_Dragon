@@ -916,7 +916,7 @@
         // CAMPOS BÁSICOS
         // ------------------------------
         document.getElementById("edit_nome").value = d.NOME ?? "";
-        document.getElementById("edit_n").value = d.N ?? "";
+        document.getElementById("edit_n").value = d.Num ?? "";
         document.getElementById("edit_serie").value = d.SERIE ?? "";
         document.getElementById("edit_nome_dropdown").value = d.NOME ?? "";
         document.getElementById("edit_estado").value = d.ESTADO ?? "";
@@ -1822,7 +1822,7 @@
         // ---------------------------
         // CAMPOS BÁSICOS
         // ---------------------------
-        const N = document.getElementById("edit_n").value || "";
+        const Num = document.getElementById("edit_n").value || "";
         const SERIE = document.getElementById("edit_serie").value || "";
         const ESTADO = document.getElementById("edit_estado").value || "";
         const ESTILO = document.getElementById("edit_estilo").value || "";
@@ -1910,7 +1910,7 @@
         // ---------------------------
 
         const payload = {
-            N: N,
+            Num: Num,
             SERIE: SERIE,
             NOME: nome,
             ESTADO: ESTADO,
@@ -1947,12 +1947,13 @@
         try {
             await setDoc(ref, payload, { merge: true });
             alert("Anime atualizado com sucesso!");
+            limparEdicao()
         } catch (e) {
             console.error("Erro ao salvar edição:", e);
             alert("Erro ao salvar edição!");
         }
     }
-    
+
     window.confirmarEdicao = confirmarEdicao;
 
     // Carrega os nomes do Firestore para o combo da aba Edição
