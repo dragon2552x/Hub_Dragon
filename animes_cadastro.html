@@ -311,6 +311,7 @@
             <select id="edit_estilo"
                     onchange="atualizarGrupoNotas()"
                     class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option value="" disabled selected></option>
                 <option>Anime</option>
                 <option>Anime Inf.</option>
                 <option>Filme</option>
@@ -322,6 +323,7 @@
             <label class="font-bold text-sm">Estado</label>
             <select id="edit_estado"
                     class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option value="" disabled selected></option>
                 <option>Completo</option>
                 <option>Andamento</option>
                 <option>Incompleto</option>
@@ -338,6 +340,7 @@
             <label class="font-bold text-sm">Temporada</label>
             <select id="edit_temp"
                     class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
+                <option value="" disabled selected></option>
                 <option>Inverno (1)</option>
                 <option>Primavera (4)</option>
                 <option>Verão (7)</option>
@@ -1144,6 +1147,28 @@
 
     window.buscarAnime = buscarAnime;
 
+    function previewEditImage() {
+        const imgInput = document.getElementById("edit_img");
+        const imgPrev = document.getElementById("edit_img_preview");
+        const imgText = document.getElementById("edit_img_text");
+        const url = imgInput.value.trim();
+
+        if (url) {
+            // Tenta carregar a imagem
+            imgPrev.src = url;
+            imgPrev.classList.remove("hidden");
+            imgText.classList.add("hidden");
+            // O atributo onerror no HTML lida com o caso de URL inválida
+        } else {
+            // Se o campo estiver vazio, esconde a imagem e mostra o texto
+            imgPrev.src = ""; // Limpa o src
+            imgPrev.classList.add("hidden");
+            imgText.classList.remove("hidden");
+        }
+    }
+    
+    window.previewEditImage = previewEditImage;
+
     // CACHE GLOBAL (garanta que exista apenas uma vez)
     window.editAnimeNamesCache = window.editAnimeNamesCache || [];
 
@@ -1617,13 +1642,30 @@
             "edit_img",
             "edit_stars",
             "edit_nota_mal",
-            "edit_nota_final"
+            "edit_nota_final",
+            "edit_nota_inf" 
         ];
 
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = "";
         });
+
+        // ------------------------------------
+        // 🔹 LIMPAR VARIÁVEIS GLOBAIS (Anime Inf.)
+        // ------------------------------------
+        // Limpa os objetos estruturados do Anime Infinito
+        window._arcosAnime = {};
+        window._openingsAnime = {};
+        
+        // Limpa as notas de anime padrão
+        window._notasAnime = { ep1: "", eps: [], epf: "" };
+        
+        // Limpa a lista de músicas global
+        // Assume-se que 'musicasEditando' foi declarado no escopo global/superior
+        if (typeof musicasEditando !== 'undefined') {
+            musicasEditando = []; 
+        }
 
         // 🔹 Resetar dropdown (Nome)
         const dd = document.getElementById("edit_nome_dropdown");
@@ -1639,14 +1681,14 @@
             imgText.classList.remove("hidden");
         }
 
-        // 🔹 Resetar músicas
+        // 🔹 Resetar músicas (visualização)
         const lista = document.getElementById("lista_musicas");
         const count = document.getElementById("musicas_count");
 
         if (lista) lista.innerHTML = "";
         if (count) count.textContent = "0";
 
-        // 🔹 Resetar conteúdo do grupo de notas
+        // 🔹 Resetar conteúdo do grupo de notas (layout dinâmico)
         const notasContent = document.getElementById("notas_content");
         const notasLabel = document.getElementById("notas_estilo_label");
 
@@ -1674,12 +1716,30 @@
             if (el) el.value = "";
         });
 
-        // 🔹 Limpar visualização das notas do Anime
+        // 🔹 Limpar visualização das notas do Anime Padrão
         const viz = document.getElementById("anime_notas_visualizacao");
         if (viz) {
             viz.innerHTML = `<span class="text-gray-500">Nenhuma nota cadastrada ainda.</span>`;
         }
 
+        // ------------------------------------
+        // 🔹 Limpar visualização de ARCOS / OPENINGS Inf.
+        // ------------------------------------
+        // Se você tiver elementos para visualizar a lista de arcos e openings,
+        // é bom limpar o conteúdo aqui:
+        
+        // Exemplo para um container de Arcos:
+        const arcosViz = document.getElementById("arcos_inf_visualizacao");
+        if (arcosViz) {
+            arcosViz.innerHTML = `<span class="text-gray-500">Nenhum arco cadastrado.</span>`;
+        }
+
+        // Exemplo para um container de Openings:
+        const openingsViz = document.getElementById("openings_inf_visualizacao");
+        if (openingsViz) {
+            openingsViz.innerHTML = `<span class="text-gray-500">Nenhuma opening cadastrada.</span>`;
+        }
+        
         // 🔹 Fechar grupos <details>
         const det1 = document.getElementById("musicas_group");
         const det2 = document.getElementById("notas_group");
@@ -1688,6 +1748,8 @@
         if (det2) det2.open = false;
     }
     
+    window.limparEdicao = limparEdicao;
+
     function calcularNotaFinalOP() {
         const semOp = document.getElementById("sem_op_nota").value;
         const opFinal = document.getElementById("op_final");
@@ -1744,8 +1806,6 @@
             if (el) el.addEventListener("input", calcularNotaFinalOP);
         });
     }
-
-    window.limparEdicao = limparEdicao;
 
     function renderListaMusicas() {
         const lista = document.getElementById("lista_musicas");
@@ -2159,21 +2219,18 @@
         // Assume-se que 'db' e 'auth' (getAuth(app)) estão definidos e inicializados no escopo.
         
         const nome = document.getElementById("edit_nome").value.trim();
-        if (!nome) {
-            // Em vez de alert(), use um modal ou mensagem na UI (conforme regras)
-            // Por enquanto, mantendo o alert() existente para compatibilidade com o código anterior
+        const Num = document.getElementById("edit_n").value || "";
+
+        if (!nome || Num === "") {
             alert("Selecione um anime para editar!"); 
             return;
         }
 
-        // Define a referência do documento no Firestore
-        // Assume-se que 'doc' está importado de 'firebase/firestore'
         const ref = doc(db, "users", auth.currentUser.uid, "animes", nome);
 
         // ---------------------------
         // CAMPOS BÁSICOS
         // ---------------------------
-        const Num = document.getElementById("edit_n").value || "";
         const SERIE = document.getElementById("edit_serie").value || "";
         const ESTADO = document.getElementById("edit_estado").value || "";
         const ESTILO = document.getElementById("edit_estilo").value || ""; // ESTILO é chave!
