@@ -989,7 +989,7 @@
         // ------------------------------
         const imgInput = document.getElementById("edit_img");
         const imgPrev = document.getElementById("edit_img_preview");
-        const imgText = document.getElementById("edit_img_text");
+        const imgText = document.getElementById("edit_img_text_span");
 
         imgInput.value = d.IMAGEM ?? "";
 
@@ -1203,7 +1203,7 @@
     function previewEditImage() {
         const imgInput = document.getElementById("edit_img");
         const imgPrev = document.getElementById("edit_img_preview");
-        const imgText = document.getElementById("edit_img_text");
+        const imgText = document.getElementById("edit_img_text_span");
         const url = imgInput.value.trim();
 
         if (url) {
@@ -1726,7 +1726,7 @@
 
         // 🔹 Resetar prévia da imagem
         const imgPrev = document.getElementById("edit_img_preview");
-        const imgText = document.getElementById("edit_img_text");
+        const imgText = document.getElementById("edit_img_text_span");
 
         if (imgPrev && imgText) {
             imgPrev.src = "";
