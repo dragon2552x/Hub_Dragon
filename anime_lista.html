@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Class Animes</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e6e6e6;
+      padding-bottom: 100px; /* espaço para menu inferior */
+    }
+
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #b3b3b3;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+
+    /* --- Estilos do Menu Inferior (Navegação) --- */
+        .header-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #151515;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 10px 20px;
+            z-index: 10;
+        }
+
+
+        .menu-btn i {
+            margin-bottom: 4px;
+        }
+        
+        /* --- Estilos do Dropdown de Mais Opções --- */
+        .dropdown-item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 10px;
+            color: #e6e6e6;
+            font-size: 0.875rem; /* text-sm */
+            border-radius: 6px; /* rounded-lg */
+            transition: background-color 0.2s;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* --- Estilos do Dropdown de Filtro Customizado (VISUAL MELHORADO) --- */
+        .filter-dropdownMenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            width: 100%;
+            background: #1f1f1f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .filter-option {
+            /* Estilos para parecer um item de lista clicável */
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            
+            /* Adicionando estilos para ícones e alinhamento */
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Espaçamento entre ícone e texto */
+            
+            /* Para usar como <button> e parecer um item de lista */
+            width: 100%; 
+            text-align: left; 
+            background: none;
+            border: none;
+            color: inherit; /* Garante que o texto herde a cor do body/pai */
+            font-size: 1rem; /* Tamanho da fonte padrão */
+        }
+
+        .filter-option:hover {
+            background-color: #2a2a2a;
+        }
+
+        .filter-option.selected {
+            background-color: #B9314F;
+            color: #ffffff;
+        }
+
+        /* --- Estilos do Card de Anime --- */
+        .anime-card {
+            background: #151515;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .anime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(185, 49, 79, 0.2);
+        }
+
+        .card-image {
+            width: 100%;
+            padding-top: 150%; /* 3:2 Aspect Ratio */
+            position: relative;
+        }
+
+        .card-image img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+  </style>
+</head>
+<body>
+
+<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
+
+  <!-- MENU SUPERIOR -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    
+    <!-- Linha 1 -->
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
+        My Hub
+      </button>
+
+      <h1 class="text-2xl font-bold text-white">My Animes</h1>
+    </div>
+
+    <!-- Linha 2 -->
+    <div class="text-sm text-gray-300 mt-1">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+    </div>
+
+  </header>
+
+
+  <!-- CONTEÚDO PRINCIPAL DA PÁGINA -->
+    <main class="container mx-auto p-4 pt-6">
+
+        <!-- Removido: <h2 class="text-3xl font-extrabold mb-6 text-white">Minha Lista de Animes</h2> -->
+
+        <!-- NOVO DROPDOWN DE VISUALIZAÇÃO (Filtros) - Ajustado para w-full (responsivo) -->
+        <div class="relative w-full mb-6">
+            <button id="dropdown-toggle"
+                    class="w-full flex justify-between items-center px-4 py-2 bg-[#1f1f1f] text-white
+                           border border-[#333] rounded-lg shadow-md hover:bg-[#2a2a2a] transition-colors"
+                    onclick="toggleFilterDropdown()">
+                <span id="selected-filter-text">Todos</span>
+                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-200"></i>
+            </button>
+
+            <div id="dropdownMenu" class="filter-dropdownMenu hidden">
+                <div class="filter-option selected" data-filter="inacabados" data-text="Todos inacabados" onclick="loadAnimeList('inacabados')">
+                    Todos inacabados
+                </div>
+                <div class="filter-option" data-filter="temporada" data-text="Termporada Atual" onclick="loadAnimeList('temporada')">
+                    Termporada Atual
+                </div>
+                <div class="filter-option" data-filter="ult_temporada" data-text="Última Temporada" onclick="loadAnimeList('ult_temporada')">
+                    Última Temporada
+                </div>
+                <div class="filter-option" data-filter="andamento" data-text="andamento" onclick="loadAnimeList('andamento')">
+                    Andamento
+                </div>
+            </div>
+        </div>
+        
+        <!-- CARREGAMENTO/ERRO -->
+        <div id="loading-indicator" class="text-center p-10 hidden">
+            <i data-lucide="loader-2" class="w-8 h-8 mx-auto animate-spin text-[#B9314F]"></i>
+            <p class="mt-2 text-sm text-gray-400">Carregando animes...</p>
+        </div>
+        <div id="error-message" class="text-center p-10 hidden bg-red-900/20 border border-red-700/50 rounded-lg">
+            <p class="text-red-400 text-sm">Ocorreu um erro ao carregar os dados. Verifique sua conexão.</p>
+        </div>
+        
+        <!-- GRID DE CARDS -->
+        <div id="anime-list-grid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <!-- Cards de animes serão injetados aqui -->
+        </div>
+
+    </main>
+
+</div>
+
+<div id="anime-modal"
+     class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center z-50">
+
+    <div class="bg-[#151515] w-80 rounded-xl p-4 border border-[#333]">
+        <h2 id="modal-nome" class="text-xl font-bold text-[#B9314F] mb-2"></h2>
+
+        <img id="modal-imagem" class="w-full rounded-lg mb-3">
+
+        <p id="modal-info" class="text-sm text-gray-300"></p>
+
+        <button onclick="fecharModal()"
+            class="mt-4 w-full py-2 bg-[#B9314F] rounded-lg font-bold">
+            Fechar
+        </button>
+    </div>
+
+</div>
+
+<!-- MENU INFERIOR -->
+<nav class="menu">
+    <button class="menu-btn" onclick="abrirPagina('animes_manager.html')">
+        <i data-lucide="home"></i>
+        <span>Início</span>
+    </button>
+    <button class="menu-btn" onclick="abrirPagina('animes_cadastro.html')">
+        <i data-lucide="file-edit"></i>
+        <span>Gestão</span>
+    </button>
+    <!-- Lista: Agora visível em todos os tamanhos de tela. -->
+    <button class="menu-btn  active" onclick="abrirPagina('anime_lista.html')">
+        <i data-lucide="list"></i>
+        <span>Lista</span>
+    </button>
+
+    <!-- Classificação, Estrelas e Torneio estão permanentemente ocultos no menu principal,
+         e serão acessíveis apenas pelo botão 'Mais'. -->
+    <button class="menu-btn hidden" onclick="abrirPagina('animes_classificacoes.html')">
+        <i data-lucide="bar-chart-2"></i>
+        <span>Classificação</span>
+    </button>
+    <button class="menu-btn hidden" onclick="abrirPagina('animes_estrelas.html')">
+        <i data-lucide="star"></i>
+        <span>Estrelas</span>
+    </button>
+    <button class="menu-btn hidden" onclick="abrirPagina('animes_torneio.html')">
+        <i data-lucide="trophy"></i>
+        <span>Torneio</span>
+    </button>
+
+    <!-- Botão de Mais Opções (Dropdown) -->
+    <!-- Removido 'sm:hidden' para que o botão 'Mais' seja sempre visível. -->
+    <div class="relative flex">
+        <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
+            <i data-lucide="more-horizontal"></i>
+            <span>Mais</span>
+        </button>
+
+        <!-- Dropdown de Mais Opções -->
+        <!-- ADICIONADO: 'flex flex-col' para empilhar os itens verticalmente -->
+        <div id="more-options-dropdown"
+             class="absolute bottom-full mb-2 right-0 w-40 bg-[#1f1f1f] border border-[#2a2a2a]
+                    rounded-lg shadow-xl p-2 hidden z-50 flex flex-col">
+
+            <!-- Lista foi removida daqui, pois agora está no menu principal. -->
+            <!-- Adicionado 'text-left' para garantir o alinhamento do texto à esquerda dentro do botão. -->
+            <button class="dropdown-item text-left" onclick="abrirPagina('animes_classificacoes.html')">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Classificação
+            </button>
+            <button class="dropdown-item text-left" onclick="abrirPagina('animes_estrelas.html')">
+                <i data-lucide="star" class="w-4 h-4"></i> Estrelas
+            </button>
+            <button class="dropdown-item text-left" onclick="abrirPagina('animes_torneio.html')">
+                <i data-lucide="trophy" class="w-4 h-4"></i> Torneio
+            </button>
+        </div>
+    </div>
+</nav>
+
+<script>
+  lucide.createIcons();
+  function abrirPagina(pagina) {
+    window.location.href = pagina;
+  }
+</script>
+
+<!-- FIREBASE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+
+    const userEmailEl = document.getElementById("user-email");
+
+    let animeCache = [];
+    if (!window.animeCache) window.animeCache = [];
+
+
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const db = getFirestore(firebaseApp);
+
+    async function carregarAnimesParaCache() {
+        // validar usuário logado
+        if (!auth.currentUser) {
+            console.error("❌ Nenhum usuário autenticado!");
+            return;
+        }
+
+        const animeRef = collection(db, "users", auth.currentUser.uid, "animes");
+
+        try {
+            const snapshot = await getDocs(animeRef);
+
+            window.animeCache = [];
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                window.animeCache.push(data);
+            });
+
+        } catch (e) {
+            console.error("❌ Erro ao carregar animes:", e);
+        }
+    }
+    window.carregarAnimesParaCache = carregarAnimesParaCache;
+
+
+    function toggleMoreOptions(event) {
+        event.stopPropagation(); // Previne que o clique feche imediatamente
+        const dropdown = document.getElementById('more-options-dropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    // Função para fechar o dropdown se o usuário clicar fora dele
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('more-options-dropdown');
+        const button = document.getElementById('more-options-btn');
+        if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    window.toggleMoreOptions = toggleMoreOptions;
+
+    function toggleFilterDropdown() {
+        const dropdownMenu = document.getElementById("dropdownMenu");
+        if (!dropdownMenu) {
+            console.warn("toggleFilterDropdown: dropdown não encontrado.");
+            return;
+        }
+        dropdownMenu.classList.toggle("hidden");
+    }
+    window.toggleFilterDropdown = toggleFilterDropdown;
+
+    window.selectFilter = (filterType) => {
+        const dropdownMenu = document.getElementById("dropdownMenu");
+        const selectedTextEl = document.getElementById("selected-filter-text");
+
+        if (!dropdownMenu || !selectedTextEl) return;
+
+        // Atualiza seleção visual
+        document.querySelectorAll("#dropdownMenu .filter-option").forEach(option => {
+            option.classList.remove("selected");
+
+            if (option.getAttribute("data-filter") === filterType) {
+                option.classList.add("selected");
+
+                // Atualiza o texto do botão principal
+                const label = option.getAttribute("data-text") || option.textContent.trim();
+                selectedTextEl.textContent = label;
+            }
+        });
+
+        // Fecha o menu
+        toggleFilterDropdown();
+
+        // Aplica o filtro
+        loadAnimeList(filterType);
+    };
+
+    // garante que o dropdown exista antes de anexar listeners
+    (function setupDropdownLabelSync() {
+    const menu = document.getElementById('dropdownMenu');
+    const selectedTextEl = document.getElementById('selected-filter-text');
+
+    if (!menu || !selectedTextEl) {
+        // se ainda não existir, tenta novamente depois de 200ms (caso o script rode antes do HTML)
+        setTimeout(setupDropdownLabelSync, 200);
+        return;
+    }
+
+    // Delegation: quando clicar em uma .filter-option, atualiza o texto, a classe selected e fecha o menu.
+    menu.addEventListener('click', (ev) => {
+        const opt = ev.target.closest('.filter-option');
+        if (!opt || !menu.contains(opt)) return;
+
+        // pega o texto do data-text ou o texto interno
+        const label = (opt.getAttribute('data-text') || opt.textContent || '').trim();
+        if (label) selectedTextEl.textContent = label;
+
+        // atualiza seleção visual
+        document.querySelectorAll('#dropdownMenu .filter-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+
+        // fecha o dropdown (não chamamos loadAnimeList aqui pois seu onclick inline já faz)
+        menu.classList.add('hidden');
+    });
+
+    // Também fecha o dropdown se clicar fora (melhora UX)
+    document.addEventListener('click', (ev) => {
+        const toggle = document.getElementById('dropdown-toggle');
+        if (!menu.contains(ev.target) && ev.target !== toggle && !toggle.contains(ev.target)) {
+        menu.classList.add('hidden');
+        }
+    });
+
+    // opcional: atualiza o texto inicial baseado na opção com .selected (se houver)
+    const initial = document.querySelector('#dropdownMenu .filter-option.selected');
+    if (initial) {
+        const label = (initial.getAttribute('data-text') || initial.textContent || '').trim();
+        if (label) selectedTextEl.textContent = label;
+    }
+    })();
+
+    function criarCardAnime(anime) {
+        const imagem = anime.IMAGEM || "https://via.placeholder.com/300x450?text=Sem+Imagem";
+
+        return `
+            <div class="anime-card" onclick="abrirModalAnime('${anime.NOME}')">
+
+                <div class="card-image">
+                    <img src="${imagem}" alt="${anime.NOME}">
+                </div>
+
+                <div class="p-2">
+                    <h3 class="font-bold text-sm truncate text-white">${anime.NOME}</h3>
+                    <p class="text-xs text-gray-400">${anime.ESTILO || "Anime"}</p>
+                </div>
+
+            </div>
+        `;
+    }
+
+    function getTemporadaAtual() {
+        const mes = new Date().getMonth() + 1; // 1..12
+        if (mes >= 1 && mes <= 3) return 1;    // Inverno
+        if (mes >= 4 && mes <= 6) return 4;    // Primavera
+        if (mes >= 7 && mes <= 9) return 7;    // Verão
+        return 10;                             // Outono
+    }
+
+    function loadAnimeList(filtro = "inacabados") {
+        if (!window.animeCache) window.animeCache = [];
+
+        let lista = [...window.animeCache];
+
+        if (filtro === "andamento") {
+            lista = lista.filter(a => (a.ESTADO || "") === "Andamento");
+        } else if (filtro === "inacabados") {
+            lista = lista.filter(a => {
+                const st = (a.ESTADO || "");
+                return st !== "Completo" && st !== "Assistido" && st !== "Desistência";
+            });
+        } else if (filtro === "temporada") {
+            const anoAtual = new Date().getFullYear();
+            const tempAtual = getTemporadaAtual();
+
+            lista = lista.filter(anime => {
+                const tempStr = (anime.TEMPORADA || "").trim();
+                const ano = Number(anime.ANO);
+
+                // Excluir entradas sem temporada válida ou marcadas como "Outro"/"Outra"
+                if (!tempStr) return false;
+                const lower = tempStr.toLowerCase();
+                if (lower.includes("outro") || lower.includes("outra")) return false;
+
+                // extrai número entre parênteses, ex: "Outono (10)" -> 10
+                const m = tempStr.match(/\((\d+)\)/);
+                if (!m) return false;
+                const tempNum = Number(m[1]);
+                if (isNaN(tempNum)) return false;
+
+                // ano deve ser igual ao atual
+                if (isNaN(ano) || ano !== anoAtual) return false;
+
+                return tempNum === tempAtual;
+            });
+        } else if (filtro === "ult_temporada") {
+            let anoAtual = new Date().getFullYear();
+            let tempAtual = getTemporadaAtual();
+
+            if (tempAtual === 1) {
+                tempAtual = 10;
+                anoAtual -= 1;
+            } else if (tempAtual === 4) {
+                tempAtual = 1;
+            } else if (tempAtual === 7) {
+                tempAtual = 4;
+            } else if (tempAtual === 10) {
+                tempAtual = 7;
+            }
+
+            lista = lista.filter(anime => {
+                const tempStr = (anime.TEMPORADA || "").trim();
+                const ano = Number(anime.ANO);
+
+                // Excluir entradas sem temporada válida ou marcadas como "Outro"/"Outra"
+                if (!tempStr) return false;
+                const lower = tempStr.toLowerCase();
+                if (lower.includes("outro") || lower.includes("outra")) return false;
+
+                // extrai número entre parênteses, ex: "Outono (10)" -> 10
+                const m = tempStr.match(/\((\d+)\)/);
+                if (!m) return false;
+                const tempNum = Number(m[1]);
+                if (isNaN(tempNum)) return false;
+
+                // ano deve ser igual ao atual
+                if (isNaN(ano) || ano !== anoAtual) return false;
+
+                return tempNum === tempAtual;
+            });
+        } else {
+            // permite filtros por texto igual ao estado passado
+            lista = lista.filter(a => (a.ESTADO || "").toLowerCase() === String(filtro).toLowerCase());
+        }
+
+        renderAnimeCards(lista);
+    }
+    window.loadAnimeList = loadAnimeList;
+
+    function abrirModalAnime(nome) {
+        const anime = animeCache.find(a => a.NOME === nome);
+        if (!anime) return;
+
+        document.getElementById("modal-nome").textContent = anime.NOME;
+        document.getElementById("modal-imagem").src =
+            anime.IMAGEM || "https://via.placeholder.com/300x450";
+        document.getElementById("modal-info").innerHTML = `
+            <b>Estado:</b> ${anime.ESTADO}<br>
+            <b>Estilo:</b> ${anime.ESTILO}<br>
+            <b>Ano:</b> ${anime.ANO || "-"}
+        `;
+
+        document.getElementById("anime-modal").classList.remove("hidden");
+    }
+
+    window.abrirModalAnime = abrirModalAnime; // <-- ESSENCIAL
+
+
+    function renderAnimeCards(lista) {
+        const grid = document.getElementById("anime-list-grid");
+        if (!grid) {
+            console.error("renderAnimeCards: #anime-list-grid não encontrado.");
+            return;
+        }
+
+        grid.innerHTML = "";
+
+        if (!Array.isArray(lista) || lista.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full text-center text-gray-400">
+                    Nenhum anime encontrado.
+                </div>`;
+            return;
+        }
+
+        lista.forEach(anime => {
+            const nome = anime.NOME || "Sem nome";
+            const imagem = anime.IMAGEM || "";
+            const estilo = anime.ESTILO || "";
+            const estado = anime.ESTADO || "";
+
+            // ➤ NOVOS CAMPOS
+            const ano = anime.ANO || "";
+            const temporada = anime.TEMPORADA || "";
+            const epAssistidos = anime.ASSIS || 0;
+            const epTotais = anime.TOTAIS || 0;
+
+            // Exibição de temporada
+            let temporadaLabel = temporada;
+            if (temporada === "1") temporadaLabel = "Inverno";
+            else if (temporada === "4") temporadaLabel = "Primavera";
+            else if (temporada === "7") temporadaLabel = "Verão";
+            else if (temporada === "10") temporadaLabel = "Outono";
+            else if (temporada === "Outra") temporadaLabel = "Outra";
+
+            const div = document.createElement("div");
+            div.className =
+                "anime-card cursor-pointer bg-[#151515] rounded-lg overflow-hidden shadow-md border border-[#2a2a2a]";
+            div.setAttribute("data-nome", nome);
+
+            div.innerHTML = `
+                <div class="w-full h-40 overflow-hidden bg-[#111] flex items-center justify-center">
+                    <img 
+                        src="${imagem}"
+                        class="w-full h-full object-cover rounded-lg"
+                        onerror="
+                            this.onerror=null;
+                            this.src='';
+                            this.removeAttribute('src');
+                            this.closest('.img-box')?.classList.add('no-img');
+                        "
+                    />
+                </div>
+
+                <div class="p-3">
+
+                    <!-- Nome -->
+                    <h3 class="font-bold text-sm text-white truncate">${nome}</h3>
+
+                    <!-- Ano + Temporada -->
+                    <p class="text-xs text-gray-400">
+                        ${estilo} • ${ano} ${temporadaLabel ? "• " + temporadaLabel : ""}
+                    </p>
+
+                    <!-- Episódios -->
+                    <p class="text-xs text-gray-400 mt-1">
+                        Episódios: <span class="text-white">${epAssistidos}</span> / ${epTotais}
+                    </p>
+
+                    <!-- Estado -->
+                    <p class="text-xs text-gray-500 mt-1">Estado: ${estado}</p>
+                </div>
+            `;
+
+            div.addEventListener("click", () => {
+                const nomeAnime = div.getAttribute("data-nome");
+                console.log("🟦 Card clicado:", nomeAnime);
+
+                if (typeof window.abrirModalAnime === "function") {
+                    window.abrirModalAnime(nomeAnime);
+                } else {
+                    console.error("❌ abrirModalAnime NÃO encontrada no window");
+                }
+            });
+
+            grid.appendChild(div);
+        });
+    }
+    window.renderAnimeCards = renderAnimeCards;
+
+    window.fecharModal = () => {
+        document.getElementById("anime-modal").classList.add("hidden");
+    };
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Agora é SEGURO chamar
+        await carregarAnimesParaCache();
+        loadAnimeList("inacabados");
+
+        if (user?.email) userEmailEl.textContent = user.email;
+    });
+</script>
+
+</body>
+</html>
