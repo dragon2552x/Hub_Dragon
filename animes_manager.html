@@ -171,7 +171,6 @@
   const auth = getAuth(firebaseApp);
 
   const userEmailEl = document.getElementById("user-email");
-  const btnSignOut = document.getElementById("btn-signout");
 
   function toggleMoreOptions(event) {
       event.stopPropagation(); // Previne que o clique feche imediatamente
@@ -192,11 +191,6 @@
 
   onAuthStateChanged(auth, user => {
     if (user?.email) userEmailEl.textContent = user.email;
-  });
-
-  btnSignOut.addEventListener("click", async () => {
-    await signOut(auth);
-    window.location.href = "login.html"; // Pode mudar se quiser
   });
 </script>
 
