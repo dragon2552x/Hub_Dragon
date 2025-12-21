@@ -1,524 +1,633 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Gerenciador — Games</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        /* padding-bottom: 6rem foi removido */
-        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; color: #e0e0e0; } 
-        .card { background-color: #333; border: 2px solid #555; transition: transform 0.2s, box-shadow 0.2s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .btn-primary { background-color: #4a90e2; color: white; transition: background-color 0.2s; }
-        .btn-primary:hover { background-color: #3a7bc0; }
-        .nav-item { color: #777; }
-        .nav-item.active { color: #4a90e2; font-weight: 600; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciador de Games</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    
+    /* Card estilo "Antigo" mas com cores Novas */
+    .card { 
+        background:#151515; 
+        border:1px solid #2a2a2a; 
+        transition:all .2s; 
+        display: flex;
+        flex-direction: column; /* Garante imagem em cima, texto em baixo */
+    }
+    .card:hover { 
+        border-color:#B9314F; 
+        transform:translateY(-4px); 
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .btn-primary { background:#B9314F; color: white; }
+    .btn-primary:hover { background:#99233b; }
+    
+    .modal-input, .filter-input {
+      background-color: #1f2937; 
+      border: 1px solid #374151; 
+      color: white;
+    }
+    .modal-input:focus, .filter-input:focus {
+      outline: none;
+      border-color: #B9314F;
+    }
+  </style>
 </head>
-<body class="bg-[#1a1a1a] text-gray-200">
-    <!-- Loading overlay -->
-    <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-        <div class="animate-spin rounded-full h-24 w-24 border-b-4 border-blue-500 border-t-4 border-transparent"></div>
+<body class="min-h-screen">
+
+  <div id="loading-spinner" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
+  </div>
+
+  <div id="main-app" class="container mx-auto p-6 max-w-7xl hidden">
+    
+    <header class="bg-[#1f1f1f] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg rounded-lg border border-[#2a2a2a]">
+      <div class="flex flex-col w-full">
+        <div class="flex justify-between items-center">
+          <button 
+            onclick="window.location.href='home.html'"
+            class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors"
+          >
+            My Hub
+          </button>
+          <h1 class="text-2xl font-bold text-white">My Games</h1>
+        </div>
+        <div class="flex justify-between items-center mt-2 border-t border-gray-700 pt-2">
+          <div class="text-sm text-gray-400">
+            Usuário: <span id="user-id-display" class="text-[#B9314F] font-mono">...</span>
+          </div>
+          <button id="auth-btn" class="text-xs text-red-400 hover:text-red-300 underline">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="mt-6 mb-6 flex justify-between items-center gap-4 flex-wrap">
+      <button 
+        id="add-item-btn"
+        class="bg-[#B9314F] hover:bg-[#992743] px-4 py-2 rounded-md text-white shadow-md font-medium"
+      >
+        + Adicionar Game
+      </button>
+
+      <button 
+        id="search-btn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md text-white border border-gray-700">
+        Mostrar Filtros
+      </button>
     </div>
 
-    <div id="main-app" class="container mx-auto p-4 sm:p-8 hidden">
-        <!-- Header -->
-        <header class="flex items-center justify-between pb-6 mb-6 border-b border-gray-700">
-            <h1 id="main-title" class="text-3xl sm:text-4xl font-bold">Games</h1>
-            <div class="flex space-x-2 sm:space-x-4 items-center">
-                <!-- Voltar ao Hub (Redireciona para HOME.HTML) -->
-                <button onclick="window.location.href='home.html'" title="Voltar ao Hub" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-
-                <!-- Logout -->
-                <button id="auth-btn" title="Sair da Conta" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                </button>
-
-                <!-- Add -->
-                <button id="add-item-btn" title="Adicionar Jogo" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                </button>
-
-                <!-- Toggle filtros -->
-                <button id="search-btn" title="Mostrar/Ocultar Filtros" class="p-2 sm:p-3 rounded-full hover:bg-gray-700 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </button>
-            </div>
-        </header>
-
-        <!-- User ID -->
-        <div class="mb-4">
-            <span class="text-xs text-gray-500">ID do Usuário Logado: </span>
-            <span id="user-id-display" class="text-xs text-blue-400 font-mono truncate break-all">Aguardando autenticação...</span>
-        </div>
-
-        <!-- Filtros (oculto por padrão) -->
-        <div id="search-and-sort-container" class="mb-6 flex flex-col sm:flex-row gap-4 hidden">
-            <input id="search-input" type="text" placeholder="Pesquisar..." class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <select id="sort-select" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Ordenar por...</option>
-                <option value="name-asc">Nome (A-Z)</option>
-                <option value="stars-desc">Estrelas (Maior)</option>
-                <option value="createdAt-desc">Mais Recentes</option>
-                <option value="dateStart-asc">Data de Início</option>
-                <option value="hours-desc">Horas Jogadas (Maior)</option>
-            </select>
-            <select id="stars-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Filtrar por Estrelas...</option>
-                <option value="5">5 Estrelas</option>
-                <option value="4">4 Estrelas</option>
-                <option value="3">3 Estrelas</option>
-                <option value="2">2 Estrelas</option>
-                <option value="1">1 Estrela</option>
-                <option value="0">Nenhuma Estrela</option>
-            </select>
-            <select id="status-filter" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Filtrar por Status...</option>
-                <!-- será preenchido dinamicamente -->
-            </select>
-        </div>
-
-        <!-- Conteúdo principal -->
-        <main id="main-content">
-            <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-            <div id="empty-state" class="text-center p-8 hidden">
-                <p class="text-xl text-gray-400">Nenhum jogo cadastrado. Comece adicionando um novo jogo!</p>
-            </div>
-        </main>
-
-        <!-- Modal de adição/edição (Games only) -->
-        <div id="item-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-75">
-            <div class="relative w-11/12 max-w-lg mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg">
-                <div class="flex justify-between items-center pb-3 border-b border-gray-600">
-                    <h2 id="modal-title" class="text-2xl font-semibold text-white">Adicionar Jogo</h2>
-                    <button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <form id="item-form" class="mt-4 space-y-4">
-                    <input type="hidden" id="item-id">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Nome</label>
-                        <input id="item-name" type="text" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" required />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">URL da Imagem</label>
-                        <input id="item-image" type="url" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
-                    </div>
-                    
-                    <!-- Novo Layout: Estrelas e Status -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400">Estrelas</label>
-                            <select id="item-stars" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none">
-                                <option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400">Status</label>
-                            <select id="item-status" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none"></select>
-                        </div>
-                    </div>
-
-                    <!-- Novo Layout: Datas e Horas Jogadas -->
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400">Data de Início</label>
-                            <input id="item-date-start" type="date" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400">Data Final</label>
-                            <input id="item-date-end" type="date" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400">Horas Jogadas</label>
-                            <!-- ID mantido: item-count-games -->
-                            <input id="item-count-games" type="number" min="0" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Observações</label>
-                        <textarea id="item-notes" rows="4" class="mt-1 w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:outline-none"></textarea>
-                    </div>
-
-                    <button type="submit" class="w-full px-4 py-2 rounded-md font-semibold btn-primary">Salvar Jogo</button>
-                    <button id="delete-item-btn" type="button" class="w-full px-4 py-2 rounded-md font-semibold bg-red-600 text-white hover:bg-red-700 hidden">Excluir Jogo</button>
-                </form>
-            </div>
-        </div>
+    <div id="search-and-sort-container" class="hidden bg-[#151515] border border-[#2a2a2a] p-4 rounded-lg mb-6 shadow-md">
+      <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input id="search-input" type="text" placeholder="Pesquisar..." class="p-2 rounded filter-input">
+        <select id="status-filter" class="p-2 rounded filter-input"></select>
+        <select id="stars-filter" class="p-2 rounded filter-input">
+            <option value="">Todas as estrelas</option>
+            <option value="5">5 Estrelas</option>
+            <option value="4">4 Estrelas</option>
+            <option value="3">3 Estrelas</option>
+            <option value="2">2 Estrelas</option>
+            <option value="1">1 Estrela</option>
+        </select>
+        <select id="sort-select" class="p-2 rounded filter-input">
+            <option value="createdAt-desc">Mais Recentes</option>
+            <option value="name-asc">Nome (A-Z)</option>
+            <option value="stars-desc">Melhores Avaliados</option>
+            <option value="hours-desc">Mais Jogados</option>
+        </select>
+      </section>
     </div>
 
-    <!-- Caixa de mensagens ajustada para bottom-4 -->
-    <div id="message-box" class="fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden"></div>
+    <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    
+    <div id="empty-state" class="text-center p-8 hidden col-span-full">
+        <p class="text-xl text-gray-500">Nenhum jogo encontrado.</p>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth, onAuthStateChanged, signOut
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore, collection, query, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  </div>
 
-        // --- Configuração do Firebase (Utilizando valores de placeholder, pois o ambiente Canvas irá fornecê-los em tempo de execução) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-            authDomain: "list-games-9bddd.firebaseapp.com",
-            projectId: "list-games-9bddd",
-            storageBucket: "list-games-9bddd.appspot.com",
-            messagingSenderId: "756898313156",
-            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-            measurementId: "G-GLM50YVLXP"
-        };
-
-        // Inicializa
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Estado
-        let userId = null;
-        let allGames = [];
-        let authChecked = false; // Flag para garantir que a verificação inicial terminou
-
-        // DOM
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const mainApp = document.getElementById('main-app');
-        const cardsView = document.getElementById('cards-view');
-        const emptyState = document.getElementById('empty-state');
-        const messageBox = document.getElementById('message-box');
-        const searchContainer = document.getElementById('search-and-sort-container');
-
-        const searchInput = document.getElementById('search-input');
-        const sortSelect = document.getElementById('sort-select');
-        const starsFilter = document.getElementById('stars-filter');
-        const statusFilter = document.getElementById('status-filter');
-
-        const addItemBtn = document.getElementById('add-item-btn');
-        const searchBtn = document.getElementById('search-btn');
-        const authBtn = document.getElementById('auth-btn'); // Agora é o botão de Logout
-
-        const itemModal = document.getElementById('item-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const itemForm = document.getElementById('item-form');
-        const modalTitle = document.getElementById('modal-title');
-        const deleteItemBtn = document.getElementById('delete-item-btn');
-
-        const itemIdInput = document.getElementById('item-id');
-        const itemNameInput = document.getElementById('item-name');
-        const itemImageInput = document.getElementById('item-image');
-        const itemStarsInput = document.getElementById('item-stars');
-        const itemDateStartInput = document.getElementById('item-date-start');
-        const itemDateEndInput = document.getElementById('item-date-end'); 
-        const itemHoursPlayedInput = document.getElementById('item-count-games');
-        const itemStatusSelect = document.getElementById('item-status');
-        const itemNotesInput = document.getElementById('item-notes');
-        const userIdDisplay = document.getElementById('user-id-display');
-
-        // Status options para games
-        const statusOptionsGames = [
-            { value: "Não Jogou", text: "Não Jogou" },
-            { value: "Jogando", text: "Jogando" },
-            { value: "Zerado", text: "Zerado" },
-            { value: "Dropei", text: "Dropei" },
-            { value: "Jogado", text: "Jogado" },
-            { value: "Não Lançado", text: "Não Lançado" }
-        ];
-
-        // Utilidades
-        const toggleLoading = (show) => {
-            if (show) { loadingSpinner.classList.remove('hidden'); mainApp.classList.add('hidden'); }
-            else { loadingSpinner.classList.add('hidden'); mainApp.classList.remove('hidden'); }
-        };
-
-        const showMessage = (txt, isError = false) => {
-            messageBox.textContent = txt;
-            // Posição ajustada para bottom-4 (4*4=16px) após a remoção do menu
-            messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
-            messageBox.classList.remove('hidden');
-            setTimeout(()=> messageBox.classList.add('hidden'), 3000);
-        };
-
-        const renderStars = (count) => {
-            count = parseInt(count) || 0;
-            let out = '';
-            for (let i=0;i<5;i++) out += `<span class="${i < count ? 'text-yellow-400' : 'text-gray-600'}">★</span>`;
-            return out;
-        };
-
-        const formatDate = (d) => {
-            if (!d) return '-'; // Retorna '-' se não houver data
-            if (typeof d === 'string' && d.includes('-')) {
-                const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`;
-            }
-            try {
-                const dt = new Date(d.seconds ? d.seconds * 1000 : d);
-                return dt.toLocaleDateString('pt-BR');
-            } catch(e) { return d; }
-        };
-
-        // Render de cards
-        const renderCard = (item) => {
-            // CORREÇÃO: Usando a chave 'hours' para a exibição
-            const countValue = (item.hours || 0) + 'h';
-            const statusClass = item.status === 'Zerado' ? 'bg-green-700' :
-                                item.status === 'Jogando' ? 'bg-blue-700' :
-                                item.status === 'Dropei' ? 'bg-red-700' : 'bg-gray-600';
-
-            return `
-                <div id="card-${item.id}" data-id="${item.id}" class="card rounded-xl p-4 cursor-pointer flex flex-col items-center text-center">
-                    <img src="${item.image || 'https://placehold.co/300x400/2a2a2a/e0e0e0?text=CAPA'}"
-                        onerror="this.onerror=null;this.src='https://placehold.co/300x400/2a2a2a/e0e0e0?text=CAPA';"
-                        alt="${item.name || ''}" class="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700">
-                    <h3 class="text-lg font-semibold truncate w-full mb-1 text-white">${item.name || 'Sem título'}</h3>
-                    <div class="mb-2">${renderStars(item.stars)}</div>
-                    <span class="text-sm font-medium px-3 py-1 rounded-full ${statusClass} text-white mb-3">${item.status || 'Sem Status'}</span>
-                    
-                    <!-- Layout do cartão atualizado para incluir Data Final -->
-                    <div class="flex justify-between w-full text-sm text-gray-400">
-                        <div>
-                            <p class="font-medium">Início</p>
-                            <p class="text-base font-bold text-gray-300">${formatDate(item.dateStart)}</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="font-medium">Horas</p>
-                            <p class="text-base font-bold text-gray-300">${countValue}</p>
-                        </div>
-                        <div>
-                            <p class="font-medium">Final</p>
-                            <p class="text-base font-bold text-gray-300">${formatDate(item.dateEnd)}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
-
-        // Sincroniza jogos do Firestore
-        const syncGames = () => {
-            if (!userId) return;
-            // Regra de segurança: /users/{userId}/games
-            const gamesRef = collection(db, 'users', userId, 'games');
-            const q = query(gamesRef);
-            
-            // Usamos onSnapshot para obter atualizações em tempo real
-            onSnapshot(q, (snap) => {
-                const items = [];
-                snap.forEach(docSnap => { items.push({ id: docSnap.id, ...docSnap.data() }); });
-                allGames = items;
-                refreshDisplay();
-            }, (err) => {
-                console.error('Erro syncGames', err);
-                showMessage('Erro ao sincronizar jogos: ' + err.message, true);
-                toggleLoading(false);
-            });
-        };
-
-        // Filtros, ordenação e render
-        const filterAndSortItems = () => {
-            let itemsToRender = [...allGames];
-            const searchValue = (searchInput?.value || '').toLowerCase();
-            const starValue = starsFilter?.value;
-            const statusValue = statusFilter?.value;
-            const sortValue = sortSelect?.value;
-
-            itemsToRender = itemsToRender.filter(it => {
-                const nameMatch = (it.name || '').toLowerCase().includes(searchValue);
-                const starMatch = !starValue || (it.stars || 0) === parseInt(starValue);
-                const statusMatch = !statusValue || (it.status === statusValue);
-                return nameMatch && starMatch && statusMatch;
-            });
-
-            itemsToRender.sort((a,b) => {
-                switch(sortValue) {
-                    case 'name-asc': return (a.name||'').localeCompare(b.name||'');
-                    case 'stars-desc': return (b.stars||0) - (a.stars||0);
-                    case 'createdAt-desc': return (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0);
-                    case 'dateStart-asc': 
-                        // Note: Sorting by date is done in-memory to avoid Firestore index issues
-                        return (new Date(a.dateStart || 0) - new Date(b.dateStart || 0));
-                    case 'hours-desc': 
-                        // CORREÇÃO: Ordenando pela chave 'hours'
-                        return (b.hours || 0) - (a.hours || 0);
-                    default: return (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0);
-                }
-            });
-
-            cardsView.innerHTML = itemsToRender.map(it => renderCard(it)).join('');
-            emptyState.classList.toggle('hidden', itemsToRender.length > 0);
-        };
-
-        const refreshDisplay = () => filterAndSortItems();
-
-        // Abre modal (novo/editar)
-        const openItemModal = (itemId = null) => {
-            itemForm.reset();
-            itemIdInput.value = '';
-            deleteItemBtn.classList.add('hidden');
-            modalTitle.textContent = itemId ? 'Editar Jogo' : 'Adicionar Jogo';
-
-            if (itemId) {
-                const item = allGames.find(i => i.id === itemId);
-                if (item) {
-                    itemIdInput.value = item.id;
-                    itemNameInput.value = item.name || '';
-                    itemImageInput.value = item.image || '';
-                    itemStarsInput.value = item.stars || '';
-                    itemDateStartInput.value = item.dateStart || '';
-                    itemDateEndInput.value = item.dateEnd || ''; 
-                    // CORREÇÃO: Populando com a chave 'hours'
-                    itemHoursPlayedInput.value = item.hours || '';
-                    itemStatusSelect.value = item.status || '';
-                    itemNotesInput.value = item.notes || '';
-                    deleteItemBtn.classList.remove('hidden');
-                }
-            }
-            itemModal.classList.remove('hidden');
-        };
-
-        const closeItemModal = () => {
-            itemModal.classList.add('hidden');
-            itemForm.reset();
-            itemIdInput.value = '';
-            deleteItemBtn.classList.add('hidden');
-        };
-
-        // Salvar (add / update)
-        const handleFormSubmit = async (e) => {
-            e.preventDefault();
-            if (!userId) { showMessage('Você precisa logar para salvar.', true); return; }
-
-            const gamesRef = collection(db, 'users', userId, 'games');
-            const itemId = itemIdInput.value;
-            const data = {
-                name: itemNameInput.value.trim() || 'Sem título',
-                image: itemImageInput.value.trim() || '',
-                stars: parseInt(itemStarsInput.value) || 0,
-                dateStart: itemDateStartInput.value || '',
-                dateEnd: itemDateEndInput.value || '', 
-                // CORREÇÃO: Salvando com a chave 'hours'
-                hours: parseInt(itemHoursPlayedInput.value) || 0,
-                status: itemStatusSelect.value || '',
-                notes: itemNotesInput.value.trim() || '',
-                updatedAt: serverTimestamp()
-            };
-
-            try {
-                if (itemId) {
-                    // Atualiza
-                    await setDoc(doc(db, 'users', userId, 'games', itemId), data, { merge: true });
-                    showMessage('Jogo atualizado com sucesso!');
-                } else {
-                    // Adiciona
-                    data.createdAt = serverTimestamp();
-                    await addDoc(gamesRef, data);
-                    showMessage('Jogo adicionado com sucesso!');
-                }
-                closeItemModal();
-            } catch (err) {
-                console.error('Erro salvar', err);
-                showMessage('Erro ao salvar: ' + err.message, true);
-            }
-        };
-
-        // Excluir
-        const handleDeleteItem = async () => {
-            const itemId = itemIdInput.value;
-            if (!itemId || !userId) return;
-            try {
-                await deleteDoc(doc(db, 'users', userId, 'games', itemId));
-                showMessage('Jogo excluído com sucesso!');
-                closeItemModal();
-            } catch (err) {
-                console.error('Erro excluir', err);
-                showMessage('Erro ao excluir: ' + err.message, true);
-            }
-        };
-
-        // Preenche selects de status
-        const fillStatusSelects = () => {
-            // Modal status
-            itemStatusSelect.innerHTML = '<option value=\"\"></option>';
-            statusOptionsGames.forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.text; itemStatusSelect.appendChild(opt); });
-
-            // Filtro status
-            statusFilter.innerHTML = '<option value=\"\">Filtrar por Status...</option>';
-            statusOptionsGames.forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.text; statusFilter.appendChild(opt); });
-        };
+  <div id="item-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-[#1a1a1a] rounded-lg w-full max-w-lg p-6 border border-gray-700 shadow-2xl relative">
+      <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+      
+      <h2 id="modal-title" class="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-2">Novo Jogo</h2>
+      
+      <form id="item-form" class="space-y-4">
+        <input type="hidden" id="item-id">
         
-        // Função de Logout dedicada
-        const handleLogout = async () => {
-            try {
-                await signOut(auth);
-                // O onAuthStateChanged tratará o redirecionamento
-            } catch (err) {
-                console.error("Erro ao sair:", err);
-                showMessage('Erro ao sair: ' + err.message, true);
-            }
-        };
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Nome do Jogo</label>
+          <input id="item-name" type="text" class="w-full p-2 rounded modal-input" required>
+        </div>
+        
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Imagem (URL)</label>
+          <input id="item-image" type="url" class="w-full p-2 rounded modal-input" placeholder="https://...">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Estrelas</label>
+            <select id="item-stars" class="w-full p-2 rounded modal-input">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Status</label>
+            <select id="item-status" class="w-full p-2 rounded modal-input"></select>
+          </div>
+        </div>
 
+        <div class="grid grid-cols-3 gap-2 bg-[#252525] p-2 rounded border border-gray-800">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Início</label>
+                <input id="item-date-start" type="date" class="w-full p-1 rounded modal-input text-xs">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Fim</label>
+                <input id="item-date-end" type="date" class="w-full p-1 rounded modal-input text-xs">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Horas</label>
+                <input id="item-count-games" type="number" min="0" class="w-full p-1 rounded modal-input text-xs">
+            </div>
+        </div>
 
-        // Listeners e init
-        const setupEventListeners = () => {
-            addItemBtn.addEventListener('click', () => openItemModal());
-            searchBtn.addEventListener('click', () => searchContainer.classList.toggle('hidden'));
-            closeModalBtn.addEventListener('click', closeItemModal);
-            itemForm.addEventListener('submit', handleFormSubmit);
-            deleteItemBtn.addEventListener('click', handleDeleteItem);
-            cardsView.addEventListener('click', (e) => {
-                const card = e.target.closest('.card');
-                if (card) openItemModal(card.dataset.id);
-            });
+        <details id="arts_group" class="bg-[#1f1f1f] p-3 mb-3 shadow-xl rounded-xl border border-[#2a2a2a] group/details">
+            <summary class="cursor-pointer text-[#B9314F] font-bold list-none flex justify-between items-center select-none">
+                <span class="flex items-center gap-2">
+                    🎨 Arts e Prints (<span id="arts_count" class="text-white">0</span>)
+                </span>
+                <span class="text-gray-500 group-open/details:rotate-180 transition-transform">▼</span>
+            </summary>
 
-            // Filtros
-            searchInput.addEventListener('input', refreshDisplay);
-            sortSelect.addEventListener('change', refreshDisplay);
-            starsFilter.addEventListener('change', refreshDisplay);
-            statusFilter.addEventListener('change', refreshDisplay);
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3 bg-[#151515] p-3 rounded-lg border border-[#333]">
+                <select id="art-type" class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none">
+                    <option value="Art">Art</option>
+                    <option value="Print">Print</option>
+                </select>
+
+                <input id="art-name" type="text" placeholder="Nome (Opcional)" 
+                       class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none sm:col-span-3">
+
+                <input id="art-url" type="url" placeholder="URL da Imagem (https://...)" 
+                       class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none sm:col-span-3">
+
+                <button type="button" id="btn-add-art"
+                        class="bg-[#B9314F] hover:bg-[#99233b] text-white rounded px-2 py-2 text-sm font-bold transition-colors shadow-md">
+                    Adicionar
+                </button>
+            </div>
+
+            <ul id="arts-list" class="mt-4 space-y-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                </ul>
+        </details>
+
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Observações</label>
+          <textarea id="item-notes" rows="3" class="w-full p-2 rounded modal-input"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-800">
+          <button type="button" onclick="document.getElementById('item-modal').classList.add('hidden')" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white">Cancelar</button>
+          <button id="delete-item-btn" type="button" class="px-4 py-2 rounded bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white border border-red-900 hidden">Excluir</button>
+          <button type="submit" class="px-4 py-2 rounded btn-primary font-medium">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="image-view-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-[60] p-4">
+        <div class="relative max-w-4xl w-full flex flex-col items-center">
+            <button onclick="document.getElementById('image-view-modal').classList.add('hidden')" 
+                    class="absolute -top-10 right-0 text-white hover:text-[#B9314F] text-3xl font-bold transition-colors">
+                &times;
+            </button>
+            <img id="view-modal-img" src="" class="max-h-[80vh] w-auto rounded-lg border-2 border-[#B9314F] shadow-2xl object-contain">
+            <p id="view-modal-caption" class="text-white mt-4 text-lg font-semibold bg-[#151515] px-4 py-2 rounded-full border border-[#333]"></p>
+        </div>
+    </div>
+
+  <div id="message-box" class="fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden shadow-lg"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, query, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- CONFIGURAÇÃO FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.appspot.com",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Variáveis
+    let userId = null;
+    let allGames = [];
+    let authChecked = false;
+    let currentArts = [];
+
+    // DOM Elements
+    const els = {
+        loading: document.getElementById('loading-spinner'),
+        app: document.getElementById('main-app'),
+        cards: document.getElementById('cards-view'),
+        empty: document.getElementById('empty-state'),
+        msgBox: document.getElementById('message-box'),
+        filterCont: document.getElementById('search-and-sort-container'),
+        search: document.getElementById('search-input'),
+        sort: document.getElementById('sort-select'),
+        stars: document.getElementById('stars-filter'),
+        status: document.getElementById('status-filter'),
+        addBtn: document.getElementById('add-item-btn'),
+        searchBtn: document.getElementById('search-btn'),
+        authBtn: document.getElementById('auth-btn'),
+        modal: document.getElementById('item-modal'),
+        closeModal: document.getElementById('close-modal-btn'),
+        form: document.getElementById('item-form'),
+        modalTitle: document.getElementById('modal-title'),
+        deleteBtn: document.getElementById('delete-item-btn'),
+        userIdDisp: document.getElementById('user-id-display'),
+        inputs: {
+            id: document.getElementById('item-id'),
+            name: document.getElementById('item-name'),
+            image: document.getElementById('item-image'),
+            stars: document.getElementById('item-stars'),
+            start: document.getElementById('item-date-start'),
+            end: document.getElementById('item-date-end'),
+            hours: document.getElementById('item-count-games'),
+            status: document.getElementById('item-status'),
+            notes: document.getElementById('item-notes')
+        }
+    };
+
+    const statusOptions = [
+        { value: "Não Jogou", text: "Não Jogou" },
+        { value: "Jogando", text: "Jogando" },
+        { value: "Zerado", text: "Zerado" },
+        { value: "Dropei", text: "Dropei" },
+        { value: "Jogado", text: "Jogado" },
+        { value: "Não Lançado", text: "Não Lançado" }
+    ];
+
+    // Helpers
+    const toggleLoading = (show) => {
+        if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); }
+        else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); }
+    };
+
+    const showMsg = (txt, isErr = false) => {
+        els.msgBox.textContent = txt;
+        els.msgBox.className = `fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 shadow-lg ${isErr ? 'bg-red-600' : 'bg-green-600'}`;
+        els.msgBox.classList.remove('hidden');
+        setTimeout(() => els.msgBox.classList.add('hidden'), 3000);
+    };
+
+    const formatDate = (d) => {
+        if (!d) return '--/--';
+        if (typeof d === 'string' && d.includes('-')) {
+            const [y,m,day] = d.split('-'); return `${day}/${m}/${y.slice(2)}`;
+        }
+        return d;
+    };
+
+    // --- RENDERIZAÇÃO DOS CARDS (GRID + IMAGEM HORIZONTAL) ---
+    const renderCard = (item) => {
+        const hours = (item.hours || 0) + 'h';
+        const stars = parseInt(item.stars) || 0;
+        
+        let statusColor = 'bg-gray-700 text-gray-200';
+        if(item.status === 'Zerado') statusColor = 'bg-green-900 text-green-100 border border-green-700';
+        else if(item.status === 'Jogando') statusColor = 'bg-blue-900 text-blue-100 border border-blue-700';
+        else if(item.status === 'Dropei') statusColor = 'bg-red-900 text-red-100 border border-red-700';
+
+        // Layout: Card Vertical (Flex-Col) com Imagem Larga no topo
+        return `
+        <div data-id="${item.id}" class="card rounded-lg overflow-hidden cursor-pointer relative group">
             
-            // Botão de Logout
-            authBtn.addEventListener('click', handleLogout);
-        };
-
-        // onAuthState
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Usuário autenticado (por email/senha)
-                userId = user.uid;
-                // Exibe o email se for login por email/senha, senão exibe o UID
-                userIdDisplay.textContent = user.email || user.uid; 
-                fillStatusSelects();
-                syncGames(); // Inicia a sincronização dos dados APENAS com o UID correto
-                toggleLoading(false);
-            } else {
-                // Usuário não logado
-                userId = null;
-                allGames = [];
-                refreshDisplay();
-                userIdDisplay.textContent = 'Não autenticado';
+            <div class="relative w-full h-48 bg-gray-800">
+                <img src="${item.image || ''}" 
+                     class="w-full h-full object-cover"
+                     onerror="this.src='https://placehold.co/600x400/1a1a1a/333?text=Sem+Imagem'">
                 
-                // Redireciona para a página de login se não houver usuário logado
-                if (authChecked) {
-                    console.log("Sessão terminada ou não autenticada. Redirecionando.");
-                    window.location.href = 'index.html';
-                }
-            }
-            authChecked = true; // Marca que a primeira verificação foi feita
+                <span class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded shadow-md ${statusColor}">
+                    ${item.status || 'Status?'}
+                </span>
+            </div>
+
+            <div class="p-4 flex flex-col gap-2">
+                
+                <div>
+                    <h3 class="text-lg font-bold text-white leading-tight truncate" title="${item.name}">${item.name}</h3>
+                    <div class="text-yellow-400 text-sm mt-1">
+                        ${'★'.repeat(stars)}${'<span class="text-gray-600">★</span>'.repeat(5-stars)}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 mt-2 pt-3 border-t border-gray-800 text-xs">
+                    <div class="flex flex-col">
+                        <span class="text-gray-500 uppercase text-[10px]">Início</span>
+                        <span class="text-gray-300 font-mono">${formatDate(item.dateStart)}</span>
+                    </div>
+                     <div class="flex flex-col text-center border-l border-r border-gray-800">
+                        <span class="text-gray-500 uppercase text-[10px]">Horas</span>
+                        <span class="text-[#B9314F] font-mono font-bold">${hours}</span>
+                    </div>
+                    <div class="flex flex-col text-right">
+                        <span class="text-gray-500 uppercase text-[10px]">Fim</span>
+                        <span class="text-gray-300 font-mono">${formatDate(item.dateEnd)}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        `;
+    };
+
+    const filterSortRender = () => {
+        let list = [...allGames];
+        const sTxt = els.search.value.toLowerCase();
+        const sStatus = els.status.value;
+        const sStars = els.stars.value;
+        const sSort = els.sort.value;
+
+        list = list.filter(i => {
+            return (i.name||'').toLowerCase().includes(sTxt) &&
+                   (!sStatus || i.status === sStatus) &&
+                   (!sStars || (i.stars||0) == sStars);
         });
 
-        // Inicialização
-        window.onload = () => {
-            setupEventListeners();
-            toggleLoading(true);
-        };
-    </script>
+        list.sort((a,b) => {
+            switch(sSort) {
+                case 'name-asc': return (a.name||'').localeCompare(b.name||'');
+                case 'stars-desc': return (b.stars||0) - (a.stars||0);
+                case 'hours-desc': return (b.hours||0) - (a.hours||0);
+                default: return (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0);
+            }
+        });
 
+        els.cards.innerHTML = list.map(renderCard).join('');
+        if(list.length === 0) els.empty.classList.remove('hidden');
+        else els.empty.classList.add('hidden');
+    };
+
+    // --- Ações ---
+    const openModal = (id = null) => {
+        els.form.reset();
+        els.inputs.id.value = '';
+        els.deleteBtn.classList.add('hidden');
+        els.modalTitle.textContent = id ? 'Editar Jogo' : 'Novo Jogo';
+        
+        // Resetar lista de Arts
+        currentArts = [];
+        renderArtsList(); 
+
+        if(id) {
+            const item = allGames.find(i => i.id === id);
+            if(item) {
+                els.inputs.id.value = item.id;
+                els.inputs.name.value = item.name || '';
+                els.inputs.image.value = item.image || '';
+                els.inputs.stars.value = item.stars || '0';
+                els.inputs.start.value = item.dateStart || '';
+                els.inputs.end.value = item.dateEnd || '';
+                els.inputs.hours.value = item.hours || '';
+                els.inputs.status.value = item.status || '';
+                els.inputs.notes.value = item.notes || '';
+                
+                // CARREGAR ARTS SE EXISTIREM
+                if (item.arts && Array.isArray(item.arts)) {
+                    currentArts = [...item.arts];
+                    renderArtsList();
+                }
+
+                els.deleteBtn.classList.remove('hidden');
+            }
+        }
+        els.modal.classList.remove('hidden');
+        els.modal.classList.add('flex');
+    };
+
+    // --- ATUALIZAR A FUNÇÃO HANDLESUBMIT ---
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if(!userId) return;
+
+        const id = els.inputs.id.value;
+        const d = {
+            name: els.inputs.name.value.trim(),
+            image: els.inputs.image.value.trim(),
+            stars: parseInt(els.inputs.stars.value) || 0,
+            dateStart: els.inputs.start.value,
+            dateEnd: els.inputs.end.value,
+            hours: parseInt(els.inputs.hours.value) || 0,
+            status: els.inputs.status.value,
+            notes: els.inputs.notes.value,
+            
+            // ADICIONAR O ARRAY DE ARTS NO PAYLOAD
+            arts: currentArts, 
+            
+            updatedAt: serverTimestamp()
+        };
+
+        try {
+            if(id) {
+                await setDoc(doc(db, 'users', userId, 'games', id), d, { merge: true });
+                showMsg('Atualizado com sucesso!');
+            } else {
+                d.createdAt = serverTimestamp();
+                await addDoc(collection(db, 'users', userId, 'games'), d);
+                showMsg('Criado com sucesso!');
+            }
+            els.modal.classList.add('hidden');
+        } catch(err) { console.error(err); showMsg('Erro ao salvar', true); }
+    };
+
+    const handleDelete = async () => {
+        const id = els.inputs.id.value;
+        if(!id || !userId) return;
+        try {
+            await deleteDoc(doc(db, 'users', userId, 'games', id));
+            showMsg('Excluído!');
+            els.modal.classList.add('hidden');
+        } catch(err) { showMsg('Erro ao excluir', true); }
+    };
+
+    // --- FUNÇÕES DE ARTS E PRINTS ---
+
+    // 1. Renderizar a lista na tela
+    const renderArtsList = () => {
+        const listEl = document.getElementById('arts-list');
+        const countEl = document.getElementById('arts_count');
+        
+        listEl.innerHTML = '';
+        countEl.textContent = currentArts.length;
+
+        currentArts.forEach((art, index) => {
+            const li = document.createElement('li');
+            li.className = "flex items-center justify-between bg-[#252525] p-2 rounded border border-[#333] hover:border-[#444] transition-colors";
+            
+            // Ícones SVG
+            const iconEye = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            const iconEdit = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+            const iconTrash = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+            li.innerHTML = `
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-[#1f1f1f] text-gray-400 border border-gray-700 min-w-[50px] text-center">
+                        ${art.type}
+                    </span>
+                    <span class="text-sm text-gray-200 truncate" title="${art.name || 'Sem nome'}">
+                        ${art.name || art.url}
+                    </span>
+                </div>
+                <div class="flex gap-2 shrink-0 ml-2">
+                    <button type="button" class="btn-view-art p-1.5 rounded bg-blue-900/40 text-blue-400 hover:bg-blue-900 hover:text-white transition-colors" data-idx="${index}" title="Visualizar">
+                        ${iconEye}
+                    </button>
+                    <button type="button" class="btn-edit-art p-1.5 rounded bg-yellow-900/40 text-yellow-400 hover:bg-yellow-900 hover:text-white transition-colors" data-idx="${index}" title="Editar">
+                        ${iconEdit}
+                    </button>
+                    <button type="button" class="btn-delete-art p-1.5 rounded bg-red-900/40 text-red-400 hover:bg-red-900 hover:text-white transition-colors" data-idx="${index}" title="Excluir">
+                        ${iconTrash}
+                    </button>
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+
+        // Reatribuir eventos aos botões dinâmicos
+        document.querySelectorAll('.btn-view-art').forEach(btn => 
+            btn.onclick = (e) => viewArt(e.currentTarget.dataset.idx));
+        
+        document.querySelectorAll('.btn-delete-art').forEach(btn => 
+            btn.onclick = (e) => deleteArt(e.currentTarget.dataset.idx));
+            
+        document.querySelectorAll('.btn-edit-art').forEach(btn => 
+            btn.onclick = (e) => editArt(e.currentTarget.dataset.idx));
+    };
+
+    // 2. Adicionar Item
+    const addArt = () => {
+        const typeEl = document.getElementById('art-type');
+        const nameEl = document.getElementById('art-name');
+        const urlEl = document.getElementById('art-url');
+
+        if (!urlEl.value.trim()) {
+            showMsg('Insira a URL da imagem!', true);
+            return;
+        }
+
+        currentArts.push({
+            type: typeEl.value,
+            name: nameEl.value.trim(),
+            url: urlEl.value.trim()
+        });
+
+        // Limpar inputs
+        nameEl.value = '';
+        urlEl.value = '';
+        typeEl.value = 'Art'; // Resetar para o padrão
+        
+        renderArtsList();
+    };
+
+    // 3. Deletar Item
+    const deleteArt = (index) => {
+        currentArts.splice(index, 1);
+        renderArtsList();
+    };
+
+    // 4. Editar Item (Remove da lista e joga de volta nos inputs)
+    const editArt = (index) => {
+        const item = currentArts[index];
+        document.getElementById('art-type').value = item.type;
+        document.getElementById('art-name').value = item.name;
+        document.getElementById('art-url').value = item.url;
+        
+        deleteArt(index); // Remove para não duplicar ao salvar
+        document.getElementById('art-url').focus(); // Foca no input
+    };
+
+    // 5. Visualizar Item (Abre Modal de Imagem)
+    const viewArt = (index) => {
+        const item = currentArts[index];
+        const viewModal = document.getElementById('image-view-modal');
+        const imgEl = document.getElementById('view-modal-img');
+        const captionEl = document.getElementById('view-modal-caption');
+
+        imgEl.src = item.url;
+        captionEl.textContent = item.name || item.type;
+        captionEl.classList.toggle('hidden', !item.name); // Esconde legenda se não tiver nome
+
+        viewModal.classList.remove('hidden');
+        viewModal.classList.add('flex');
+    };
+
+    const setupEvents = () => {
+        els.addBtn.onclick = () => openModal();
+        els.searchBtn.onclick = () => els.filterCont.classList.toggle('hidden');
+        els.closeModal.onclick = () => els.modal.classList.add('hidden');
+        els.form.onsubmit = handleSubmit;
+        els.deleteBtn.onclick = handleDelete;
+        els.authBtn.onclick = () => signOut(auth);
+
+        document.getElementById('btn-add-art').onclick = addArt;
+
+        els.cards.onclick = (e) => {
+            const c = e.target.closest('.card');
+            if(c) openModal(c.dataset.id);
+        };
+
+        [els.search, els.sort, els.stars, els.status].forEach(i => i.oninput = filterSortRender);
+
+        // Preencher selects
+        const fill = (sel) => statusOptions.forEach(o => sel.innerHTML += `<option value="${o.value}">${o.text}</option>`);
+        els.inputs.status.innerHTML = '<option value="">Selecione...</option>';
+        els.status.innerHTML = '<option value="">Todos os Status</option>';
+        fill(els.inputs.status);
+        fill(els.status);
+    };
+
+    // --- Init ---
+    onAuthStateChanged(auth, (u) => {
+        if(u) {
+            userId = u.uid;
+            els.userIdDisp.textContent = u.email || u.uid;
+            const q = query(collection(db, 'users', userId, 'games'));
+            onSnapshot(q, (snap) => {
+                allGames = [];
+                snap.forEach(d => allGames.push({ id:d.id, ...d.data() }));
+                filterSortRender();
+                toggleLoading(false);
+            });
+        } else {
+            userId = null;
+            if(authChecked) window.location.href = 'index.html';
+        }
+        authChecked = true;
+    });
+
+    window.onload = () => {
+        setupEvents();
+        toggleLoading(true);
+    };
+  </script>
 </body>
 </html>
