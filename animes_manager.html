@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Animes</title>
+  <title>Class Animes - Manager</title>
 
-  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -50,18 +48,25 @@
       height: 22px;
       margin-bottom: 4px;
     }
+    
+    /* Animação de Loading */
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
 <div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
 
-  <!-- MENU SUPERIOR -->
   <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
     
-    <!-- Linha 1 -->
     <div class="flex justify-between items-center">
-      <button onclick="window.location.href='home.html'"
+      <button onclick="sairParaHub()"
               class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
         My Hub
       </button>
@@ -69,7 +74,6 @@
       <h1 class="text-2xl font-bold text-white">My Animes</h1>
     </div>
 
-    <!-- Linha 2 -->
     <div class="text-sm text-gray-300 mt-1">
       Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
     </div>
@@ -77,14 +81,74 @@
   </header>
 
 
-  <!-- CONTEÚDO DA PÁGINA -->
-  <main class="text-center mt-10 opacity-70">
-    <p>Selecione uma das opções do menu abaixo 👇</p>
+  <main class="flex flex-col items-center justify-center mt-10 space-y-6">
+
+    <div id="stats-container" class="hidden bg-[#151515] p-5 rounded-xl border border-[#2a2a2a] w-full max-w-md shadow-lg transition-all duration-500">
+        <h3 class="text-white font-bold mb-4 flex items-center">
+            <i data-lucide="bar-chart" class="w-5 h-5 mr-2 text-[#B9314F]"></i>
+            Resumo da Coleção
+        </h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
+                <p class="text-xs text-gray-400">Total na Lista</p>
+                <p id="stat-total" class="text-2xl font-bold text-white">0</p>
+            </div>
+            
+            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
+                <p class="text-xs text-gray-400">Completos</p>
+                <p id="stat-completo" class="text-2xl font-bold text-green-400">0</p>
+            </div>
+
+            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
+                <p class="text-xs text-gray-400">Vendo / Andamento</p>
+                <p id="stat-vendo" class="text-2xl font-bold text-blue-400">0</p>
+            </div>
+
+            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
+                <p class="text-xs text-gray-400">Outros</p>
+                <p id="stat-outros" class="text-2xl font-bold text-gray-500">0</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="container-ultimo-anime" class="hidden mx-4 mt-6">
+        <h2 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Último Atualizado</h2>
+        <div id="card-ultimo" class="bg-[#151515] border border-[#2a2a2a] rounded-xl overflow-hidden flex items-center shadow-lg">
+            <img id="ultimo-img" src="" class="w-24 h-32 object-cover" alt="Capa">
+            <div class="p-4 flex-1">
+                <h3 id="ultimo-nome" class="font-bold text-white text-lg truncate w-40">Nome do Anime</h3>
+                <p id="ultimo-data" class="text-xs text-[#B9314F] font-semibold mt-1">Hoje às 14:00</p>
+                <div class="flex items-center mt-3">
+                    <span id="ultimo-episodios" class="bg-[#222] text-gray-300 text-[10px] px-2 py-1 rounded">Ep: 00/00</span>
+                </div>
+            </div>
+            <button onclick="window.location.href='anime_lista.html'" class="p-4 text-gray-500">
+                <i data-lucide="chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="bg-[#151515] p-6 rounded-xl border border-[#2a2a2a] w-full max-w-md text-center shadow-lg">
+        <h2 class="text-xl font-bold text-white mb-2">Status dos Dados</h2>
+        <p id="status-msg" class="text-gray-400 mb-4">Verificando...</p>
+        
+        <button id="btn-refresh" onclick="forcarAtualizacao()" 
+                class="flex items-center justify-center w-full bg-[#B9314F] hover:bg-[#992743] text-white font-bold py-3 px-4 rounded-lg transition-all">
+            <i data-lucide="refresh-cw" class="mr-2 w-5 h-5" id="icon-refresh"></i>
+            Forçar Atualização do Banco
+        </button>
+        <p class="text-xs text-gray-500 mt-2">Use isso se os dados estiverem desatualizados.</p>
+    </div>
+
+    <div class="opacity-70 text-center">
+        <p>Selecione uma das opções do menu abaixo 👇</p>
+    </div>
+
   </main>
 
 </div>
 
-<!-- MENU INFERIOR -->
 <nav class="menu">
     <button class="menu-btn active" onclick="abrirPagina('animes_manager.html')">
         <i data-lucide="home"></i>
@@ -94,14 +158,11 @@
         <i data-lucide="file-edit"></i>
         <span>Gestão</span>
     </button>
-    <!-- Lista: Agora visível em todos os tamanhos de tela. -->
     <button class="menu-btn" onclick="abrirPagina('anime_lista.html')">
         <i data-lucide="list"></i>
         <span>Lista</span>
     </button>
 
-    <!-- Classificação, Estrelas e Torneio estão permanentemente ocultos no menu principal,
-         e serão acessíveis apenas pelo botão 'Mais'. -->
     <button class="menu-btn hidden" onclick="abrirPagina('animes_classificacoes.html')">
         <i data-lucide="bar-chart-2"></i>
         <span>Classificação</span>
@@ -115,30 +176,22 @@
         <span>Torneio</span>
     </button>
 
-    <!-- Botão de Mais Opções (Dropdown) -->
-    <!-- Removido 'sm:hidden' para que o botão 'Mais' seja sempre visível. -->
     <div class="relative flex">
         <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
             <i data-lucide="more-horizontal"></i>
             <span>Mais</span>
         </button>
-
-        <!-- Dropdown de Mais Opções -->
-        <!-- ADICIONADO: 'flex flex-col' para empilhar os itens verticalmente -->
         <div id="more-options-dropdown"
              class="absolute bottom-full mb-2 right-0 w-40 bg-[#1f1f1f] border border-[#2a2a2a]
                     rounded-lg shadow-xl p-2 hidden z-50 flex flex-col">
-
-            <!-- Lista foi removida daqui, pois agora está no menu principal. -->
-            <!-- Adicionado 'text-left' para garantir o alinhamento do texto à esquerda dentro do botão. -->
-            <button class="dropdown-item text-left" onclick="abrirPagina('animes_classificacoes.html')">
-                <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Classificação
+            <button class="dropdown-item text-left flex items-center p-2 hover:bg-[#2a2a2a] rounded text-sm text-gray-200" onclick="abrirPagina('animes_classificacoes.html')">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 mr-2"></i> Classificação
             </button>
-            <button class="dropdown-item text-left" onclick="abrirPagina('animes_estrelas.html')">
-                <i data-lucide="star" class="w-4 h-4"></i> Estrelas
+            <button class="dropdown-item text-left flex items-center p-2 hover:bg-[#2a2a2a] rounded text-sm text-gray-200" onclick="abrirPagina('animes_estrelas.html')">
+                <i data-lucide="star" class="w-4 h-4 mr-2"></i> Estrelas
             </button>
-            <button class="dropdown-item text-left" onclick="abrirPagina('animes_torneio.html')">
-                <i data-lucide="trophy" class="w-4 h-4"></i> Torneio
+            <button class="dropdown-item text-left flex items-center p-2 hover:bg-[#2a2a2a] rounded text-sm text-gray-200" onclick="abrirPagina('animes_torneio.html')">
+                <i data-lucide="trophy" class="w-4 h-4 mr-2"></i> Torneio
             </button>
         </div>
     </div>
@@ -152,10 +205,10 @@
   }
 </script>
 
-<!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
@@ -169,28 +222,164 @@
 
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
 
   const userEmailEl = document.getElementById("user-email");
+  const statusMsgEl = document.getElementById("status-msg");
+  const iconRefresh = document.getElementById("icon-refresh");
 
-  function toggleMoreOptions(event) {
-      event.stopPropagation(); // Previne que o clique feche imediatamente
-      const dropdown = document.getElementById('more-options-dropdown');
-      dropdown.classList.toggle('hidden');
+  // --- FUNÇÃO PARA CARREGAR DADOS ---
+  // --- FUNÇÃO AUXILIAR PARA CALCULAR E EXIBIR STATS ---
+  function atualizarEstatisticas(listaAnimes) {
+      if (!listaAnimes) return;
+
+      const total = listaAnimes.length;
+      // Filtra contando os estados (ajuste as strings conforme você salva no banco)
+      const completos = listaAnimes.filter(a => a.ESTADO === "Completo" || a.ESTADO === "Assistido").length;
+      const vendo = listaAnimes.filter(a => a.ESTADO === "Andamento" || a.ESTADO === "Vendo").length;
+      const outros = total - (completos + vendo);
+
+      // Atualiza HTML
+      document.getElementById("stat-total").textContent = total;
+      document.getElementById("stat-completo").textContent = completos;
+      document.getElementById("stat-vendo").textContent = vendo;
+      document.getElementById("stat-outros").textContent = outros;
+
+      // Mostra o card com animação suave
+      const statsContainer = document.getElementById("stats-container");
+      statsContainer.classList.remove("hidden");
+      
+      // Recarrega ícones (caso o lucide não tenha pego o novo ícone do card)
+      lucide.createIcons();
   }
 
-  // Função para fechar o dropdown se o usuário clicar fora dele
+  // --- FUNÇÃO PARA CARREGAR DADOS (ATUALIZADA) ---
+  async function carregarDados(force = false) {
+      if (!auth.currentUser) return;
+      
+      const uid = auth.currentUser.uid;
+      const cacheKey = `animes_${uid}`;
+      
+      // 1. Tentar ler do Cache Local
+      if (!force) {
+          const cachedData = localStorage.getItem(cacheKey);
+          if (cachedData) {
+              const animes = JSON.parse(cachedData);
+              statusMsgEl.innerHTML = `<span class="text-green-400">✅ ${animes.length} animes carregados do Cache.</span>`;
+              
+              // CHAMA A ATUALIZAÇÃO DO CARD AQUI
+              atualizarEstatisticas(animes);
+              
+              console.log("📦 Dados do Cache + Stats atualizados.");
+              return; 
+          }
+      }
+
+      // 2. Busca no Firebase se necessário
+      try {
+          statusMsgEl.textContent = "Baixando dados do servidor...";
+          iconRefresh.classList.add("spin");
+          
+          const animesRef = collection(db, "users", uid, "animes");
+          const snapshot = await getDocs(animesRef);
+          
+          const listaAnimes = [];
+          snapshot.forEach(doc => {
+              listaAnimes.push(doc.data());
+          });
+
+          // 3. Salva no Cache
+          localStorage.setItem(cacheKey, JSON.stringify(listaAnimes));
+          
+          statusMsgEl.innerHTML = `<span class="text-blue-400">🔥 ${listaAnimes.length} animes baixados e salvos!</span>`;
+          
+          // CHAMA A ATUALIZAÇÃO DO CARD AQUI TAMBÉM
+          atualizarEstatisticas(listaAnimes);
+          
+          console.log("🔥 Dados baixados + Stats atualizados.");
+
+      } catch (error) {
+          console.error("Erro ao baixar dados:", error);
+          statusMsgEl.innerHTML = `<span class="text-red-500">Erro ao baixar dados.</span>`;
+      } finally {
+          iconRefresh.classList.remove("spin");
+      }
+  }
+
+  // --- EXPOR FUNÇÃO DE REFRESH PARA O HTML ---
+  window.forcarAtualizacao = () => {
+      carregarDados(true); // true = Força a ida ao Firebase
+  };
+
+    function carregarUltimoAnimeAcessado(uid) {
+        const cacheKey = `animes_${uid}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            const animes = JSON.parse(cachedData);
+            
+            // 1. Ordenar por data de atualização (do mais novo para o mais antigo)
+            const listaOrdenada = animes
+                .filter(a => a.ultima_atualizacao) // Garante que tem data
+                .sort((a, b) => new Date(b.ultima_atualizacao) - new Date(a.ultima_atualizacao));
+
+            if (listaOrdenada.length > 0) {
+                const ultimo = listaOrdenada[0];
+
+                // 2. Preencher o Card
+                document.getElementById("container-ultimo-anime").classList.remove("hidden");
+                document.getElementById("ultimo-nome").textContent = ultimo.NOME;
+                document.getElementById("ultimo-img").src = ultimo.IMAGEM;
+                document.getElementById("ultimo-episodios").textContent = `Ep: ${ultimo.ASSIS}/${ultimo.TOTAIS}`;
+                
+                // 3. Formatar a Data (Ex: "24 de dez.")
+                const dataObj = new Date(ultimo.ultima_atualizacao);
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                document.getElementById("ultimo-data").textContent = `Atualizado em ${dataFormatada} às ${horaFormatada}`;
+                
+                // Re-inicializa ícones do Lucide se necessário
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    }
+
+  // --- FUNÇÃO SAIR (MY HUB) ---
+  window.sairParaHub = () => {
+      if (auth.currentUser) {
+          // Limpa o cache específico desse usuário
+          localStorage.removeItem(`animes_${auth.currentUser.uid}`);
+          console.log("🗑️ Cache limpo no logout.");
+      }
+      // Redireciona
+      window.location.href = 'home.html';
+  };
+
+  // --- DROPDOWN MENU ---
+  window.toggleMoreOptions = (event) => {
+      event.stopPropagation();
+      document.getElementById('more-options-dropdown').classList.toggle('hidden');
+  }
+
   document.addEventListener('click', (e) => {
       const dropdown = document.getElementById('more-options-dropdown');
-      const button = document.getElementById('more-options-btn');
-      if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
+      const btn = document.getElementById('more-options-btn');
+      if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
           dropdown.classList.add('hidden');
       }
   });
 
-  window.toggleMoreOptions = toggleMoreOptions;
-
+  // --- AUTH STATE ---
   onAuthStateChanged(auth, user => {
-    if (user?.email) userEmailEl.textContent = user.email;
+    if (user) {
+        userEmailEl.textContent = user.email;
+        // Assim que loga, tenta carregar (do cache ou do banco)
+        carregarDados(false);
+        carregarUltimoAnimeAcessado(user.uid);
+    } else {
+        window.location.href = "login.html"; // Opcional: proteção de rota
+    }
   });
 </script>
 
