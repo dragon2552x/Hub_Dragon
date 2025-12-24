@@ -349,11 +349,27 @@
     }
 
   async function loadAnimes(userId) {
-    const ref = collection(db, "users", userId, "animes");
-    const snap = await getDocs(ref);
-    allAnimes = snap.docs.map(doc =>
-      ({ id: doc.id, ...doc.data() })
-    );
+    const cacheKey = `animes_${userId}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    // 1. Tenta pegar do Cache Local
+    if (cachedData) {
+        console.log("📦 Carregando animes do Cache Local (0 leituras)");
+        allAnimes = JSON.parse(cachedData);
+    } 
+    // 2. Se não tiver cache (fallback), busca do Firebase e salva
+    else {
+        console.log("⚠️ Cache não encontrado. Baixando do Firebase...");
+        const ref = collection(db, "users", userId, "animes");
+        const snap = await getDocs(ref);
+        
+        allAnimes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Salva no cache para a próxima vez
+        localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+    }
+
+    // Reseta a visualização
     gridEl.innerHTML = "";
     emptyMsg.classList.remove("hidden");
   }
