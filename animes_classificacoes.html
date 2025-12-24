@@ -460,31 +460,54 @@
     mainContent.innerHTML = html;
   }
 
+  // --- FUNÇÃO CARREGAR TUDO (OTIMIZADA COM CACHE) ---
   async function loadAll() {
     const user = auth.currentUser;
     if (!user) return;
 
-    const ref = collection(db, "users", user.uid, "animes");
-    const docs = await getDocs(ref);
+    const cacheKey = `animes_${user.uid}`;
+    const cachedData = localStorage.getItem(cacheKey);
 
-    allAnimes = docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (cachedData) {
+      // 📦 Carrega do Cache Local (Economiza leituras no Firebase)
+      console.log("📦 Classificações: Carregando dados do Cache.");
+      allAnimes = JSON.parse(cachedData);
+    } else {
+      // 🔥 Fallback: Busca no Firebase se o cache estiver vazio
+      console.log("🔥 Classificações: Cache vazio, buscando no Firebase...");
+      try {
+        const ref = collection(db, "users", user.uid, "animes");
+        const docs = await getDocs(ref);
+        allAnimes = docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Salva para as próximas páginas não precisarem ler do banco
+        localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    }
 
+    // Inicia a visualização após carregar os dados (seja do cache ou banco)
     switchView("detalhada");
   }
 
   window.switchView = switchView;
 
+  // --- ESCUTADOR DE AUTENTICAÇÃO ---
   onAuthStateChanged(auth, (user) => {
     const userEmailEl = document.getElementById("user-email");
 
     if (user) {
-      userEmailEl.textContent = user.email;
+      if (userEmailEl) userEmailEl.textContent = user.email;
+      // Só chama o loadAll se o usuário estiver logado
+      loadAll();
     } else {
       // Se não estiver autenticado volta para Login
       window.location.href = "index.html";
     }
-    loadAll();
-  })
+  });
+
+  window.switchView = switchView;
 
   viewButtons.forEach(btn => {
     btn.addEventListener("click", () => switchView(btn.dataset.view));
