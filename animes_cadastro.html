@@ -186,11 +186,16 @@
             ></div>
         </div>
 
-        <!-- Botão pegar info MAL -->
-        <button onclick="pegarDoMAL()"
-            class="px-4 py-2 bg-[#1D4ED8] hover:bg-[#163f9d] rounded-md font-bold w-full text-white">
-            Pegar do MyAnimeList
-        </button>
+        <div class="flex gap-2 mt-2">
+            <button onclick="pegarDoMAL()"
+                class="flex-[2] px-4 py-2 bg-[#1D4ED8] hover:bg-[#163f9d] rounded-md font-bold text-white text-sm">
+                Pegar do MyAnimeList
+            </button>
+
+            <button onclick="verificarSerie()"
+                class="px-4 py-2 bg-[#444] hover:bg-[#555] rounded-md font-bold text-white"> Participantes SERIE
+            </button>
+        </div>
 
         <!-- Botões -->
         <div class="flex gap-2 mt-2">
@@ -525,8 +530,28 @@
     tabCadastro.onclick = () => switchTab("cadastro");
     tabEdicao.onclick = () => switchTab("edicao");
     </script>
+</div>
 
+<div id="modal-serie" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 hidden backdrop-blur-sm">
+    <div class="bg-[#1a1a1a] border border-[#333] w-11/12 max-w-md rounded-xl shadow-2xl overflow-hidden">
+        
+        <div class="bg-[#222] px-4 py-3 flex justify-between items-center border-b border-[#333]">
+            <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i data-lucide="layers" class="text-[#B9314F]"></i> 
+                Animes da SERIE
+            </h3>
+            <button onclick="fecharModalSerie()" class="text-gray-400 hover:text-white">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
 
+        <div id="lista-serie-conteudo" class="p-2 max-h-[60vh] overflow-y-auto flex flex-col gap-1">
+            </div>
+
+        <div class="p-3 bg-[#151515] text-center text-xs text-gray-500 border-t border-[#333]">
+            Clique em um anime para selecioná-lo como continuação
+        </div>
+    </div>
 </div>
 
 <!-- MENU INFERIOR -->
@@ -852,9 +877,109 @@
             alert("Erro ao buscar no MyAnimeList. Tente novamente!");
         }
     }
-
-    // Para usar no onclick
     window.pegarDoMAL = pegarDoMAL;
+
+    // Função principal atualizada
+    async function verificarSerie() {
+        const contNome = document.getElementById("cad_ult_temp").value.trim();
+        const user = auth.currentUser;
+
+        // Se o campo estiver vazio, apenas avisa (ou poderíamos abrir o modal com tudo, mas melhor focar)
+        if (!contNome) {
+            // Opcional: Mostrar aviso visual simples
+            const input = document.getElementById("cad_ult_temp");
+            input.classList.add("border-red-500");
+            setTimeout(() => input.classList.remove("border-red-500"), 2000);
+            return;
+        }
+
+        const cacheKey = `animes_${user.uid}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        
+        if (!cachedData) return;
+
+        const todosAnimes = JSON.parse(cachedData);
+        
+        // 1. Encontra o anime base pelo nome digitado
+        // Usa toLowerCase para evitar erro se digitar "naruto" em vez de "Naruto"
+        const baseAnime = todosAnimes.find(a => a.NOME.toLowerCase() === contNome.toLowerCase());
+
+        if (!baseAnime) {
+            alert("Anime base não encontrado no seu banco de dados.");
+            return;
+        }
+
+        // 2. Filtra pela SÉRIE e Ordena por Num
+        const serieId = baseAnime.SERIE;
+        
+        const animesDaSerie = todosAnimes
+            .filter(a => a.SERIE === serieId)
+            .sort((a, b) => {
+                // Garante que Num seja tratado como número para ordenação correta
+                return (parseFloat(a.Num) || 0) - (parseFloat(b.Num) || 0);
+            });
+
+        // 3. Renderiza no Modal
+        const listaContainer = document.getElementById("lista-serie-conteudo");
+        listaContainer.innerHTML = ""; // Limpa lista anterior
+
+        animesDaSerie.forEach(anime => {
+            const item = document.createElement("div");
+            item.className = "flex items-center gap-3 p-3 rounded-lg hover:bg-[#333] cursor-pointer transition-colors border border-transparent hover:border-[#444]";
+            
+            // Formatação visual do item
+            item.innerHTML = `
+                <span class="bg-[#B9314F] text-white text-xs font-bold px-2 py-1 rounded">
+                    ${anime.Num || '0'}
+                </span>
+                <div class="flex flex-col">
+                    <span class="text-white font-medium text-sm">${anime.NOME}</span>
+                    <span class="text-gray-500 text-[10px]">${anime.ESTILO || '-'} • ${anime.ANO || '-'} • ${anime.TEMPORADA || ''}</span>
+                </div>
+            `;
+
+            // Ação ao clicar: Preenche o campo e fecha modal
+            item.onclick = () => {
+                selecionarSerieItem(anime.NOME);
+            };
+
+            listaContainer.appendChild(item);
+        });
+
+        // 4. Abre o Modal
+        document.getElementById("modal-serie").classList.remove("hidden");
+        
+        // Atualiza ícones do Lucide dentro do modal
+        if (window.lucide) lucide.createIcons();
+    }
+    window.verificarSerie = verificarSerie;
+
+    // Função para preencher o input ao clicar
+    function selecionarSerieItem(nome) {
+        const input = document.getElementById("cad_ult_temp");
+        input.value = nome;
+        
+        // Feedback visual de que foi selecionado
+        input.classList.add("bg-[#2a1a1a]", "border-[#B9314F]");
+        setTimeout(() => input.classList.remove("bg-[#2a1a1a]", "border-[#B9314F]"), 500);
+
+        fecharModalSerie();
+    }
+    window.selecionarSerieItem = selecionarSerieItem;
+
+    // Função para fechar o modal
+    function fecharModalSerie() {
+        document.getElementById("modal-serie").classList.add("hidden");
+    }
+    window.fecharModalSerie = fecharModalSerie;
+
+    // Fechar modal ao clicar fora (no backdrop)
+    document.getElementById("modal-serie").addEventListener("click", (e) => {
+        if (e.target.id === "modal-serie") {
+            fecharModalSerie();
+        }
+    });
+    window.fecharModalSerie = fecharModalSerie;
 
     // 🔥 Função de cadastrar Anime
     async function cadastrarAnime() {
