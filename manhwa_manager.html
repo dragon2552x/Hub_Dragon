@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciador de Manhwas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
+    .card:hover { border-color:#B9314F; transform:translateY(-4px); }
+    .btn-primary { background:#B9314F; color: white; }
+    .btn-primary:hover { background:#99233b; }
+    /* Ajuste para inputs do modal */
+    .modal-input {
+      background-color: #1f2937; /* bg-gray-800 */
+      border: 1px solid #374151; /* border-gray-700 */
+    }
+    .modal-input:focus {
+      outline: none;
+      border-color: #B9314F;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
+  </div>
+
+  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
+    <header class="bg-[#1f1f1f] p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg rounded-lg">
+      <div class="flex flex-col">
+        <div class="flex justify-between items-center">
+          <button 
+            onclick="window.location.href='home.html'"
+            class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200"
+          >
+            My Hub
+          </button>
+          <h1 class="text-2xl font-bold text-white">My Manhwas</h1>
+        </div>
+
+        <div class="text-sm text-gray-300 mt-1">
+          Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="mt-6 mb-6 flex justify-between items-center gap-4 flex-wrap">
+      <button 
+        id="add-btn"
+        class="bg-[#B9314F] hover:bg-[#992743] px-4 py-2 rounded-md text-white transition-colors duration-200"
+      >
+        + Adicionar Manhwas
+      </button>
+
+      <button 
+        id="toggle-filter-btn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md text-white transition-colors duration-200">Mostrar Filtros
+      </button>
+    </div>
+
+    <header class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 border-b border-gray-800 pb-4">
+      <div class="flex items-center gap-0">
+        <button id="hidden-add-btn" class="px-0 py-0 rounded btn-primary hidden"></button> <button id="logout-btn" class="px-0 py-0 rounded bg-red-600 hover:bg-red-700"></button>
+      </div>
+    </header>
+
+    <div id="filter-container" class="hidden bg-[#151515] border border-[#2a2a2a] p-4 rounded-lg mb-6">
+      <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="p-2 rounded bg-gray-800 border border-gray-700">
+        <select id="filter-genero" class="p-2 rounded bg-gray-800 border border-gray-700"></select>
+        <select id="filter-status" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="">Todos os status</option>
+          <option value="Lido">Lido</option>
+          <option value="Lendo">Lendo</option>
+          <option value="Quero Ler">Quero Ler</option>
+          <option value="Dropei">Dropei</option>
+        </select>
+        <select id="filter-stars" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="">Todas as estrelas</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </section>
+
+      <div class="flex justify-end space-x-3">
+        <label class="my-auto">Ordenar por:</label>
+        <select id="sort-select" class="p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="name">Nome</option>
+          <option value="stars">Estrelas</option>
+          <option value="chapters">Capítulos</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+    </div>
+    <div id="cards" class="flex flex-col gap-4"></div>
+    <p id="empty" class="text-center text-gray-500 hidden">Nenhum Manhwas encontrado.</p>
+  </div>
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 overflow-auto">
+    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-6 m-4">
+      <h2 id="modal-title" class="text-xl font-bold mb-4">Novo Manhwas</h2>
+      <form id="manhwa-form" class="space-y-3">
+        <input type="hidden" id="manhwa-id">
+        <div>
+          <label class="block text-sm">Título</label>
+          <input id="manhwa-title" type="text" class="w-full p-2 rounded modal-input" required>
+        </div>
+        <div>
+          <label class="block text-sm">Imagem (URL)</label>
+          <input id="manhwa-img" type="url" class="w-full p-2 rounded modal-input">
+        </div>
+        <div>
+          <label class="block text-sm">Genero</label>
+          <input id="manhwa-genero" type="text" class="w-full p-2 rounded modal-input">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm">Estrelas</label>
+            <select id="manhwa-stars" class="w-full p-2 rounded modal-input">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm">Status</label>
+            <select id="manhwa-status" class="w-full p-2 rounded modal-input">
+              <option value="Lendo">Lendo</option>
+              <option value="Lido">Lido</option>
+              <option value="Quero Ler">Quero Ler</option>
+              <option value="Dropei">Dropei</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm">Capítulos Totais</label>
+            <input id="manhwa-total" type="number" min="0" class="w-full p-2 rounded modal-input">
+          </div>
+          <div>
+            <label class="block text-sm">Capítulos Lidos</label>
+            <input id="manhwa-read" type="number" min="0" class="w-full p-2 rounded modal-input">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm">Observações</label>
+          <textarea id="manhwa-notes" rows="3" class="w-full p-2 rounded modal-input"></textarea>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3">
+          <button type="submit" class="px-4 py-2 rounded btn-primary">Salvar</button>
+          <button id="delete-btn" type="button" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
+          <button type="button" id="close-modal" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+      authDomain: "list-games-9bddd.firebaseapp.com",
+      projectId: "list-games-9bddd",
+      storageBucket: "list-games-9bddd.firebasestorage.app",
+      messagingSenderId: "756898313156",
+      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+      measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- Seletores de UI ---
+    const loading = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const userEmailEl = document.getElementById('user-email');
+
+    const cards = document.getElementById('cards');
+    const empty = document.getElementById('empty');
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('manhwa-form'); // ID Atualizado
+    const deleteBtn = document.getElementById('delete-btn');
+    const closeModal = document.getElementById('close-modal');
+    const addBtn = document.getElementById('add-btn');
+
+    const logoutBtn = document.getElementById('logout-btn');
+    const searchInput = document.getElementById('search-input');
+    const filterGenero = document.getElementById('filter-genero');
+    const filterStatus = document.getElementById('filter-status');
+    const filterStars = document.getElementById('filter-stars');
+    const sortSelect = document.getElementById('sort-select');
+
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+    const filterContainer = document.getElementById('filter-container');
+
+    let allMangas = []; // Variável renomeada
+    let currentUser = null;
+    let editingId = null;
+    let isFirstLoad = true;
+
+    // Autenticação
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+      currentUser = user;
+      userEmailEl.textContent = user.email || user.uid;
+
+      // ATENÇÃO: Coleção alterada para 'Manhwas'
+      const q = query(collection(db, 'users', user.uid, 'manhwas'));
+      
+      onSnapshot(q, (snap) => {
+        allMangas = [];
+        snap.forEach(doc => allMangas.push({ id: doc.id, ...doc.data() }));
+        updateFilters();
+        render();
+
+        if (isFirstLoad) {
+          loading.classList.add('hidden');
+          appEl.classList.remove('hidden');
+          isFirstLoad = false;
+        }
+      }, (error) => {
+        console.error("Erro ao buscar Manhwas: ", error);
+        if (isFirstLoad) {
+          loading.classList.add('hidden');
+          appEl.classList.remove('hidden');
+          isFirstLoad = false;
+        }
+        cards.innerHTML = "<p class='text-center text-red-400'>Erro ao carregar dados.</p>";
+      });
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    });
+
+    // Filtros
+    toggleFilterBtn.addEventListener('click', () => {
+      const isHidden = filterContainer.classList.toggle('hidden');
+      if (isHidden) {
+        toggleFilterBtn.textContent = 'Mostrar Filtros';
+      } else {
+        toggleFilterBtn.textContent = 'Esconder Filtros';
+      }
+    });
+
+    // Abrir Modal Adicionar
+    addBtn.addEventListener('click', () => {
+      editingId = null;
+      form.reset();
+      deleteBtn.classList.add('hidden');
+      document.getElementById('modal-title').textContent = 'Novo Manhwas';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+
+    // Fechar Modal
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+
+    // Submit Formulário
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // IDs dos inputs atualizados para 'manhwa-*'
+      const data = {
+        name: document.getElementById('manhwa-title').value,
+        image: document.getElementById('manhwa-img').value,
+        genero: document.getElementById('manhwa-genero').value,
+        stars: parseInt(document.getElementById('manhwa-stars').value) || 0,
+        status: document.getElementById('manhwa-status').value,
+        total: parseInt(document.getElementById('manhwa-total').value) || 0,
+        read: parseInt(document.getElementById('manhwa-read').value) || 0,
+        notes: document.getElementById('manhwa-notes').value
+      };
+
+      try {
+        if (editingId) {
+          await updateDoc(doc(db, 'users', currentUser.uid, 'manhwas', editingId), data);
+        } else {
+          await addDoc(collection(db, 'users', currentUser.uid, 'manhwas'), data);
+        }
+        modal.classList.add('hidden');
+      } catch (error) {
+        console.error("Erro ao salvar Manhwas: ", error);
+      }
+    });
+
+    // Abrir Modal Editar
+    cards.addEventListener('click', async (e) => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      
+      const id = card.dataset.id;
+      if (!id) return;
+      
+      editingId = id;
+      
+      try {
+        const docSnap = await getDoc(doc(db, 'users', currentUser.uid, 'manhwas', id));
+        if (!docSnap.exists()) {
+          console.error("Documento não encontrado!");
+          return;
+        }
+        const data = docSnap.data();
+        document.getElementById('manhwa-title').value = data.name || '';
+        document.getElementById('manhwa-img').value = data.image || '';
+        document.getElementById('manhwa-genero').value = data.genero || '';
+        document.getElementById('manhwa-stars').value = data.stars || 0;
+        document.getElementById('manhwa-status').value = data.status || 'Lendo';
+        document.getElementById('manhwa-total').value = data.total || 0;
+        document.getElementById('manhwa-read').value = data.read || 0;
+        document.getElementById('manhwa-notes').value = data.notes || '';
+        
+        deleteBtn.classList.remove('hidden');
+        document.getElementById('modal-title').textContent = 'Editar Manhwas';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } catch (error) {
+         console.error("Erro ao buscar Manhwas para edição: ", error);
+      }
+    });
+
+    // Deletar
+    deleteBtn.addEventListener('click', async () => {
+      if (!editingId) return;
+      try {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'manhwas', editingId));
+        modal.classList.add('hidden');
+      } catch (error) {
+        console.error("Erro ao deletar Manhwas: ", error);
+      }
+    });
+
+    // Atualizar Filtros
+    function updateFilters() {
+      const genero = [...new Set(allMangas.map(m => m.genero).filter(Boolean))];
+      filterGenero.innerHTML = '<option value="">Todos os generos</option>' + genero.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+
+    // Renderizar
+    function render() {
+      let filtered = allMangas.filter(m => {
+        return (
+          (!searchInput.value || m.name.toLowerCase().includes(searchInput.value.toLowerCase())) &&
+          (!filterGenero.value || m.genero === filterGenero.value) &&
+          (!filterStatus.value || m.status === filterStatus.value) &&
+          (!filterStars.value || m.stars == filterStars.value)
+        );
+      });
+
+      switch (sortSelect.value) {
+        case 'name': filtered.sort((a,b) => a.name.localeCompare(b.name)); break;
+        case 'stars': filtered.sort((a,b) => b.stars - a.stars); break;
+        case 'chapters': filtered.sort((a,b) => (b.total || 0) - (a.total || 0)); break;
+        case 'status': filtered.sort((a,b) => a.status.localeCompare(b.status)); break;
+      }
+
+      cards.innerHTML = '';
+      if (filtered.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      filtered.forEach(m => {
+        cards.innerHTML += `
+          <div class='card flex rounded-lg overflow-hidden cursor-pointer p-3' data-id='${m.id}'>
+            <img src='${m.image || 'https://placehold.co/200x300/151515/e0e0e0?text=Capa'}' 
+                 class='w-32 h-48 object-cover rounded-md border border-gray-700' 
+                 onerror="this.src='https://placehold.co/200x300/151515/e0e0e0?text=Capa'; this.onerror=null;">
+            <div class='ml-4 flex flex-col justify-between flex-1 py-1'>
+              <div>
+                <h3 class='text-xl font-semibold mb-1 text-[#B9314F]'>${m.name}</h3>
+                <div class="text-xl text-yellow-400">${'★'.repeat(m.stars)}${'☆'.repeat(5 - m.stars)}</div>
+                <span class='text-sm px-2 py-1 rounded-full bg-gray-700 mt-2 mb-2 inline-block'>${m.status}</span>
+              </div>
+              <p class='text-sm text-gray-400'>Capítulos: ${m.read || 0} / ${m.total || 0}</p>
+            </div>
+          </div>`;
+      });
+    }
+
+    // Event Listeners Render
+    [searchInput, filterGenero, filterStatus, filterStars, sortSelect].forEach(el => el.addEventListener('input', render));
+  
+  </script>
+</body>
+</html>
