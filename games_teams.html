@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Times & Guildas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
+    
+    .list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .team-card { 
+        background:#151515; 
+        border:1px solid #2a2a2a; 
+        transition:all .3s ease; 
+        display: flex;
+        flex-direction: column;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    @media (min-width: 768px) {
+        .team-card {
+            flex-direction: row;
+            height: 160px; 
+        }
+    }
+
+    .team-card:hover { 
+        border-color:#B9314F; 
+        transform:translateY(-2px); 
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Área dos Botões de Ação */
+    .action-section {
+        background: #101010;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-top: 1px solid #2a2a2a;
+    }
+    @media (min-width: 768px) {
+        .action-section {
+            border-top: none;
+            border-left: 1px solid #2a2a2a;
+            flex-direction: column;
+            width: 80px;
+            flex-shrink: 0;
+            padding: 0;
+            gap: 0.5rem;
+        }
+    }
+
+    /* Botões Clean */
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        color: #6b7280; 
+        transition: all 0.2s;
+        background: transparent;
+        border: 1px solid transparent;
+    }
+    .btn-icon:hover {
+        background: #2a2a2a;
+        color: #e5e7eb; 
+        border-color: #374151;
+    }
+    .btn-icon.edit:hover { color: #3b82f6; } 
+    .btn-icon.members:hover { color: #B9314F; } 
+    .btn-icon.view:hover { color: #10b981; } 
+
+    .btn-primary { background:#B9314F; color: white; }
+    .btn-primary:hover { background:#99233b; }
+
+    .modal-input {
+      background-color: #1f2937;
+      border: 1px solid #374151;
+      color: white;
+    }
+    .modal-input:focus {
+      outline: none;
+      border-color: #B9314F;
+    }
+    
+    /* Scrollbar Personalizada Fina */
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #111; }
+
+    /* Utilitário para Avatar Fallback */
+    .avatar-fallback-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #262626;
+        color: #a3a3a3;
+        font-weight: bold;
+        text-transform: uppercase;
+        user-select: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-20 custom-scroll">
+
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+    <div class="flex flex-col items-center">
+      <div class="animate-spin h-12 w-12 border-4 border-t-transparent border-[#B9314F] rounded-full mb-4"></div>
+      <p class="text-gray-400 animate-pulse">Carregando...</p>
+    </div>
+  </div>
+
+  <div id="app" class="container mx-auto p-4 max-w-5xl hidden">
+    
+    <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-[#151515] p-4 rounded-xl border border-[#2a2a2a]">
+      <div class="flex items-center gap-3">
+        <button onclick="window.location.href='home.html'" class="p-2 rounded-full hover:bg-gray-800 transition">
+          <i data-lucide="arrow-left" class="text-[#B9314F]"></i>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="users" class="text-[#B9314F]"></i> Gestão de Times
+          </h1>
+          <p class="text-xs text-gray-500 font-mono" id="user-display">Carregando...</p>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="add-btn" class="flex items-center gap-2 bg-[#B9314F] hover:bg-[#99233b] px-5 py-2.5 rounded-lg text-white font-medium transition shadow-lg shadow-red-900/20">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Time
+        </button>
+        <button id="logout-btn" class="p-2.5 rounded-lg bg-gray-800 hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition border border-gray-700">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-12 gap-4">
+      <div class="md:col-span-8 relative">
+        <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-gray-500"></i>
+        <input id="search-input" type="text" placeholder="Buscar time..." 
+               class="w-full pl-10 pr-4 py-3 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] focus:outline-none transition text-gray-300 placeholder-gray-600">
+      </div>
+      <div class="md:col-span-4">
+        <select id="filter-type" class="w-full py-3 px-4 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
+          <option value="">Todos os Tipos</option>
+          <option value="Pokemon">Pokemon</option>
+          <option value="Digimon">Digimon</option>
+          <option value="Futebol">Futebol</option>
+          <option value="Geral">Geral</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="cards-container" class="list-container"></div>
+    <div id="empty-state" class="hidden text-center py-20 text-gray-500">Nenhum time encontrado.</div>
+  </div>
+
+  <div id="modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm p-4 overflow-hidden">
+    <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]">
+      <div class="flex justify-between items-center p-6 border-b border-[#2a2a2a]">
+        <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+          <i data-lucide="shield" class="text-[#B9314F]"></i> <span id="modal-title-text">Time</span>
+        </h2>
+        <button id="close-modal" class="text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <form id="team-form" class="p-6 space-y-5 overflow-y-auto custom-scroll">
+        <input type="hidden" id="team-id">
+        <div>
+          <label class="block text-sm font-medium text-gray-400 mb-1">Nome do Time</label>
+          <input id="team-name" type="text" class="w-full p-3 rounded-lg modal-input" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-400 mb-1">Jogo Principal</label>
+          <input id="team-game" list="games-list" type="text" class="w-full p-3 rounded-lg modal-input" required>
+          <datalist id="games-list"></datalist>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1">Tipo de Time</label>
+            <select id="team-type" class="w-full p-3 rounded-lg modal-input">
+              <option value="Pokemon">Pokemon</option>
+              <option value="Digimon">Digimon</option>
+              <option value="Futebol">Futebol</option>
+              <option value="Geral">Geral</option>
+            </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-400 mb-1">Banner (URL)</label>
+          <input id="team-img" type="url" class="w-full p-3 rounded-lg modal-input">
+        </div>
+        
+        <div class="flex justify-between items-center pt-4 border-t border-[#2a2a2a] mt-4">
+            <button id="delete-btn" type="button" class="hidden text-red-500 hover:text-red-400 text-sm font-medium">Excluir</button>
+            <div class="flex gap-3 ml-auto">
+                <button type="submit" class="px-6 py-2 rounded-lg btn-primary font-medium">Salvar</button>
+            </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="members-modal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[60] backdrop-blur-md p-2 sm:p-4">
+    <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-5xl h-[90vh] shadow-2xl relative flex flex-col md:flex-row overflow-hidden">
+        
+        <div class="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#2a2a2a] flex flex-col bg-[#111] h-1/3 md:h-full shrink-0">
+            <div class="p-3 border-b border-[#2a2a2a] bg-[#1a1a1a]">
+                <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-[#B9314F]"></i> Integrantes
+                </h3>
+                <p id="member-team-name" class="text-[10px] text-gray-500 truncate mt-1">Nome do Time</p>
+            </div>
+            
+            <div id="members-list" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scroll"></div>
+            
+            <div class="p-3 border-t border-[#2a2a2a] bg-[#111]">
+                <button onclick="prepareNewMember()" class="w-full py-2 bg-[#2a2a2a] hover:bg-[#B9314F] text-gray-300 hover:text-white rounded-lg transition text-xs font-bold flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Integrante
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col bg-[#151515] relative min-h-0">
+            <div class="p-3 border-b border-[#2a2a2a] flex justify-between items-center shrink-0">
+                <h3 id="member-form-title" class="font-bold text-white text-sm">Adicionar / Editar</h3>
+                <button onclick="closeMembersModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div id="member-form-container" class="flex-1 overflow-y-auto p-4 md:p-6 hidden custom-scroll">
+                <form id="member-form" class="space-y-4 max-w-lg mx-auto pb-4">
+                    <input type="hidden" id="member-id">
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label>
+                            <input id="member-name" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Avatar (URL)</label>
+                        <input id="member-avatar" type="url" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="https://...">
+                        <p class="text-[10px] text-gray-500 mt-1">Se falhar, usaremos a inicial.</p>
+                    </div>
+
+                    <div id="dynamic-fields" class="p-4 bg-[#1a1a1a] rounded-lg border border-[#333] space-y-4"></div>
+
+                    <div class="flex justify-between items-center pt-4 mt-2 border-t border-[#2a2a2a]">
+                        <button type="button" id="btn-delete-member" class="text-red-500 hover:text-red-300 text-xs font-bold uppercase hidden">Excluir</button>
+                        <button type="submit" class="px-6 py-2 rounded-lg btn-primary text-sm font-bold shadow-lg ml-auto">Salvar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="member-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-600 p-10">
+                <i data-lucide="user-plus" class="w-12 h-12 mb-3 opacity-50"></i>
+                <p class="text-sm text-center">Selecione um integrante na lista<br>ou clique em "Novo".</p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+      authDomain: "list-games-9bddd.firebaseapp.com",
+      projectId: "list-games-9bddd",
+      storageBucket: "list-games-9bddd.firebasestorage.app",
+      messagingSenderId: "756898313156",
+      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let allTeams = [];
+    let allGames = [];
+    let editingId = null;
+    let currentTeamMembers = [];
+    let currentTeamData = null;
+
+    const els = {
+        app: document.getElementById('app'),
+        loading: document.getElementById('loading'),
+        cards: document.getElementById('cards-container'),
+        empty: document.getElementById('empty-state'),
+        modal: document.getElementById('modal'),
+        form: document.getElementById('team-form'),
+        modalTitle: document.getElementById('modal-title-text'),
+        search: document.getElementById('search-input'),
+        filterType: document.getElementById('filter-type'),
+        datalist: document.getElementById('games-list'),
+        inputs: {
+            name: document.getElementById('team-name'),
+            game: document.getElementById('team-game'),
+            img: document.getElementById('team-img'),
+            type: document.getElementById('team-type'),
+        },
+        btns: {
+            add: document.getElementById('add-btn'),
+            close: document.getElementById('close-modal'),
+            delete: document.getElementById('delete-btn'),
+            logout: document.getElementById('logout-btn')
+        },
+        membersModal: document.getElementById('members-modal'),
+        membersList: document.getElementById('members-list'),
+        memberFormContainer: document.getElementById('member-form-container'),
+        memberEmptyState: document.getElementById('member-empty-state'),
+        memberForm: document.getElementById('member-form'),
+        memberInputs: {
+            id: document.getElementById('member-id'),
+            name: document.getElementById('member-name'),
+            avatar: document.getElementById('member-avatar'),
+            dynamic: document.getElementById('dynamic-fields')
+        },
+        btnDeleteMember: document.getElementById('btn-delete-member'),
+        memberTeamName: document.getElementById('member-team-name')
+    };
+
+    const toggleLoading = (show) => {
+        if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); }
+        else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); lucide.createIcons(); }
+    };
+
+    const getTypeColor = (type) => {
+        switch(type) {
+            case 'Pokemon': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+            case 'Digimon': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+            case 'Futebol': return 'bg-green-500/10 text-green-400 border-green-500/20';
+            case 'Geral': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+            default: return 'bg-gray-700/30 text-gray-300 border-gray-600';
+        }
+    };
+
+    // --- FUNÇÃO DE AVATAR ROBUSTA ---
+    // Esta função gera o HTML. Se a img falhar, o 'onerror' inline substitui o elemento por um div
+    const generateAvatarHTML = (avatarUrl, name, sizeClass = "w-11 h-11") => {
+        // CORREÇÃO DE QUALIDADE: Remove redimensionamento automático de wikis
+        if (avatarUrl && avatarUrl.includes('static.wikia')) {
+            avatarUrl = avatarUrl.split('/revision/')[0];
+        }
+
+        const initial = name ? name.charAt(0).toUpperCase() : '?';
+        const fallbackHtml = `<div class='${sizeClass} avatar-fallback-container rounded-full border border-[#444] shadow-sm'>${initial}</div>`;
+        
+        if (!avatarUrl || avatarUrl.trim() === '') return fallbackHtml;
+        
+        // Adicionei 'antialiased' e estilos inline para melhorar a renderização
+        return `<img src="${avatarUrl}" 
+                    class="${sizeClass} rounded-full object-cover border border-[#444] bg-[#222] antialiased" 
+                    style="image-rendering: -webkit-optimize-contrast; backface-visibility: hidden;"
+                    alt="${name}"
+                    onerror="this.parentElement.innerHTML=\`${fallbackHtml}\`">`;
+    };
+
+    const render = () => {
+        const term = els.search.value.toLowerCase();
+        const typeFilter = els.filterType.value;
+
+        const filtered = allTeams.filter(t => {
+            const matchesSearch = t.name.toLowerCase().includes(term) || t.game.toLowerCase().includes(term);
+            const matchesType = !typeFilter || t.type === typeFilter;
+            return matchesSearch && matchesType;
+        });
+
+        els.cards.innerHTML = '';
+        
+        if (filtered.length === 0) {
+            els.empty.classList.remove('hidden');
+        } else {
+            els.empty.classList.add('hidden');
+            filtered.forEach(t => {
+                const imgSource = t.img || 'https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image';
+                const members = t.members || [];
+                
+                // Stack de membros
+                let membersStackHTML = '';
+                if (members.length > 0) {
+                    const maxDisplay = 8;
+                    const displayMembers = members.slice(0, maxDisplay);
+                    const remaining = members.length - maxDisplay;
+
+                    const avatars = displayMembers.map(m => `
+                        <div class="relative -ml-2 transition-transform hover:-translate-y-1 hover:z-10">
+                            ${generateAvatarHTML(m.avatar, m.name, "w-11 h-11")}
+                        </div>
+                    `).join('');
+
+                    const plusBubble = remaining > 0 
+                        ? `<div class="relative -ml-2 z-0 w-8 h-8 rounded-full bg-[#222] border border-[#333] text-gray-400 text-[10px] font-bold flex items-center justify-center">
+                             +${remaining}
+                           </div>` 
+                        : '';
+
+                    membersStackHTML = `<div class="flex items-center pl-2 mt-3 h-9">${avatars}${plusBubble}</div>`;
+                } else {
+                    membersStackHTML = `<p class="text-xs text-gray-600 mt-3 italic pl-1 h-9 flex items-center">Sem integrantes</p>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'team-card group';
+                card.innerHTML = `
+                    <div class="w-full md:w-56 h-32 md:h-full relative shrink-0 bg-black">
+                         <img src="${imgSource}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                              onerror="this.src='https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'">
+                         <div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent md:hidden"></div>
+                    </div>
+
+                    <div class="flex-1 p-4 md:p-5 flex flex-col justify-between relative">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#B9314F]">${t.game}</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded border ${getTypeColor(t.type)}">${t.type}</span>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight">${t.name}</h3>
+                            ${membersStackHTML}
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <button class="btn-icon edit" title="Editar"><i data-lucide="pencil" class="w-5 h-5"></i></button>
+                        <button class="btn-icon members" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button>
+                        <button class="btn-icon view" title="Ver"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                    </div>
+                `;
+
+                card.querySelector('.edit').onclick = () => openEditTeamModal(t);
+                card.querySelector('.members').onclick = () => openMembersModal(t);
+                card.querySelector('.view').onclick = () => alert('Modo visualização em breve!');
+
+                els.cards.appendChild(card);
+            });
+        }
+        lucide.createIcons();
+    };
+
+    // --- CRUD TIMES (Mantido) ---
+    const openNewTeamModal = () => {
+        editingId = null;
+        els.form.reset();
+        els.btns.delete.classList.add('hidden');
+        els.modalTitle.textContent = "Novo Time";
+        els.modal.classList.remove('hidden');
+        els.modal.classList.add('flex');
+    };
+
+    const openEditTeamModal = (data) => {
+        editingId = data.id;
+        els.inputs.name.value = data.name;
+        els.inputs.game.value = data.game;
+        els.inputs.img.value = data.img || '';
+        els.inputs.type.value = data.type || 'Geral';
+        els.btns.delete.classList.remove('hidden');
+        els.modalTitle.textContent = "Editar Time";
+        els.modal.classList.remove('hidden');
+        els.modal.classList.add('flex');
+    };
+
+    const saveTeam = async (e) => {
+        e.preventDefault();
+        const data = {
+            name: els.inputs.name.value,
+            game: els.inputs.game.value,
+            img: els.inputs.img.value,
+            type: els.inputs.type.value,
+            updatedAt: new Date()
+        };
+        try {
+            if (editingId) {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data);
+            } else {
+                data.members = [];
+                await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data);
+            }
+            els.modal.classList.add('hidden');
+        } catch (err) { console.error(err); }
+    };
+
+    const deleteTeam = async () => {
+        if(!editingId || !confirm("Tem certeza?")) return;
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId));
+        els.modal.classList.add('hidden');
+    };
+
+    // --- MEMBROS (Lógica de UI Corrigida) ---
+    window.openMembersModal = (team) => {
+        currentTeamData = team;
+        currentTeamMembers = team.members || [];
+        els.memberTeamName.textContent = team.name;
+        renderMembersList();
+        
+        // Reset view
+        els.memberEmptyState.classList.remove('hidden');
+        els.memberFormContainer.classList.add('hidden');
+        
+        els.membersModal.classList.remove('hidden');
+        els.membersModal.classList.add('flex');
+    };
+
+    window.closeMembersModal = () => els.membersModal.classList.add('hidden');
+
+    const renderMembersList = () => {
+        els.membersList.innerHTML = '';
+        currentTeamMembers.forEach((member, index) => {
+            const item = document.createElement('div');
+            item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]';
+            
+            // Container para o avatar (importante para o wrapper do fallback funcionar)
+            const avatarContainer = document.createElement('div');
+            avatarContainer.className = 'shrink-0';
+            avatarContainer.innerHTML = generateAvatarHTML(member.avatar, member.name, "w-8 h-8");
+
+            let extraInfo = '';
+            if(currentTeamData.type === 'Futebol') {
+                extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'}</span>`;
+            }
+
+            item.innerHTML = `
+                <div class="avatar-wrapper"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>
+                    ${extraInfo}
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>
+            `;
+            // Injeta o avatar seguro
+            item.querySelector('.avatar-wrapper').appendChild(avatarContainer);
+            
+            item.onclick = () => loadMemberToForm(member, index);
+            els.membersList.appendChild(item);
+        });
+        lucide.createIcons();
+    };
+
+    const renderTypeSpecificFields = (type, data = {}) => {
+        const container = els.memberInputs.dynamic;
+        container.innerHTML = '';
+        if (type === 'Futebol') {
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label>
+                        <select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            <option value="Goleiro">Goleiro</option>
+                            <option value="Zagueiro">Zagueiro</option>
+                            <option value="Lateral">Lateral</option>
+                            <option value="Volante">Volante</option>
+                            <option value="Meia">Meia</option>
+                            <option value="Atacante">Atacante</option>
+                            <option value="Técnico">Técnico</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label>
+                        <input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label>
+                    </div>
+                </div>
+            `;
+            if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao;
+            if(data.numero) document.getElementById('mem-futebol-num').value = data.numero;
+            if(data.status) {
+                const radios = document.getElementsByName('status');
+                radios.forEach(r => { if(r.value === data.status) r.checked = true; });
+            }
+        } else {
+            container.innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Função / Cargo</label>
+                    <input id="mem-geral-role" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Líder" value="${data.role || ''}">
+                </div>
+            `;
+        }
+    };
+
+    const getDynamicData = (type) => {
+        if(type === 'Futebol') {
+            return {
+                posicao: document.getElementById('mem-futebol-pos').value,
+                numero: document.getElementById('mem-futebol-num').value,
+                status: document.querySelector('input[name="status"]:checked')?.value || 'Titular'
+            };
+        }
+        return { role: document.getElementById('mem-geral-role') ? document.getElementById('mem-geral-role').value : '' };
+    };
+
+    window.prepareNewMember = () => {
+        els.memberInputs.id.value = -1;
+        els.memberInputs.name.value = '';
+        els.memberInputs.avatar.value = '';
+        renderTypeSpecificFields(currentTeamData.type);
+        els.memberEmptyState.classList.add('hidden');
+        els.memberFormContainer.classList.remove('hidden');
+        els.btnDeleteMember.classList.add('hidden');
+        document.getElementById('member-form-title').textContent = "Novo Integrante";
+    };
+
+    const loadMemberToForm = (member, index) => {
+        els.memberInputs.id.value = index;
+        els.memberInputs.name.value = member.name;
+        els.memberInputs.avatar.value = member.avatar || '';
+        renderTypeSpecificFields(currentTeamData.type, member);
+        els.memberEmptyState.classList.add('hidden');
+        els.memberFormContainer.classList.remove('hidden');
+        els.btnDeleteMember.classList.remove('hidden');
+        document.getElementById('member-form-title').textContent = "Editar Integrante";
+    };
+
+    const saveMember = async (e) => {
+        e.preventDefault();
+        const index = parseInt(els.memberInputs.id.value);
+        const memberData = {
+            name: els.memberInputs.name.value,
+            avatar: els.memberInputs.avatar.value,
+            ...getDynamicData(currentTeamData.type)
+        };
+        const updatedMembers = [...currentTeamMembers];
+        if(index === -1) updatedMembers.push(memberData);
+        else updatedMembers[index] = memberData;
+
+        try {
+            await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers });
+            currentTeamMembers = updatedMembers;
+            renderMembersList();
+            render();
+            els.memberFormContainer.classList.add('hidden');
+            els.memberEmptyState.classList.remove('hidden');
+        } catch (err) { console.error(err); alert("Erro ao salvar."); }
+    };
+
+    const deleteMember = async () => {
+        const index = parseInt(els.memberInputs.id.value);
+        if(index === -1 || !confirm("Remover este integrante?")) return;
+        const updatedMembers = currentTeamMembers.filter((_, i) => i !== index);
+        try {
+            await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers });
+            currentTeamMembers = updatedMembers;
+            renderMembersList();
+            render();
+            els.memberFormContainer.classList.add('hidden');
+            els.memberEmptyState.classList.remove('hidden');
+        } catch (err) { console.error(err); }
+    };
+
+    // --- Init ---
+    const init = () => {
+        els.btns.add.onclick = openNewTeamModal;
+        els.btns.close.onclick = () => els.modal.classList.add('hidden');
+        els.form.onsubmit = saveTeam;
+        els.btns.delete.onclick = deleteTeam;
+        els.memberForm.onsubmit = saveMember;
+        els.btnDeleteMember.onclick = deleteMember;
+        els.btns.logout.onclick = () => signOut(auth);
+        els.search.oninput = render;
+        els.filterType.onchange = render;
+        els.inputs.game.addEventListener('input', (e) => {
+            const gameObj = allGames.find(g => g.name === e.target.value);
+            if (gameObj && gameObj.image) els.inputs.img.value = gameObj.image;
+        });
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) return window.location.href = 'index.html';
+        currentUser = user;
+        document.getElementById('user-display').textContent = user.email;
+        try {
+            const gamesSnap = await getDocs(collection(db, 'users', user.uid, 'games'));
+            allGames = [];
+            els.datalist.innerHTML = '';
+            gamesSnap.forEach(doc => {
+                const g = doc.data();
+                if(g.name) {
+                    allGames.push({ name: g.name, image: g.image });
+                    const opt = document.createElement('option');
+                    opt.value = g.name;
+                    els.datalist.appendChild(opt);
+                }
+            });
+            const q = query(collection(db, 'users', user.uid, 'teams_games'));
+            onSnapshot(q, (snap) => {
+                allTeams = [];
+                snap.forEach(doc => allTeams.push({ id: doc.id, ...doc.data() }));
+                allTeams.sort((a,b) => a.name.localeCompare(b.name));
+                render();
+                toggleLoading(false);
+            });
+        } catch (err) { console.error(err); }
+    });
+    init();
+  </script>
+</body>
+</html>
