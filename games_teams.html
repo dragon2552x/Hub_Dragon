@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Meus Times & Guildas</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -10,108 +10,86 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
     
-    .list-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .team-card { 
-        background:#151515; 
-        border:1px solid #2a2a2a; 
-        transition:all .3s ease; 
-        display: flex;
-        flex-direction: column;
-        border-radius: 0.75rem;
-        overflow: hidden;
-    }
-    
-    @media (min-width: 768px) {
-        .team-card {
-            flex-direction: row;
-            height: 160px; 
-        }
-    }
-
-    .team-card:hover { 
-        border-color:#B9314F; 
-        transform:translateY(-2px); 
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Área dos Botões de Ação */
-    .action-section {
-        background: #101010;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        border-top: 1px solid #2a2a2a;
-    }
-    @media (min-width: 768px) {
-        .action-section {
-            border-top: none;
-            border-left: 1px solid #2a2a2a;
-            flex-direction: column;
-            width: 80px;
-            flex-shrink: 0;
-            padding: 0;
-            gap: 0.5rem;
-        }
-    }
-
-    /* Botões Clean */
-    .btn-icon {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 0.5rem;
-        color: #6b7280; 
-        transition: all 0.2s;
-        background: transparent;
-        border: 1px solid transparent;
-    }
-    .btn-icon:hover {
-        background: #2a2a2a;
-        color: #e5e7eb; 
-        border-color: #374151;
-    }
+    /* --- GERAL --- */
+    .list-container { display: flex; flex-direction: column; gap: 1rem; }
+    .team-card { background:#151515; border:1px solid #2a2a2a; transition:all .3s ease; display: flex; flex-direction: column; border-radius: 0.75rem; overflow: hidden; }
+    @media (min-width: 768px) { .team-card { flex-direction: row; height: 160px; } }
+    .team-card:hover { border-color:#B9314F; transform:translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5); }
+    .action-section { background: #101010; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #2a2a2a; }
+    @media (min-width: 768px) { .action-section { border-top: none; border-left: 1px solid #2a2a2a; flex-direction: column; width: 80px; flex-shrink: 0; padding: 0; gap: 0.5rem; } }
+    .btn-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; color: #6b7280; transition: all 0.2s; background: transparent; border: 1px solid transparent; }
+    .btn-icon:hover { background: #2a2a2a; color: #e5e7eb; border-color: #374151; }
     .btn-icon.edit:hover { color: #3b82f6; } 
     .btn-icon.members:hover { color: #B9314F; } 
     .btn-icon.view:hover { color: #10b981; } 
-
     .btn-primary { background:#B9314F; color: white; }
     .btn-primary:hover { background:#99233b; }
-
-    .modal-input {
-      background-color: #1f2937;
-      border: 1px solid #374151;
-      color: white;
-    }
-    .modal-input:focus {
-      outline: none;
-      border-color: #B9314F;
-    }
-    
-    /* Scrollbar Personalizada Fina */
+    .modal-input { background-color: #1f2937; border: 1px solid #374151; color: white; }
+    .modal-input:focus { outline: none; border-color: #B9314F; }
     .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     .custom-scroll::-webkit-scrollbar-track { background: #111; }
+    .avatar-fallback-container { display: flex; align-items: center; justify-content: center; background-color: #262626; color: #a3a3a3; font-weight: bold; text-transform: uppercase; user-select: none; }
 
-    /* Utilitário para Avatar Fallback */
-    .avatar-fallback-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #262626;
-        color: #a3a3a3;
-        font-weight: bold;
-        text-transform: uppercase;
-        user-select: none;
+    /* --- CAMPO DE FUTEBOL (RETRATO) --- */
+    .soccer-field-container {
+        background-color: #1a1a1a; /* Cor do gramado (Cinza Escuro) */
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
     }
+    
+    /* Linhas do Campo (CSS Puro) */
+    .pitch-lines {
+        position: absolute; inset: 15px; border: 2px solid rgba(255,255,255,0.15); pointer-events: none;
+    }
+    .pitch-lines::before { /* Linha de Meio Campo */
+        content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.15); transform: translateY(-50%);
+    }
+    .pitch-lines::after { /* Círculo Central */
+        content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 100px; 
+        border: 2px solid rgba(255,255,255,0.15); border-radius: 50%; transform: translate(-50%, -50%);
+    }
+    /* Pequenas áreas (Gol) */
+    .goal-area-top { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 40%; height: 60px; border: 2px solid rgba(255,255,255,0.15); border-top: none; }
+    .goal-area-bottom { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 40%; height: 60px; border: 2px solid rgba(255,255,255,0.15); border-bottom: none; }
+
+    /* --- TOKEN DO JOGADOR (NOVO ESTILO) --- */
+    .player-token {
+        position: absolute; transform: translate(-50%, -50%);
+        display: flex; flex-direction: column; align-items: center;
+        z-index: 10; cursor: default;
+        width: 80px; /* Largura da área de toque */
+    }
+    .player-token:hover { z-index: 20; transform: translate(-50%, -55%); transition: transform 0.2s; }
+    
+    /* Imagem Grande (Foco) */
+    .token-img-wrapper {
+        width: 64px; height: 64px; /* w-16 h-16 */
+        border-radius: 50%;
+        border: 3px solid #1a1a1a;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        overflow: hidden;
+        background: #222;
+        margin-bottom: 4px;
+        position: relative;
+    }
+    .token-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    
+    /* Texto Pequeno (Detalhe) */
+    .token-info {
+        text-align: center;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 2px 6px;
+        border-radius: 4px;
+        backdrop-filter: blur(2px);
+    }
+    .token-name { font-size: 10px; color: white; font-weight: 700; line-height: 1; margin-bottom: 2px; white-space: nowrap; }
+    .token-pos { font-size: 9px; color: #B9314F; font-weight: 600; text-transform: uppercase; line-height: 1; }
+
   </style>
 </head>
 <body class="min-h-screen pb-20 custom-scroll">
@@ -124,35 +102,24 @@
   </div>
 
   <div id="app" class="container mx-auto p-4 max-w-5xl hidden">
-    
     <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-[#151515] p-4 rounded-xl border border-[#2a2a2a]">
       <div class="flex items-center gap-3">
-        <button onclick="window.location.href='home.html'" class="p-2 rounded-full hover:bg-gray-800 transition">
-          <i data-lucide="arrow-left" class="text-[#B9314F]"></i>
-        </button>
+        <button onclick="window.location.href='home.html'" class="p-2 rounded-full hover:bg-gray-800 transition"><i data-lucide="arrow-left" class="text-[#B9314F]"></i></button>
         <div>
-          <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-            <i data-lucide="users" class="text-[#B9314F]"></i> Gestão de Times
-          </h1>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-2"><i data-lucide="users" class="text-[#B9314F]"></i> Gestão de Times</h1>
           <p class="text-xs text-gray-500 font-mono" id="user-display">Carregando...</p>
         </div>
       </div>
-      
       <div class="flex gap-3">
-        <button id="add-btn" class="flex items-center gap-2 bg-[#B9314F] hover:bg-[#99233b] px-5 py-2.5 rounded-lg text-white font-medium transition shadow-lg shadow-red-900/20">
-          <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Time
-        </button>
-        <button id="logout-btn" class="p-2.5 rounded-lg bg-gray-800 hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition border border-gray-700">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-        </button>
+        <button id="add-btn" class="flex items-center gap-2 bg-[#B9314F] hover:bg-[#99233b] px-5 py-2.5 rounded-lg text-white font-medium transition shadow-lg shadow-red-900/20"><i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Time</button>
+        <button id="logout-btn" class="p-2.5 rounded-lg bg-gray-800 hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition border border-gray-700"><i data-lucide="log-out" class="w-5 h-5"></i></button>
       </div>
     </header>
-
+    
     <div class="mb-6 grid grid-cols-1 md:grid-cols-12 gap-4">
       <div class="md:col-span-8 relative">
         <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-gray-500"></i>
-        <input id="search-input" type="text" placeholder="Buscar time..." 
-               class="w-full pl-10 pr-4 py-3 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] focus:outline-none transition text-gray-300 placeholder-gray-600">
+        <input id="search-input" type="text" placeholder="Buscar time..." class="w-full pl-10 pr-4 py-3 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
       </div>
       <div class="md:col-span-4">
         <select id="filter-type" class="w-full py-3 px-4 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
@@ -164,7 +131,6 @@
         </select>
       </div>
     </div>
-
     <div id="cards-container" class="list-container"></div>
     <div id="empty-state" class="hidden text-center py-20 text-gray-500">Nenhum time encontrado.</div>
   </div>
@@ -172,41 +138,18 @@
   <div id="modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm p-4 overflow-hidden">
     <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center p-6 border-b border-[#2a2a2a]">
-        <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
-          <i data-lucide="shield" class="text-[#B9314F]"></i> <span id="modal-title-text">Time</span>
-        </h2>
+        <h2 class="text-xl font-bold text-white flex items-center gap-2"><i data-lucide="shield" class="text-[#B9314F]"></i> <span id="modal-title-text">Time</span></h2>
         <button id="close-modal" class="text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
       <form id="team-form" class="p-6 space-y-5 overflow-y-auto custom-scroll">
         <input type="hidden" id="team-id">
-        <div>
-          <label class="block text-sm font-medium text-gray-400 mb-1">Nome do Time</label>
-          <input id="team-name" type="text" class="w-full p-3 rounded-lg modal-input" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-400 mb-1">Jogo Principal</label>
-          <input id="team-game" list="games-list" type="text" class="w-full p-3 rounded-lg modal-input" required>
-          <datalist id="games-list"></datalist>
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1">Tipo de Time</label>
-            <select id="team-type" class="w-full p-3 rounded-lg modal-input">
-              <option value="Pokemon">Pokemon</option>
-              <option value="Digimon">Digimon</option>
-              <option value="Futebol">Futebol</option>
-              <option value="Geral">Geral</option>
-            </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-400 mb-1">Banner (URL)</label>
-          <input id="team-img" type="url" class="w-full p-3 rounded-lg modal-input">
-        </div>
-        
+        <div><label class="block text-sm font-medium text-gray-400 mb-1">Nome</label><input id="team-name" type="text" class="w-full p-3 rounded-lg modal-input" required></div>
+        <div><label class="block text-sm font-medium text-gray-400 mb-1">Jogo</label><input id="team-game" list="games-list" type="text" class="w-full p-3 rounded-lg modal-input" required><datalist id="games-list"></datalist></div>
+        <div><label class="block text-sm font-medium text-gray-400 mb-1">Tipo</label><select id="team-type" class="w-full p-3 rounded-lg modal-input"><option value="Pokemon">Pokemon</option><option value="Digimon">Digimon</option><option value="Futebol">Futebol</option><option value="Geral">Geral</option></select></div>
+        <div><label class="block text-sm font-medium text-gray-400 mb-1">Banner (URL)</label><input id="team-img" type="url" class="w-full p-3 rounded-lg modal-input"></div>
         <div class="flex justify-between items-center pt-4 border-t border-[#2a2a2a] mt-4">
             <button id="delete-btn" type="button" class="hidden text-red-500 hover:text-red-400 text-sm font-medium">Excluir</button>
-            <div class="flex gap-3 ml-auto">
-                <button type="submit" class="px-6 py-2 rounded-lg btn-primary font-medium">Salvar</button>
-            </div>
+            <button type="submit" class="px-6 py-2 rounded-lg btn-primary font-medium ml-auto">Salvar</button>
         </div>
       </form>
     </div>
@@ -214,62 +157,66 @@
 
   <div id="members-modal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[60] backdrop-blur-md p-2 sm:p-4">
     <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-5xl h-[90vh] shadow-2xl relative flex flex-col md:flex-row overflow-hidden">
-        
         <div class="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#2a2a2a] flex flex-col bg-[#111] h-1/3 md:h-full shrink-0">
-            <div class="p-3 border-b border-[#2a2a2a] bg-[#1a1a1a]">
-                <h3 class="font-bold text-white text-sm flex items-center gap-2">
-                    <i data-lucide="users" class="w-4 h-4 text-[#B9314F]"></i> Integrantes
-                </h3>
-                <p id="member-team-name" class="text-[10px] text-gray-500 truncate mt-1">Nome do Time</p>
-            </div>
-            
+            <div class="p-3 border-b border-[#2a2a2a] bg-[#1a1a1a]"><h3 class="font-bold text-white text-sm flex items-center gap-2"><i data-lucide="users" class="w-4 h-4 text-[#B9314F]"></i> Integrantes</h3><p id="member-team-name" class="text-[10px] text-gray-500 truncate mt-1">-</p></div>
             <div id="members-list" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scroll"></div>
-            
-            <div class="p-3 border-t border-[#2a2a2a] bg-[#111]">
-                <button onclick="prepareNewMember()" class="w-full py-2 bg-[#2a2a2a] hover:bg-[#B9314F] text-gray-300 hover:text-white rounded-lg transition text-xs font-bold flex items-center justify-center gap-2">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Integrante
-                </button>
-            </div>
+            <div class="p-3 border-t border-[#2a2a2a] bg-[#111]"><button onclick="prepareNewMember()" class="w-full py-2 bg-[#2a2a2a] hover:bg-[#B9314F] text-gray-300 hover:text-white rounded-lg transition text-xs font-bold flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Novo Integrante</button></div>
         </div>
-
         <div class="flex-1 flex flex-col bg-[#151515] relative min-h-0">
-            <div class="p-3 border-b border-[#2a2a2a] flex justify-between items-center shrink-0">
-                <h3 id="member-form-title" class="font-bold text-white text-sm">Adicionar / Editar</h3>
-                <button onclick="closeMembersModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
+            <div class="p-3 border-b border-[#2a2a2a] flex justify-between items-center shrink-0"><h3 id="member-form-title" class="font-bold text-white text-sm">Adicionar / Editar</h3><button onclick="closeMembersModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
             <div id="member-form-container" class="flex-1 overflow-y-auto p-4 md:p-6 hidden custom-scroll">
                 <form id="member-form" class="space-y-4 max-w-lg mx-auto pb-4">
                     <input type="hidden" id="member-id">
-                    
-                    <div class="flex gap-4 items-start">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label>
-                            <input id="member-name" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" required>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Avatar (URL)</label>
-                        <input id="member-avatar" type="url" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="https://...">
-                        <p class="text-[10px] text-gray-500 mt-1">Se falhar, usaremos a inicial.</p>
-                    </div>
-
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label><input id="member-name" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" required></div>
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Avatar (URL)</label><input id="member-avatar" type="url" class="w-full p-2.5 rounded-lg modal-input text-sm"><p class="text-[10px] text-gray-500 mt-1">Se falhar, usaremos a inicial.</p></div>
                     <div id="dynamic-fields" class="p-4 bg-[#1a1a1a] rounded-lg border border-[#333] space-y-4"></div>
-
-                    <div class="flex justify-between items-center pt-4 mt-2 border-t border-[#2a2a2a]">
-                        <button type="button" id="btn-delete-member" class="text-red-500 hover:text-red-300 text-xs font-bold uppercase hidden">Excluir</button>
-                        <button type="submit" class="px-6 py-2 rounded-lg btn-primary text-sm font-bold shadow-lg ml-auto">Salvar</button>
-                    </div>
+                    <div class="flex justify-between items-center pt-4 mt-2 border-t border-[#2a2a2a]"><button type="button" id="btn-delete-member" class="text-red-500 hover:text-red-300 text-xs font-bold uppercase hidden">Excluir</button><button type="submit" class="px-6 py-2 rounded-lg btn-primary text-sm font-bold shadow-lg ml-auto">Salvar</button></div>
                 </form>
             </div>
-
-            <div id="member-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-600 p-10">
-                <i data-lucide="user-plus" class="w-12 h-12 mb-3 opacity-50"></i>
-                <p class="text-sm text-center">Selecione um integrante na lista<br>ou clique em "Novo".</p>
-            </div>
+            <div id="member-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-600 p-10"><i data-lucide="user-plus" class="w-12 h-12 mb-3 opacity-50"></i><p class="text-sm text-center">Selecione ou crie um novo.</p></div>
         </div>
     </div>
+  </div>
+
+  <div id="soccer-visualizer-modal" class="fixed inset-0 bg-[#0b0b0b] hidden z-[70] flex flex-col">
+      <div class="bg-[#151515] border-b border-[#2a2a2a] p-3 flex justify-between items-center shrink-0">
+          <div class="flex items-center gap-4">
+              <h3 class="text-white font-bold flex items-center gap-2"><i data-lucide="layout-template" class="text-[#B9314F]"></i> Prancheta Tática</h3>
+              <select id="formation-select" class="bg-[#2a2a2a] text-white text-sm border border-[#333] rounded px-3 py-1.5 outline-none focus:border-[#B9314F]"></select>
+          </div>
+          <button onclick="closeSoccerVisualizer()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <div class="flex-1 flex overflow-hidden relative">
+          
+          <div class="flex-1 bg-[#111] flex items-center justify-center p-2 sm:p-6 overflow-hidden relative">
+              
+              <button id="toggle-sidebar-btn" onclick="toggleSoccerSidebar()" 
+                      class="absolute right-0 top-1/2 -translate-y-1/2 z-40 bg-[#2a2a2a] border-l border-y border-[#333] text-gray-400 hover:text-[#B9314F] hover:bg-[#222] p-1 rounded-l-lg shadow-lg transition-colors h-16 flex items-center justify-center">
+                  <i data-lucide="chevron-right" class="w-5 h-5"></i>
+              </button>
+
+              <div class="relative h-full aspect-[3/5] max-h-[85vh] max-w-full transition-all duration-300">
+                  <div id="soccer-field" class="soccer-field-container w-full h-full">
+                      <div class="pitch-lines"></div>
+                      <div class="goal-area-top"></div>
+                      <div class="goal-area-bottom"></div>
+                      <div id="field-players-container" class="absolute inset-0"></div>
+                  </div>
+              </div>
+          </div>
+
+          <div id="soccer-sidebar" class="w-64 bg-[#111] border-l border-[#2a2a2a] flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden">
+              <div class="flex-1 flex flex-col p-3 border-b border-[#2a2a2a] overflow-hidden">
+                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i> Reservas</h4>
+                  <div id="subs-list" class="space-y-2 overflow-y-auto custom-scroll pr-1 flex-1"></div>
+                  <div id="subs-overflow" class="hidden mt-2 text-center text-xs text-gray-500 p-2 bg-[#1a1a1a] rounded">+X Jogadores</div>
+              </div>
+              <div class="h-1/3 p-3 bg-[#151515] flex flex-col overflow-hidden">
+                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="clipboard" class="w-3 h-3"></i> Comissão</h4>
+                  <div id="coaches-list" class="space-y-2 overflow-y-auto custom-scroll pr-1"></div>
+              </div>
+          </div>
+      </div>
   </div>
 
   <script type="module">
@@ -277,439 +224,233 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-      authDomain: "list-games-9bddd.firebaseapp.com",
-      projectId: "list-games-9bddd",
-      storageBucket: "list-games-9bddd.firebasestorage.app",
-      messagingSenderId: "756898313156",
-      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+    /* =========================================================
+       ÁREA DE CONFIGURAÇÃO DE TÁTICAS FÁCIL
+       Adicione novas formações aqui.
+       t (top): 0% = Gol Adversário (Topo) | 100% = Nosso Gol (Baixo)
+       l (left): 0% = Esquerda | 100% = Direita
+    ========================================================= */
+    const TACTICS_CONFIG = {
+        '4-3-3': {
+            'Goleiro':  [{t:92,l:50}],
+            'Zagueiro': [{t:80,l:30},{t:80,l:70}],
+            'Lateral':  [{t:75,l:10},{t:75,l:90}],
+            'Volante':  [{t:60,l:50}],
+            'Meia':     [{t:50,l:30},{t:50,l:70}],
+            'Atacante': [{t:25,l:15},{t:20,l:50},{t:25,l:85}]
+        },
+        '4-4-2': {
+            'Goleiro':  [{t:92,l:50}],
+            'Zagueiro': [{t:80,l:35},{t:80,l:65}],
+            'Lateral':  [{t:75,l:10},{t:75,l:90}],
+            'Volante':  [{t:60,l:40},{t:60,l:60}],
+            'Meia':     [{t:45,l:15},{t:45,l:85}],
+            'Atacante': [{t:20,l:35},{t:20,l:65}]
+        },
+        '3-5-2': {
+             'Goleiro':  [{t:92,l:50}],
+             'Zagueiro': [{t:75,l:50}],
+             'Lateral':  [{t:75,l:25},{t:75,l:75}],
+             'Volante':  [{t:60,l:50}],
+             'Meia':     [{t:50,l:30},{t:50,l:70}, {t:35,l:20},{t:35,l:80}],
+             'Atacante': [{t:15,l:30},{t:15,l:70}]
+        },
+        // Adicione mais aqui se quiser...
     };
 
+    const firebaseConfig = { apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser = null;
-    let allTeams = [];
-    let allGames = [];
-    let editingId = null;
-    let currentTeamMembers = [];
-    let currentTeamData = null;
+    let currentUser = null, allTeams = [], allGames = [], editingId = null, currentTeamMembers = [], currentTeamData = null;
 
     const els = {
-        app: document.getElementById('app'),
-        loading: document.getElementById('loading'),
-        cards: document.getElementById('cards-container'),
-        empty: document.getElementById('empty-state'),
-        modal: document.getElementById('modal'),
-        form: document.getElementById('team-form'),
-        modalTitle: document.getElementById('modal-title-text'),
-        search: document.getElementById('search-input'),
-        filterType: document.getElementById('filter-type'),
-        datalist: document.getElementById('games-list'),
-        inputs: {
-            name: document.getElementById('team-name'),
-            game: document.getElementById('team-game'),
-            img: document.getElementById('team-img'),
-            type: document.getElementById('team-type'),
-        },
-        btns: {
-            add: document.getElementById('add-btn'),
-            close: document.getElementById('close-modal'),
-            delete: document.getElementById('delete-btn'),
-            logout: document.getElementById('logout-btn')
-        },
-        membersModal: document.getElementById('members-modal'),
-        membersList: document.getElementById('members-list'),
-        memberFormContainer: document.getElementById('member-form-container'),
-        memberEmptyState: document.getElementById('member-empty-state'),
-        memberForm: document.getElementById('member-form'),
-        memberInputs: {
-            id: document.getElementById('member-id'),
-            name: document.getElementById('member-name'),
-            avatar: document.getElementById('member-avatar'),
-            dynamic: document.getElementById('dynamic-fields')
-        },
-        btnDeleteMember: document.getElementById('btn-delete-member'),
-        memberTeamName: document.getElementById('member-team-name')
+        app: document.getElementById('app'), loading: document.getElementById('loading'), cards: document.getElementById('cards-container'), empty: document.getElementById('empty-state'),
+        modal: document.getElementById('modal'), form: document.getElementById('team-form'), modalTitle: document.getElementById('modal-title-text'),
+        search: document.getElementById('search-input'), filterType: document.getElementById('filter-type'), datalist: document.getElementById('games-list'),
+        inputs: { name: document.getElementById('team-name'), game: document.getElementById('team-game'), img: document.getElementById('team-img'), type: document.getElementById('team-type') },
+        btns: { add: document.getElementById('add-btn'), close: document.getElementById('close-modal'), delete: document.getElementById('delete-btn'), logout: document.getElementById('logout-btn') },
+        membersModal: document.getElementById('members-modal'), membersList: document.getElementById('members-list'), memberFormContainer: document.getElementById('member-form-container'),
+        memberEmptyState: document.getElementById('member-empty-state'), memberForm: document.getElementById('member-form'),
+        memberInputs: { id: document.getElementById('member-id'), name: document.getElementById('member-name'), avatar: document.getElementById('member-avatar'), dynamic: document.getElementById('dynamic-fields') },
+        btnDeleteMember: document.getElementById('btn-delete-member'), memberTeamName: document.getElementById('member-team-name'),
+        soccerModal: document.getElementById('soccer-visualizer-modal'), formationSelect: document.getElementById('formation-select'), fieldPlayersContainer: document.getElementById('field-players-container'),
+        subsList: document.getElementById('subs-list'), subsOverflow: document.getElementById('subs-overflow'), coachesList: document.getElementById('coaches-list')
     };
 
-    const toggleLoading = (show) => {
-        if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); }
-        else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); lucide.createIcons(); }
-    };
-
-    const getTypeColor = (type) => {
-        switch(type) {
-            case 'Pokemon': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-            case 'Digimon': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-            case 'Futebol': return 'bg-green-500/10 text-green-400 border-green-500/20';
-            case 'Geral': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-            default: return 'bg-gray-700/30 text-gray-300 border-gray-600';
-        }
-    };
-
-    // --- FUNÇÃO DE AVATAR ROBUSTA ---
-    // Esta função gera o HTML. Se a img falhar, o 'onerror' inline substitui o elemento por um div
-    const generateAvatarHTML = (avatarUrl, name, sizeClass = "w-11 h-11") => {
-        // CORREÇÃO DE QUALIDADE: Remove redimensionamento automático de wikis
-        if (avatarUrl && avatarUrl.includes('static.wikia')) {
-            avatarUrl = avatarUrl.split('/revision/')[0];
-        }
-
+    const toggleLoading = (show) => { if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); } else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); lucide.createIcons(); } };
+    const getTypeColor = (type) => { switch(type) { case 'Pokemon': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'; case 'Digimon': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'; case 'Futebol': return 'bg-green-500/10 text-green-400 border-green-500/20'; default: return 'bg-gray-700/30 text-gray-300 border-gray-600'; } };
+    
+    // Função Avatar com Fallback Seguro (Alta Qualidade)
+    const generateAvatarHTML = (avatarUrl, name, sizeClass = "w-10 h-10") => {
         const initial = name ? name.charAt(0).toUpperCase() : '?';
-        const fallbackHtml = `<div class='${sizeClass} avatar-fallback-container rounded-full border border-[#444] shadow-sm'>${initial}</div>`;
-        
+        const fallbackHtml = `<div class='${sizeClass} avatar-fallback-container rounded-full border border-[#444] shadow-sm bg-[#222]'>${initial}</div>`;
         if (!avatarUrl || avatarUrl.trim() === '') return fallbackHtml;
+        // Limpa URL da wikia se necessário para pegar imagem full
+        if (avatarUrl.includes('static.wikia')) avatarUrl = avatarUrl.split('/revision/')[0];
         
-        // Adicionei 'antialiased' e estilos inline para melhorar a renderização
-        return `<img src="${avatarUrl}" 
-                    class="${sizeClass} rounded-full object-cover border border-[#444] bg-[#222] antialiased" 
-                    style="image-rendering: -webkit-optimize-contrast; backface-visibility: hidden;"
-                    alt="${name}"
-                    onerror="this.parentElement.innerHTML=\`${fallbackHtml}\`">`;
+        return `<img src="${avatarUrl}" class="${sizeClass} rounded-full object-cover border border-[#444] bg-[#222]" 
+                     style="image-rendering: -webkit-optimize-contrast;" alt="${name}" 
+                     onerror="this.parentElement.innerHTML=\`${fallbackHtml}\`">`;
     };
 
-    const render = () => {
-        const term = els.search.value.toLowerCase();
-        const typeFilter = els.filterType.value;
+    // --- VISUALIZADOR TÁTICO ---
+    // Popula o select de formações baseado na config
+    Object.keys(TACTICS_CONFIG).forEach(f => {
+        const opt = document.createElement('option'); opt.value = f; opt.textContent = f; els.formationSelect.appendChild(opt);
+    });
 
-        const filtered = allTeams.filter(t => {
-            const matchesSearch = t.name.toLowerCase().includes(term) || t.game.toLowerCase().includes(term);
-            const matchesType = !typeFilter || t.type === typeFilter;
-            return matchesSearch && matchesType;
-        });
+    window.openSoccerVisualizer = (team) => {
+        if(team.type !== 'Futebol') { alert('Disponível apenas para Futebol.'); return; }
+        currentTeamData = team;
+        els.soccerModal.classList.remove('hidden');
+        renderSoccerLayout();
+    };
+    window.closeSoccerVisualizer = () => els.soccerModal.classList.add('hidden');
+    els.formationSelect.addEventListener('change', () => renderSoccerField());
 
-        els.cards.innerHTML = '';
+    const renderSoccerLayout = () => {
+        const members = currentTeamData.members || [];
+        const titulares = members.filter(m => m.status === 'Titular' && m.posicao !== 'Técnico');
+        const reservas = members.filter(m => m.status === 'Reserva' && m.posicao !== 'Técnico');
+        const tecnicos = members.filter(m => m.posicao === 'Técnico');
+        renderSoccerField(titulares);
+        renderSoccerSidebar(reservas, tecnicos);
+    }
+
+    const renderSoccerField = (titularesList) => {
+        els.fieldPlayersContainer.innerHTML = '';
+        const formationId = els.formationSelect.value;
+        const slotsConfig = TACTICS_CONFIG[formationId];
+        if(!slotsConfig) return;
         
-        if (filtered.length === 0) {
-            els.empty.classList.remove('hidden');
-        } else {
+        let playersToPlace = titularesList || currentTeamData.members.filter(m => m.status === 'Titular' && m.posicao !== 'Técnico');
+
+        for (const [posicaoName, slots] of Object.entries(slotsConfig)) {
+            slots.forEach((coords) => {
+                const playerIndex = playersToPlace.findIndex(p => p.posicao === posicaoName);
+                if(playerIndex > -1) {
+                    const player = playersToPlace[playerIndex];
+                    playersToPlace.splice(playerIndex, 1);
+
+                    // Cria o TOKEN no campo
+                    const token = document.createElement('div');
+                    token.className = 'player-token group/token';
+                    token.style.top = `${coords.t}%`;
+                    token.style.left = `${coords.l}%`;
+                    
+                    token.innerHTML = `
+                        <div class="token-img-wrapper">
+                            ${generateAvatarHTML(player.avatar, player.name, "w-full h-full")}
+                        </div>
+                        <div class="token-info">
+                             <div class="token-name">${player.name.split(' ')[0]}</div>
+                             <div class="token-pos">${player.posicao} ${player.numero ? '#'+player.numero : ''}</div>
+                        </div>
+                    `;
+                    els.fieldPlayersContainer.appendChild(token);
+                }
+            });
+        }
+    };
+
+    const renderSoccerSidebar = (reservas, tecnicos) => {
+        els.subsList.innerHTML = ''; const maxSubs = 7;
+        reservas.slice(0, maxSubs).forEach(sub => {
+             const item = document.createElement('div'); item.className = "flex items-center gap-2 p-2 bg-[#1a1a1a] rounded border border-[#2a2a2a]";
+             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(sub.avatar, sub.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${sub.name}</p><p class="text-[10px] text-gray-500">${sub.posicao} #${sub.numero||'?'}</p></div>`;
+             els.subsList.appendChild(item);
+        });
+        if(reservas.length > maxSubs) { els.subsOverflow.textContent = `+${reservas.length - maxSubs} Jogadores`; els.subsOverflow.classList.remove('hidden'); } else els.subsOverflow.classList.add('hidden');
+
+        els.coachesList.innerHTML = '';
+        tecnicos.slice(0, 3).forEach(coach => {
+             const item = document.createElement('div'); item.className = "flex items-center gap-2 p-2 bg-[#1a1a1a] rounded border border-[#B9314F]/30";
+             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(coach.avatar, coach.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${coach.name}</p><p class="text-[10px] text-[#B9314F]">Técnico</p></div>`;
+             els.coachesList.appendChild(item);
+        });
+    };
+
+    // --- CORE (Render, CRUD, Auth) ---
+    const render = () => {
+        const term = els.search.value.toLowerCase(); const typeFilter = els.filterType.value;
+        const filtered = allTeams.filter(t => (t.name.toLowerCase().includes(term) || t.game.toLowerCase().includes(term)) && (!typeFilter || t.type === typeFilter));
+        els.cards.innerHTML = '';
+        if (filtered.length === 0) els.empty.classList.remove('hidden');
+        else {
             els.empty.classList.add('hidden');
             filtered.forEach(t => {
-                const imgSource = t.img || 'https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image';
-                const members = t.members || [];
-                
-                // Stack de membros
+                const imgSource = t.img || 'https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'; const members = t.members || [];
                 let membersStackHTML = '';
                 if (members.length > 0) {
-                    const maxDisplay = 8;
-                    const displayMembers = members.slice(0, maxDisplay);
-                    const remaining = members.length - maxDisplay;
-
-                    const avatars = displayMembers.map(m => `
-                        <div class="relative -ml-2 transition-transform hover:-translate-y-1 hover:z-10">
-                            ${generateAvatarHTML(m.avatar, m.name, "w-11 h-11")}
-                        </div>
-                    `).join('');
-
-                    const plusBubble = remaining > 0 
-                        ? `<div class="relative -ml-2 z-0 w-8 h-8 rounded-full bg-[#222] border border-[#333] text-gray-400 text-[10px] font-bold flex items-center justify-center">
-                             +${remaining}
-                           </div>` 
-                        : '';
-
+                    const maxDisplay = 10; const displayMembers = members.slice(0, maxDisplay); const remaining = members.length - maxDisplay;
+                    const avatars = displayMembers.map(m => `<div class="relative -ml-2 transition-transform hover:-translate-y-1 hover:z-10"><div class="avatar-wrapper">${generateAvatarHTML(m.avatar, m.name, "w-11 h-11")}</div></div>`).join('');
+                    const plusBubble = remaining > 0 ? `<div class="relative -ml-2 z-0 w-8 h-8 rounded-full bg-[#222] border border-[#333] text-gray-400 text-[10px] font-bold flex items-center justify-center">+${remaining}</div>` : '';
                     membersStackHTML = `<div class="flex items-center pl-2 mt-3 h-9">${avatars}${plusBubble}</div>`;
-                } else {
-                    membersStackHTML = `<p class="text-xs text-gray-600 mt-3 italic pl-1 h-9 flex items-center">Sem integrantes</p>`;
-                }
+                } else membersStackHTML = `<p class="text-xs text-gray-600 mt-3 italic pl-1 h-9 flex items-center">Sem integrantes</p>`;
 
-                const card = document.createElement('div');
-                card.className = 'team-card group';
+                const card = document.createElement('div'); card.className = 'team-card group';
                 card.innerHTML = `
-                    <div class="w-full md:w-56 h-32 md:h-full relative shrink-0 bg-black">
-                         <img src="${imgSource}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
-                              onerror="this.src='https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'">
-                         <div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent md:hidden"></div>
-                    </div>
-
-                    <div class="flex-1 p-4 md:p-5 flex flex-col justify-between relative">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#B9314F]">${t.game}</span>
-                                <span class="text-[10px] px-2 py-0.5 rounded border ${getTypeColor(t.type)}">${t.type}</span>
-                            </div>
-                            <h3 class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight">${t.name}</h3>
-                            ${membersStackHTML}
-                        </div>
-                    </div>
-
-                    <div class="action-section">
-                        <button class="btn-icon edit" title="Editar"><i data-lucide="pencil" class="w-5 h-5"></i></button>
-                        <button class="btn-icon members" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button>
-                        <button class="btn-icon view" title="Ver"><i data-lucide="eye" class="w-5 h-5"></i></button>
-                    </div>
-                `;
-
-                card.querySelector('.edit').onclick = () => openEditTeamModal(t);
-                card.querySelector('.members').onclick = () => openMembersModal(t);
-                card.querySelector('.view').onclick = () => alert('Modo visualização em breve!');
-
+                    <div class="w-full md:w-56 h-32 md:h-full relative shrink-0 bg-black"><img src="${imgSource}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'"><div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent md:hidden"></div></div>
+                    <div class="flex-1 p-4 md:p-5 flex flex-col justify-between relative"><div><div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-[#B9314F]">${t.game}</span><span class="text-[10px] px-2 py-0.5 rounded border ${getTypeColor(t.type)}">${t.type}</span></div><h3 class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight">${t.name}</h3>${membersStackHTML}</div></div>
+                    <div class="action-section"><button class="btn-icon edit" title="Editar"><i data-lucide="pencil" class="w-5 h-5"></i></button><button class="btn-icon members" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button><button class="btn-icon view" title="Ver"><i data-lucide="eye" class="w-5 h-5"></i></button></div>`;
+                card.querySelector('.edit').onclick = () => openEditTeamModal(t); card.querySelector('.members').onclick = () => openMembersModal(t);
+                const viewBtn = card.querySelector('.view');
+                if (t.type === 'Futebol') viewBtn.onclick = () => openSoccerVisualizer(t);
+                else { viewBtn.classList.add('opacity-50', 'cursor-not-allowed'); viewBtn.onclick = () => alert('Visualização apenas para Futebol.'); }
                 els.cards.appendChild(card);
             });
         }
         lucide.createIcons();
     };
 
-    // --- CRUD TIMES (Mantido) ---
-    const openNewTeamModal = () => {
-        editingId = null;
-        els.form.reset();
-        els.btns.delete.classList.add('hidden');
-        els.modalTitle.textContent = "Novo Time";
-        els.modal.classList.remove('hidden');
-        els.modal.classList.add('flex');
-    };
-
-    const openEditTeamModal = (data) => {
-        editingId = data.id;
-        els.inputs.name.value = data.name;
-        els.inputs.game.value = data.game;
-        els.inputs.img.value = data.img || '';
-        els.inputs.type.value = data.type || 'Geral';
-        els.btns.delete.classList.remove('hidden');
-        els.modalTitle.textContent = "Editar Time";
-        els.modal.classList.remove('hidden');
-        els.modal.classList.add('flex');
-    };
-
-    const saveTeam = async (e) => {
-        e.preventDefault();
-        const data = {
-            name: els.inputs.name.value,
-            game: els.inputs.game.value,
-            img: els.inputs.img.value,
-            type: els.inputs.type.value,
-            updatedAt: new Date()
-        };
-        try {
-            if (editingId) {
-                await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data);
-            } else {
-                data.members = [];
-                await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data);
-            }
-            els.modal.classList.add('hidden');
-        } catch (err) { console.error(err); }
-    };
-
-    const deleteTeam = async () => {
-        if(!editingId || !confirm("Tem certeza?")) return;
-        await deleteDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId));
-        els.modal.classList.add('hidden');
-    };
-
-    // --- MEMBROS (Lógica de UI Corrigida) ---
-    window.openMembersModal = (team) => {
-        currentTeamData = team;
-        currentTeamMembers = team.members || [];
-        els.memberTeamName.textContent = team.name;
-        renderMembersList();
+    // --- Lógica do Toggle da Sidebar ---
+    window.toggleSoccerSidebar = () => {
+        const sidebar = document.getElementById('soccer-sidebar');
+        const btn = document.getElementById('toggle-sidebar-btn');
+        const icon = btn.querySelector('i'); // Pega o ícone dentro do botão
         
-        // Reset view
-        els.memberEmptyState.classList.remove('hidden');
-        els.memberFormContainer.classList.add('hidden');
-        
-        els.membersModal.classList.remove('hidden');
-        els.membersModal.classList.add('flex');
-    };
-
-    window.closeMembersModal = () => els.membersModal.classList.add('hidden');
-
-    const renderMembersList = () => {
-        els.membersList.innerHTML = '';
-        currentTeamMembers.forEach((member, index) => {
-            const item = document.createElement('div');
-            item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]';
+        // Verifica se está fechado (largura 0)
+        if (sidebar.classList.contains('w-0')) {
+            // ABRIR
+            sidebar.classList.remove('w-0', 'border-l-0', 'opacity-0');
+            sidebar.classList.add('w-64', 'border-l');
             
-            // Container para o avatar (importante para o wrapper do fallback funcionar)
-            const avatarContainer = document.createElement('div');
-            avatarContainer.className = 'shrink-0';
-            avatarContainer.innerHTML = generateAvatarHTML(member.avatar, member.name, "w-8 h-8");
-
-            let extraInfo = '';
-            if(currentTeamData.type === 'Futebol') {
-                extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'}</span>`;
-            }
-
-            item.innerHTML = `
-                <div class="avatar-wrapper"></div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>
-                    ${extraInfo}
-                </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>
-            `;
-            // Injeta o avatar seguro
-            item.querySelector('.avatar-wrapper').appendChild(avatarContainer);
-            
-            item.onclick = () => loadMemberToForm(member, index);
-            els.membersList.appendChild(item);
-        });
-        lucide.createIcons();
-    };
-
-    const renderTypeSpecificFields = (type, data = {}) => {
-        const container = els.memberInputs.dynamic;
-        container.innerHTML = '';
-        if (type === 'Futebol') {
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label>
-                        <select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            <option value="Goleiro">Goleiro</option>
-                            <option value="Zagueiro">Zagueiro</option>
-                            <option value="Lateral">Lateral</option>
-                            <option value="Volante">Volante</option>
-                            <option value="Meia">Meia</option>
-                            <option value="Atacante">Atacante</option>
-                            <option value="Técnico">Técnico</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label>
-                        <input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label>
-                    </div>
-                </div>
-            `;
-            if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao;
-            if(data.numero) document.getElementById('mem-futebol-num').value = data.numero;
-            if(data.status) {
-                const radios = document.getElementsByName('status');
-                radios.forEach(r => { if(r.value === data.status) r.checked = true; });
-            }
+            // Troca ícone para seta direita (para fechar)
+            btn.innerHTML = '<i data-lucide="chevron-right" class="w-5 h-5"></i>';
         } else {
-            container.innerHTML = `
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Função / Cargo</label>
-                    <input id="mem-geral-role" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Líder" value="${data.role || ''}">
-                </div>
-            `;
+            // FECHAR
+            sidebar.classList.remove('w-64', 'border-l');
+            sidebar.classList.add('w-0', 'border-l-0', 'opacity-0');
+            
+            // Troca ícone para seta esquerda (para abrir)
+            btn.innerHTML = '<i data-lucide="chevron-left" class="w-5 h-5"></i>';
         }
+        
+        // Recarrega os ícones recém inseridos
+        if(typeof lucide !== 'undefined') lucide.createIcons();
     };
 
-    const getDynamicData = (type) => {
-        if(type === 'Futebol') {
-            return {
-                posicao: document.getElementById('mem-futebol-pos').value,
-                numero: document.getElementById('mem-futebol-num').value,
-                status: document.querySelector('input[name="status"]:checked')?.value || 'Titular'
-            };
-        }
-        return { role: document.getElementById('mem-geral-role') ? document.getElementById('mem-geral-role').value : '' };
-    };
+    window.toggleSoccerSidebar = window.toggleSoccerSidebar;
 
-    window.prepareNewMember = () => {
-        els.memberInputs.id.value = -1;
-        els.memberInputs.name.value = '';
-        els.memberInputs.avatar.value = '';
-        renderTypeSpecificFields(currentTeamData.type);
-        els.memberEmptyState.classList.add('hidden');
-        els.memberFormContainer.classList.remove('hidden');
-        els.btnDeleteMember.classList.add('hidden');
-        document.getElementById('member-form-title').textContent = "Novo Integrante";
-    };
+    const openNewTeamModal = () => { editingId = null; els.form.reset(); els.btns.delete.classList.add('hidden'); els.modalTitle.textContent = "Novo Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
+    const openEditTeamModal = (data) => { editingId = data.id; els.inputs.name.value = data.name; els.inputs.game.value = data.game; els.inputs.img.value = data.img || ''; els.inputs.type.value = data.type || 'Geral'; els.btns.delete.classList.remove('hidden'); els.modalTitle.textContent = "Editar Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
+    const saveTeam = async (e) => { e.preventDefault(); const data = { name: els.inputs.name.value, game: els.inputs.game.value, img: els.inputs.img.value, type: els.inputs.type.value, updatedAt: new Date() }; try { if (editingId) await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data); else { data.members = []; await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data); } els.modal.classList.add('hidden'); } catch (err) { console.error(err); } };
+    const deleteTeam = async () => { if(!editingId || !confirm("Tem certeza?")) return; await deleteDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId)); els.modal.classList.add('hidden'); };
 
-    const loadMemberToForm = (member, index) => {
-        els.memberInputs.id.value = index;
-        els.memberInputs.name.value = member.name;
-        els.memberInputs.avatar.value = member.avatar || '';
-        renderTypeSpecificFields(currentTeamData.type, member);
-        els.memberEmptyState.classList.add('hidden');
-        els.memberFormContainer.classList.remove('hidden');
-        els.btnDeleteMember.classList.remove('hidden');
-        document.getElementById('member-form-title').textContent = "Editar Integrante";
-    };
+    window.openMembersModal = (team) => { currentTeamData = team; currentTeamMembers = team.members || []; els.memberTeamName.textContent = team.name; renderMembersList(); els.memberEmptyState.classList.remove('hidden'); els.memberFormContainer.classList.add('hidden'); els.membersModal.classList.remove('hidden'); els.membersModal.classList.add('flex'); };
+    window.closeMembersModal = () => els.membersModal.classList.add('hidden');
+    const renderMembersList = () => { els.membersList.innerHTML = ''; currentTeamMembers.forEach((member, index) => { const item = document.createElement('div'); item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]'; let extraInfo = ''; if(currentTeamData.type === 'Futebol') extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'} ${member.status === 'Reserva' ? '(R)' : ''}</span>`; item.innerHTML = `<div class="avatar-wrapper shrink-0">${generateAvatarHTML(member.avatar, member.name, "w-8 h-8")}</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>${extraInfo}</div><i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>`; item.onclick = () => loadMemberToForm(member, index); els.membersList.appendChild(item); }); lucide.createIcons(); };
+    const renderTypeSpecificFields = (type, data = {}) => { const container = els.memberInputs.dynamic; container.innerHTML = ''; if (type === 'Futebol') { container.innerHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label><select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm"><option value="Goleiro">Goleiro</option><option value="Zagueiro">Zagueiro</option><option value="Lateral">Lateral</option><option value="Volante">Volante</option><option value="Meia">Meia</option><option value="Atacante">Atacante</option><option value="Técnico">Técnico</option></select></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label><input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10"></div></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label></div></div>`; if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao; if(data.numero) document.getElementById('mem-futebol-num').value = data.numero; if(data.status) { const radios = document.getElementsByName('status'); radios.forEach(r => { if(r.value === data.status) r.checked = true; }); } } else { container.innerHTML = `<div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Função / Cargo</label><input id="mem-geral-role" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Líder" value="${data.role || ''}"></div>`; } };
+    const getDynamicData = (type) => { if(type === 'Futebol') return { posicao: document.getElementById('mem-futebol-pos').value, numero: document.getElementById('mem-futebol-num').value, status: document.querySelector('input[name="status"]:checked')?.value || 'Titular' }; return { role: document.getElementById('mem-geral-role') ? document.getElementById('mem-geral-role').value : '' }; };
+    window.prepareNewMember = () => { els.memberInputs.id.value = -1; els.memberInputs.name.value = ''; els.memberInputs.avatar.value = ''; renderTypeSpecificFields(currentTeamData.type); els.memberEmptyState.classList.add('hidden'); els.memberFormContainer.classList.remove('hidden'); els.btnDeleteMember.classList.add('hidden'); document.getElementById('member-form-title').textContent = "Novo Integrante"; };
+    const loadMemberToForm = (member, index) => { els.memberInputs.id.value = index; els.memberInputs.name.value = member.name; els.memberInputs.avatar.value = member.avatar || ''; renderTypeSpecificFields(currentTeamData.type, member); els.memberEmptyState.classList.add('hidden'); els.memberFormContainer.classList.remove('hidden'); els.btnDeleteMember.classList.remove('hidden'); document.getElementById('member-form-title').textContent = "Editar Integrante"; };
+    const saveMember = async (e) => { e.preventDefault(); const index = parseInt(els.memberInputs.id.value); const memberData = { name: els.memberInputs.name.value, avatar: els.memberInputs.avatar.value, ...getDynamicData(currentTeamData.type) }; const updatedMembers = [...currentTeamMembers]; if(index === -1) updatedMembers.push(memberData); else updatedMembers[index] = memberData; try { await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers }); currentTeamMembers = updatedMembers; renderMembersList(); render(); els.memberFormContainer.classList.add('hidden'); els.memberEmptyState.classList.remove('hidden'); } catch (err) { console.error(err); alert("Erro ao salvar."); } };
+    const deleteMember = async () => { const index = parseInt(els.memberInputs.id.value); if(index === -1 || !confirm("Remover este integrante?")) return; const updatedMembers = currentTeamMembers.filter((_, i) => i !== index); try { await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers }); currentTeamMembers = updatedMembers; renderMembersList(); render(); els.memberFormContainer.classList.add('hidden'); els.memberEmptyState.classList.remove('hidden'); } catch (err) { console.error(err); } };
 
-    const saveMember = async (e) => {
-        e.preventDefault();
-        const index = parseInt(els.memberInputs.id.value);
-        const memberData = {
-            name: els.memberInputs.name.value,
-            avatar: els.memberInputs.avatar.value,
-            ...getDynamicData(currentTeamData.type)
-        };
-        const updatedMembers = [...currentTeamMembers];
-        if(index === -1) updatedMembers.push(memberData);
-        else updatedMembers[index] = memberData;
-
-        try {
-            await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers });
-            currentTeamMembers = updatedMembers;
-            renderMembersList();
-            render();
-            els.memberFormContainer.classList.add('hidden');
-            els.memberEmptyState.classList.remove('hidden');
-        } catch (err) { console.error(err); alert("Erro ao salvar."); }
-    };
-
-    const deleteMember = async () => {
-        const index = parseInt(els.memberInputs.id.value);
-        if(index === -1 || !confirm("Remover este integrante?")) return;
-        const updatedMembers = currentTeamMembers.filter((_, i) => i !== index);
-        try {
-            await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers });
-            currentTeamMembers = updatedMembers;
-            renderMembersList();
-            render();
-            els.memberFormContainer.classList.add('hidden');
-            els.memberEmptyState.classList.remove('hidden');
-        } catch (err) { console.error(err); }
-    };
-
-    // --- Init ---
-    const init = () => {
-        els.btns.add.onclick = openNewTeamModal;
-        els.btns.close.onclick = () => els.modal.classList.add('hidden');
-        els.form.onsubmit = saveTeam;
-        els.btns.delete.onclick = deleteTeam;
-        els.memberForm.onsubmit = saveMember;
-        els.btnDeleteMember.onclick = deleteMember;
-        els.btns.logout.onclick = () => signOut(auth);
-        els.search.oninput = render;
-        els.filterType.onchange = render;
-        els.inputs.game.addEventListener('input', (e) => {
-            const gameObj = allGames.find(g => g.name === e.target.value);
-            if (gameObj && gameObj.image) els.inputs.img.value = gameObj.image;
-        });
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) return window.location.href = 'index.html';
-        currentUser = user;
-        document.getElementById('user-display').textContent = user.email;
-        try {
-            const gamesSnap = await getDocs(collection(db, 'users', user.uid, 'games'));
-            allGames = [];
-            els.datalist.innerHTML = '';
-            gamesSnap.forEach(doc => {
-                const g = doc.data();
-                if(g.name) {
-                    allGames.push({ name: g.name, image: g.image });
-                    const opt = document.createElement('option');
-                    opt.value = g.name;
-                    els.datalist.appendChild(opt);
-                }
-            });
-            const q = query(collection(db, 'users', user.uid, 'teams_games'));
-            onSnapshot(q, (snap) => {
-                allTeams = [];
-                snap.forEach(doc => allTeams.push({ id: doc.id, ...doc.data() }));
-                allTeams.sort((a,b) => a.name.localeCompare(b.name));
-                render();
-                toggleLoading(false);
-            });
-        } catch (err) { console.error(err); }
-    });
+    const init = () => { els.btns.add.onclick = openNewTeamModal; els.btns.close.onclick = () => els.modal.classList.add('hidden'); els.form.onsubmit = saveTeam; els.btns.delete.onclick = deleteTeam; els.memberForm.onsubmit = saveMember; els.btnDeleteMember.onclick = deleteMember; els.btns.logout.onclick = () => signOut(auth); els.search.oninput = render; els.filterType.onchange = render; els.inputs.game.addEventListener('input', (e) => { const gameObj = allGames.find(g => g.name === e.target.value); if (gameObj && gameObj.image) els.inputs.img.value = gameObj.image; }); };
+    onAuthStateChanged(auth, async (user) => { if (!user) return window.location.href = 'index.html'; currentUser = user; document.getElementById('user-display').textContent = user.email; try { const gamesSnap = await getDocs(collection(db, 'users', user.uid, 'games')); allGames = []; els.datalist.innerHTML = ''; gamesSnap.forEach(doc => { const g = doc.data(); if(g.name) { allGames.push({ name: g.name, image: g.image }); const opt = document.createElement('option'); opt.value = g.name; els.datalist.appendChild(opt); } }); const q = query(collection(db, 'users', user.uid, 'teams_games')); onSnapshot(q, (snap) => { allTeams = []; snap.forEach(doc => allTeams.push({ id: doc.id, ...doc.data() })); allTeams.sort((a,b) => a.name.localeCompare(b.name)); render(); toggleLoading(false); }); } catch (err) { console.error(err); } });
     init();
   </script>
 </body>
