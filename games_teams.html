@@ -90,6 +90,90 @@
     .token-name { font-size: 10px; color: white; font-weight: 700; line-height: 1; margin-bottom: 2px; white-space: nowrap; }
     .token-pos { font-size: 9px; color: #B9314F; font-weight: 600; text-transform: uppercase; line-height: 1; }
 
+    /* --- TCG CARD STYLE --- */
+    .tcg-card {
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.5);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        height: 420px; /* Altura fixa para uniformidade */
+        user-select: none;
+    }
+    
+    /* Efeito Hover (Levantar e Brilho) */
+    .tcg-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 30px -10px rgba(185, 49, 79, 0.3); /* Sombra avermelhada */
+        border-color: #B9314F;
+        z-index: 10;
+    }
+
+    /* Moldura interna (Look de Carta) */
+    .tcg-frame {
+        padding: 8px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: linear-gradient(to bottom, #222, #111);
+    }
+
+    /* Imagem da Carta */
+    .tcg-art {
+        flex: 1; /* Ocupa o espaço disponível */
+        width: 100%;
+        background: #000;
+        border: 2px solid #444;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+    .tcg-art img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Cabeçalho (Nome) */
+    .tcg-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        padding: 6px 10px;
+        border-radius: 6px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+    .tcg-name { font-weight: 700; color: #e5e7eb; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Caixa de Texto (Descrição/Obs) */
+    .tcg-textbox {
+        height: 100px; /* Altura fixa para texto */
+        background: #181818;
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 0.75rem;
+        color: #a3a3a3;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace; /* Fonte estilo máquina de escrever/RPG */
+        line-height: 1.4;
+    }
+    /* Scrollbar fina para a caixa de texto */
+    .tcg-textbox::-webkit-scrollbar { width: 4px; }
+    .tcg-textbox::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+    /* Rodapé da carta (Tipo/Raridade fictícia) */
+    .tcg-footer {
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid #333;
+        padding-top: 4px;
+    }
+    .tcg-badge { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+
   </style>
 </head>
 <body class="min-h-screen pb-20 custom-scroll">
@@ -124,7 +208,8 @@
       <div class="md:col-span-4">
         <select id="filter-type" class="w-full py-3 px-4 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
           <option value="">Todos os Tipos</option>
-          <option value="Pokemon">Pokemon</option>
+          <option value="Pokemon Principal">Pokemon Principal</option>
+          <option value="Pokemon Fazenda">Pokemon Fazenda</option>
           <option value="Digimon">Digimon</option>
           <option value="Futebol">Futebol</option>
           <option value="Geral">Geral</option>
@@ -145,7 +230,14 @@
         <input type="hidden" id="team-id">
         <div><label class="block text-sm font-medium text-gray-400 mb-1">Nome</label><input id="team-name" type="text" class="w-full p-3 rounded-lg modal-input" required></div>
         <div><label class="block text-sm font-medium text-gray-400 mb-1">Jogo</label><input id="team-game" list="games-list" type="text" class="w-full p-3 rounded-lg modal-input" required><datalist id="games-list"></datalist></div>
-        <div><label class="block text-sm font-medium text-gray-400 mb-1">Tipo</label><select id="team-type" class="w-full p-3 rounded-lg modal-input"><option value="Pokemon">Pokemon</option><option value="Digimon">Digimon</option><option value="Futebol">Futebol</option><option value="Geral">Geral</option></select></div>
+        <div><label class="block text-sm font-medium text-gray-400 mb-1">Tipo</label>
+            <select id="team-type" class="w-full p-3 rounded-lg modal-input">
+                <option value="Geral">Geral</option>
+                <option value="Pokemon Principal">Pokemon Principal</option>
+                <option value="Pokemon Fazenda">Pokemon Fazenda</option>
+                <option value="Digimon">Digimon</option>
+                <option value="Futebol">Futebol</option>
+            </select></div>
         <div><label class="block text-sm font-medium text-gray-400 mb-1">Banner (URL)</label><input id="team-img" type="url" class="w-full p-3 rounded-lg modal-input"></div>
         <div class="flex justify-between items-center pt-4 border-t border-[#2a2a2a] mt-4">
             <button id="delete-btn" type="button" class="hidden text-red-500 hover:text-red-400 text-sm font-medium">Excluir</button>
@@ -219,6 +311,65 @@
       </div>
   </div>
 
+  <div id="general-visualizer-modal" class="fixed inset-0 bg-[#0b0b0b] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-start pointer-events-none">
+          <div class="pointer-events-auto bg-[#151515]/90 backdrop-blur border border-[#333] px-4 py-2 rounded-lg shadow-2xl">
+              <h2 id="gen-viz-title" class="text-xl font-bold text-white flex items-center gap-2">
+                  <i data-lucide="library" class="text-[#B9314F]"></i> <span>Nome do Time</span>
+              </h2>
+              <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Coleção de Membros</p>
+          </div>
+          <button onclick="closeGeneralVisualizer()" class="pointer-events-auto bg-[#151515]/90 hover:bg-[#B9314F] text-white border border-[#333] rounded-full p-2 transition shadow-xl">
+              <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+      </div>
+
+      <div class="absolute inset-0 z-0 opacity-20 pointer-events-none" 
+           style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;">
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scroll z-0 pt-24 pb-10 px-4 sm:px-10">
+          <div id="general-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
+              </div>
+      </div>
+  </div>
+
+  <div id="pokemon-visualizer-modal" class="fixed inset-0 bg-[#121212] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center bg-[#1a1a1a] border-b border-[#333] shadow-md">
+          <div class="flex items-center gap-3">
+              <div class="bg-red-600 text-white p-2 rounded-full shadow-lg border border-red-400">
+                  <img src="https://cdn-icons-png.flaticon.com/512/188/188987.png" class="w-6 h-6 invert brightness-0"> </div>
+              <div>
+                  <h2 id="poke-viz-title" class="text-xl font-bold text-white tracking-wide">Hall of Fame</h2>
+                  <p class="text-[10px] text-gray-400 uppercase font-mono">Registro de Campeão</p>
+              </div>
+          </div>
+          <button onclick="closePokemonVisualizer()" class="text-gray-400 hover:text-white bg-[#2a2a2a] hover:bg-red-600 p-2 rounded-full transition">
+              <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#121212]">
+          <div class="absolute inset-0 opacity-10 pointer-events-none" 
+               style="background-image: repeating-linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222), repeating-linear-gradient(45deg, #222 25%, #121212 25%, #121212 75%, #222 75%, #222); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
+
+          <div class="container mx-auto px-4 py-8 relative z-0 flex flex-col items-center gap-12">
+              
+              <div class="w-full max-w-4xl">
+                  <h3 class="text-center text-white/50 text-sm uppercase tracking-[0.3em] mb-6 border-b border-white/10 pb-2">Time Principal</h3>
+                  <div id="poke-main-grid" class="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8 justify-items-center">
+                      </div>
+              </div>
+
+              <div id="poke-extra-container" class="w-full max-w-5xl hidden">
+                  <h3 class="text-center text-white/50 text-sm uppercase tracking-[0.3em] mb-6 border-b border-white/10 pb-2">Caixa / Histórico</h3>
+                  <div id="poke-extra-grid" class="flex flex-wrap justify-center gap-4">
+                      </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -239,14 +390,6 @@
             'Meia':     [{t:50,l:30},{t:50,l:70}],
             'Atacante': [{t:25,l:15},{t:20,l:50},{t:25,l:85}]
         },
-        '4-4-2': {
-            'Goleiro':  [{t:92,l:50}],
-            'Zagueiro': [{t:80,l:35},{t:80,l:65}],
-            'Lateral':  [{t:75,l:10},{t:75,l:90}],
-            'Volante':  [{t:60,l:40},{t:60,l:60}],
-            'Meia':     [{t:45,l:15},{t:45,l:85}],
-            'Atacante': [{t:20,l:35},{t:20,l:65}]
-        },
         '3-5-2': {
              'Goleiro':  [{t:92,l:50}],
              'Zagueiro': [{t:75,l:50}],
@@ -255,7 +398,28 @@
              'Meia':     [{t:50,l:30},{t:50,l:70}, {t:35,l:20},{t:35,l:80}],
              'Atacante': [{t:15,l:30},{t:15,l:70}]
         },
+        '4-4-2': {
+            'Goleiro':  [{t:92,l:50}],
+            'Zagueiro': [{t:80,l:35},{t:80,l:65}],
+            'Lateral':  [{t:75,l:10},{t:75,l:90}],
+            'Volante':  [{t:60,l:40},{t:60,l:60}],
+            'Meia':     [{t:45,l:15},{t:45,l:85}],
+            'Atacante': [{t:20,l:35},{t:20,l:65}]
+        },
         // Adicione mais aqui se quiser...
+    };
+
+    const POKE_TYPES = [
+        'Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison', 'Ground', 
+        'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Steel', 'Dark', 'Fairy'
+    ];
+
+    const TYPE_COLORS = {
+        Normal: '#A8A77A', Fire: '#EE8130', Water: '#6390F0', Electric: '#F7D02C',
+        Grass: '#7AC74C', Ice: '#96D9D6', Fighting: '#C22E28', Poison: '#A33EA1',
+        Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A',
+        Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Steel: '#B7B7CE',
+        Dark: '#705746', Fairy: '#D685AD', None: '#333333'
     };
 
     const firebaseConfig = { apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91" };
@@ -276,7 +440,10 @@
         memberInputs: { id: document.getElementById('member-id'), name: document.getElementById('member-name'), avatar: document.getElementById('member-avatar'), dynamic: document.getElementById('dynamic-fields') },
         btnDeleteMember: document.getElementById('btn-delete-member'), memberTeamName: document.getElementById('member-team-name'),
         soccerModal: document.getElementById('soccer-visualizer-modal'), formationSelect: document.getElementById('formation-select'), fieldPlayersContainer: document.getElementById('field-players-container'),
-        subsList: document.getElementById('subs-list'), subsOverflow: document.getElementById('subs-overflow'), coachesList: document.getElementById('coaches-list')
+        subsList: document.getElementById('subs-list'), subsOverflow: document.getElementById('subs-overflow'), coachesList: document.getElementById('coaches-list'),
+        generalModal: document.getElementById('general-visualizer-modal'),
+        generalGrid: document.getElementById('general-cards-grid'),
+        generalTitle: document.getElementById('gen-viz-title'),
     };
 
     const toggleLoading = (show) => { if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); } else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); lucide.createIcons(); } };
@@ -396,9 +563,20 @@
                     <div class="flex-1 p-4 md:p-5 flex flex-col justify-between relative"><div><div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-[#B9314F]">${t.game}</span><span class="text-[10px] px-2 py-0.5 rounded border ${getTypeColor(t.type)}">${t.type}</span></div><h3 class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight">${t.name}</h3>${membersStackHTML}</div></div>
                     <div class="action-section"><button class="btn-icon edit" title="Editar"><i data-lucide="pencil" class="w-5 h-5"></i></button><button class="btn-icon members" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button><button class="btn-icon view" title="Ver"><i data-lucide="eye" class="w-5 h-5"></i></button></div>`;
                 card.querySelector('.edit').onclick = () => openEditTeamModal(t); card.querySelector('.members').onclick = () => openMembersModal(t);
+                
                 const viewBtn = card.querySelector('.view');
-                if (t.type === 'Futebol') viewBtn.onclick = () => openSoccerVisualizer(t);
-                else { viewBtn.classList.add('opacity-50', 'cursor-not-allowed'); viewBtn.onclick = () => alert('Visualização apenas para Futebol.'); }
+                
+                if (t.type === 'Futebol') {
+                    viewBtn.onclick = () => openSoccerVisualizer(t);
+                } else if (t.type === 'Geral') {
+                    viewBtn.onclick = () => openGeneralVisualizer(t);
+                } else if (t.type === 'Pokemon Principal') {
+                    viewBtn.onclick = () => openPokemonVisualizer(t);
+                } else {
+                    viewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    viewBtn.onclick = () => alert('Visualização disponível apenas para Futebol e Geral.');
+                }
+
                 els.cards.appendChild(card);
             });
         }
@@ -434,6 +612,151 @@
 
     window.toggleSoccerSidebar = window.toggleSoccerSidebar;
 
+    // --- VISUALIZADOR GERAL (TCG) ---
+    window.openGeneralVisualizer = (team) => {
+        currentTeamData = team;
+        els.generalTitle.querySelector('span').textContent = team.name;
+        renderGeneralCards(team.members || []);
+        els.generalModal.classList.remove('hidden');
+    };
+
+    window.closeGeneralVisualizer = () => {
+        els.generalModal.classList.add('hidden');
+    };
+
+    const renderGeneralCards = (members) => {
+        els.generalGrid.innerHTML = '';
+        
+        if (members.length === 0) {
+            els.generalGrid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-20 italic">Este Time está vazio... Adicione membros.</div>`;
+            return;
+        }
+
+        members.forEach(member => {
+            const card = document.createElement('div');
+            card.className = 'tcg-card group';
+            
+            // Fallback de imagem
+            let imgHtml = '';
+            if (member.avatar && member.avatar.trim() !== '') {
+                imgHtml = `<img src="${member.avatar}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                           <div class="hidden w-full h-full bg-[#111] items-center justify-center text-[#333] font-bold text-4xl">${member.name.charAt(0)}</div>`;
+            } else {
+                imgHtml = `<div class="w-full h-full bg-[#151515] flex items-center justify-center text-[#333] font-bold text-6xl shadow-inner">${member.name.charAt(0)}</div>`;
+            }
+
+            // Descrição ou texto padrão
+            const obsText = member.obs ? member.obs : "Nenhuma habilidade especial ou observação registrada para este integrante.";
+
+            card.innerHTML = `
+                <div class="tcg-frame">
+                    <div class="tcg-header">
+                        <span class="tcg-name truncate">${member.name}</span>
+                        <i data-lucide="sparkles" class="w-3 h-3 text-[#B9314F]"></i>
+                    </div>
+                    
+                    <div class="tcg-art">
+                        ${imgHtml}
+                    </div>
+                    
+                    <div class="tcg-textbox custom-scroll">
+                        ${obsText}
+                    </div>
+                    
+                    <div class="tcg-footer">
+                        <span class="tcg-badge">Unit • Geral</span>
+                    </div>
+                </div>
+            `;
+            els.generalGrid.appendChild(card);
+        });
+        lucide.createIcons();
+    };
+
+    // --- VISUALIZADOR POKEMON ---
+    const elsPoke = {
+        modal: document.getElementById('pokemon-visualizer-modal'),
+        title: document.getElementById('poke-viz-title'),
+        mainGrid: document.getElementById('poke-main-grid'),
+        extraContainer: document.getElementById('poke-extra-container'),
+        extraGrid: document.getElementById('poke-extra-grid')
+    };
+
+    window.openPokemonVisualizer = (team) => {
+        elsPoke.title.textContent = team.name;
+        renderPokemonLayout(team.members || []);
+        elsPoke.modal.classList.remove('hidden');
+    };
+
+    window.closePokemonVisualizer = () => elsPoke.modal.classList.add('hidden');
+
+    const renderPokemonLayout = (members) => {
+        elsPoke.mainGrid.innerHTML = '';
+        elsPoke.extraGrid.innerHTML = '';
+        
+        // Separa os 6 primeiros (Main) do resto (Extra)
+        const mainTeam = members.slice(0, 6);
+        const extraTeam = members.slice(6);
+
+        // Renderiza Time Principal (Cards Grandes)
+        mainTeam.forEach(p => elsPoke.mainGrid.appendChild(createPokemonCard(p, true)));
+
+        // Renderiza Extras (Cards Menores)
+        if (extraTeam.length > 0) {
+            elsPoke.extraContainer.classList.remove('hidden');
+            extraTeam.forEach(p => elsPoke.extraGrid.appendChild(createPokemonCard(p, false)));
+        } else {
+            elsPoke.extraContainer.classList.add('hidden');
+        }
+    };
+
+    const createPokemonCard = (pokemon, isMain) => {
+        // Cores dos Tipos
+        const c1 = TYPE_COLORS[pokemon.type1] || '#333';
+        const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
+        
+        // Gradiente da Borda (Se tiver 2 tipos, divide a borda)
+        const gradientStyle = `linear-gradient(135deg, ${c1}, ${c2})`;
+
+        // Tamanhos baseados se é Principal ou Extra
+        const sizeClasses = isMain ? "w-32 h-32 md:w-40 md:h-40" : "w-16 h-16 opacity-80 hover:opacity-100";
+        const nameSize = isMain ? "text-lg md:text-xl mt-4" : "hidden"; // Esconde nome dos extras para economizar espaço ou mostra tooltip
+        
+        const card = document.createElement('div');
+        card.className = `flex flex-col items-center group relative ${!isMain ? 'cursor-help' : ''}`;
+        if(!isMain) card.title = pokemon.name; // Tooltip simples para os pequenos
+
+        // HTML do Círculo
+        card.innerHTML = `
+            <div class="${sizeClasses} rounded-full p-[4px] shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-110 relative z-10 bg-[#1a1a1a]"
+                 style="background: ${gradientStyle}">
+                <div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative">
+                    ${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}
+                </div>
+                
+                ${isMain ? getTypesBadges(pokemon) : ''}
+            </div>
+            
+            <div class="${nameSize} font-bold text-white text-center drop-shadow-md flex flex-col items-center">
+                <span>${pokemon.name}</span>
+            </div>
+        `;
+        return card;
+    };
+
+    const getTypesBadges = (pokemon) => {
+        // Pequenos ícones/bolinhas de cor flutuando no card principal
+        const t1Color = TYPE_COLORS[pokemon.type1];
+        const t2Color = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : null;
+        
+        return `
+            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+                <div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t1Color}" title="${pokemon.type1}"></div>
+                ${t2Color ? `<div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t2Color}" title="${pokemon.type2}"></div>` : ''}
+            </div>
+        `;
+    };
+
     const openNewTeamModal = () => { editingId = null; els.form.reset(); els.btns.delete.classList.add('hidden'); els.modalTitle.textContent = "Novo Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
     const openEditTeamModal = (data) => { editingId = data.id; els.inputs.name.value = data.name; els.inputs.game.value = data.game; els.inputs.img.value = data.img || ''; els.inputs.type.value = data.type || 'Geral'; els.btns.delete.classList.remove('hidden'); els.modalTitle.textContent = "Editar Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
     const saveTeam = async (e) => { e.preventDefault(); const data = { name: els.inputs.name.value, game: els.inputs.game.value, img: els.inputs.img.value, type: els.inputs.type.value, updatedAt: new Date() }; try { if (editingId) await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data); else { data.members = []; await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data); } els.modal.classList.add('hidden'); } catch (err) { console.error(err); } };
@@ -441,9 +764,136 @@
 
     window.openMembersModal = (team) => { currentTeamData = team; currentTeamMembers = team.members || []; els.memberTeamName.textContent = team.name; renderMembersList(); els.memberEmptyState.classList.remove('hidden'); els.memberFormContainer.classList.add('hidden'); els.membersModal.classList.remove('hidden'); els.membersModal.classList.add('flex'); };
     window.closeMembersModal = () => els.membersModal.classList.add('hidden');
-    const renderMembersList = () => { els.membersList.innerHTML = ''; currentTeamMembers.forEach((member, index) => { const item = document.createElement('div'); item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]'; let extraInfo = ''; if(currentTeamData.type === 'Futebol') extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'} ${member.status === 'Reserva' ? '(R)' : ''}</span>`; item.innerHTML = `<div class="avatar-wrapper shrink-0">${generateAvatarHTML(member.avatar, member.name, "w-8 h-8")}</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>${extraInfo}</div><i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>`; item.onclick = () => loadMemberToForm(member, index); els.membersList.appendChild(item); }); lucide.createIcons(); };
-    const renderTypeSpecificFields = (type, data = {}) => { const container = els.memberInputs.dynamic; container.innerHTML = ''; if (type === 'Futebol') { container.innerHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label><select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm"><option value="Goleiro">Goleiro</option><option value="Zagueiro">Zagueiro</option><option value="Lateral">Lateral</option><option value="Volante">Volante</option><option value="Meia">Meia</option><option value="Atacante">Atacante</option><option value="Técnico">Técnico</option></select></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label><input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10"></div></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label></div></div>`; if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao; if(data.numero) document.getElementById('mem-futebol-num').value = data.numero; if(data.status) { const radios = document.getElementsByName('status'); radios.forEach(r => { if(r.value === data.status) r.checked = true; }); } } else { container.innerHTML = `<div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Função / Cargo</label><input id="mem-geral-role" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Líder" value="${data.role || ''}"></div>`; } };
-    const getDynamicData = (type) => { if(type === 'Futebol') return { posicao: document.getElementById('mem-futebol-pos').value, numero: document.getElementById('mem-futebol-num').value, status: document.querySelector('input[name="status"]:checked')?.value || 'Titular' }; return { role: document.getElementById('mem-geral-role') ? document.getElementById('mem-geral-role').value : '' }; };
+    
+    const renderMembersList = () => {
+        els.membersList.innerHTML = '';
+        currentTeamMembers.forEach((member, index) => {
+            const item = document.createElement('div');
+            item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]';
+            
+            let extraInfo = '';
+            
+            // Exibição condicional baseada no tipo
+            if(currentTeamData.type === 'Futebol') {
+                extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'} ${member.status === 'Reserva' ? '(R)' : ''}</span>`;
+            } else {
+                // Para Geral: Mostra a observação truncada
+                const obsText = member.obs ? member.obs.substring(0, 30) + (member.obs.length > 30 ? '...' : '') : 'Membro';
+                extraInfo = `<span class="text-[10px] text-gray-500 block">${obsText}</span>`;
+            }
+
+            item.innerHTML = `
+                <div class="avatar-wrapper shrink-0">${generateAvatarHTML(member.avatar, member.name, "w-8 h-8")}</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>
+                    ${extraInfo}
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>
+            `;
+            item.onclick = () => loadMemberToForm(member, index);
+            els.membersList.appendChild(item);
+        });
+        lucide.createIcons();
+    };
+
+    const renderTypeSpecificFields = (type, data = {}) => {
+        const container = els.memberInputs.dynamic;
+        container.innerHTML = '';
+
+        // --- FUTEBOL ---
+        if (type === 'Futebol') {
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label>
+                        <select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            <option value="Goleiro">Goleiro</option>
+                            <option value="Zagueiro">Zagueiro</option>
+                            <option value="Lateral">Lateral</option>
+                            <option value="Volante">Volante</option>
+                            <option value="Meia">Meia</option>
+                            <option value="Atacante">Atacante</option>
+                            <option value="Técnico">Técnico</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label>
+                        <input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label>
+                    </div>
+                </div>
+            `;
+            if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao;
+            if(data.numero) document.getElementById('mem-futebol-num').value = data.numero;
+            if(data.status) {
+                const radios = document.getElementsByName('status');
+                radios.forEach(r => { if(r.value === data.status) r.checked = true; });
+            }
+        }
+        else if (type === 'Pokemon Principal') {
+            // Cria as opções do Select
+            const typeOptions = POKE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 1</label>
+                        <select id="mem-poke-t1" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            ${typeOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 2 (Opcional)</label>
+                        <select id="mem-poke-t2" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            <option value="">Nenhum</option>
+                            ${typeOptions}
+                        </select>
+                    </div>
+                </div>
+            `;
+            // Preencher valores se editando
+            if(data.type1) document.getElementById('mem-poke-t1').value = data.type1;
+            if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
+        }
+        else {
+            // Apenas campos básicos já existem no form principal, adicionamos a Observação aqui
+            container.innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observação / Cargo</label>
+                    <textarea id="mem-geral-obs" rows="3" class="w-full p-2.5 rounded-lg modal-input text-sm resize-none" placeholder="Ex: Líder do grupo, Suporte, etc...">${data.obs || ''}</textarea>
+                </div>
+            `;
+        }
+    };
+    
+    const getDynamicData = (type) => {
+        if(type === 'Futebol') {
+            return {
+                posicao: document.getElementById('mem-futebol-pos').value,
+                numero: document.getElementById('mem-futebol-num').value,
+                status: document.querySelector('input[name="status"]:checked')?.value || 'Titular'
+            };
+        }
+
+        if(type === 'Pokemon Principal') {
+            return {
+                type1: document.getElementById('mem-poke-t1').value,
+                type2: document.getElementById('mem-poke-t2').value
+            };
+        }
+
+        // Captura o campo de observação para 'Geral' e outros tipos padrão
+        return { 
+            obs: document.getElementById('mem-geral-obs') ? document.getElementById('mem-geral-obs').value : '' 
+        };
+    };
+
     window.prepareNewMember = () => { els.memberInputs.id.value = -1; els.memberInputs.name.value = ''; els.memberInputs.avatar.value = ''; renderTypeSpecificFields(currentTeamData.type); els.memberEmptyState.classList.add('hidden'); els.memberFormContainer.classList.remove('hidden'); els.btnDeleteMember.classList.add('hidden'); document.getElementById('member-form-title').textContent = "Novo Integrante"; };
     const loadMemberToForm = (member, index) => { els.memberInputs.id.value = index; els.memberInputs.name.value = member.name; els.memberInputs.avatar.value = member.avatar || ''; renderTypeSpecificFields(currentTeamData.type, member); els.memberEmptyState.classList.add('hidden'); els.memberFormContainer.classList.remove('hidden'); els.btnDeleteMember.classList.remove('hidden'); document.getElementById('member-form-title').textContent = "Editar Integrante"; };
     const saveMember = async (e) => { e.preventDefault(); const index = parseInt(els.memberInputs.id.value); const memberData = { name: els.memberInputs.name.value, avatar: els.memberInputs.avatar.value, ...getDynamicData(currentTeamData.type) }; const updatedMembers = [...currentTeamMembers]; if(index === -1) updatedMembers.push(memberData); else updatedMembers[index] = memberData; try { await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { members: updatedMembers }); currentTeamMembers = updatedMembers; renderMembersList(); render(); els.memberFormContainer.classList.add('hidden'); els.memberEmptyState.classList.remove('hidden'); } catch (err) { console.error(err); alert("Erro ao salvar."); } };
