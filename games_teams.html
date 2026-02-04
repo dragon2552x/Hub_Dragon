@@ -370,6 +370,59 @@
       </div>
   </div>
 
+  <div id="pokemon-farm-modal" class="fixed inset-0 bg-[#121212] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center bg-[#1a1a1a] border-b border-[#333] shadow-md">
+          <div class="flex items-center gap-3">
+              <div class="bg-green-600 text-white p-2 rounded-full shadow-lg border border-green-400">
+                  <i data-lucide="sprout" class="w-6 h-6"></i>
+              </div>
+              <div>
+                  <h2 id="farm-viz-title" class="text-xl font-bold text-white tracking-wide">Minha Fazenda</h2>
+                  <p class="text-[10px] text-gray-400 uppercase font-mono">Coleção Agrupada</p>
+              </div>
+          </div>
+          <button onclick="closeFarmVisualizer()" class="text-gray-400 hover:text-white bg-[#2a2a2a] hover:bg-green-600 p-2 rounded-full transition">
+              <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#0f0f0f]">
+          <div class="absolute inset-0 opacity-5 pointer-events-none" 
+               style="background-image: radial-gradient(#444 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+          <div class="container mx-auto px-4 py-8 relative z-0">
+              <div id="farm-groups-container" class="flex flex-col gap-12 pb-20"></div>
+          </div>
+      </div>
+  </div>
+
+  <div id="digimon-visualizer-modal" class="fixed inset-0 bg-[#050510] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center bg-[#0a0a15] border-b border-blue-900/30 shadow-[0_0_15px_rgba(0,181,226,0.1)]">
+          <div class="flex items-center gap-3">
+              <div class="bg-blue-600 text-white p-2 rounded sm:rounded-tl-xl sm:rounded-br-xl shadow-[0_0_10px_#2563eb]">
+                  <i data-lucide="cpu" class="w-6 h-6"></i>
+              </div>
+              <div>
+                  <h2 id="digi-viz-title" class="text-xl font-bold text-white tracking-widest uppercase font-mono" style="text-shadow: 0 0 5px rgba(255,255,255,0.5);">Digivice</h2>
+                  <p class="text-[10px] text-blue-400 uppercase font-mono tracking-widest">Digital Monster DB</p>
+              </div>
+          </div>
+          <button onclick="closeDigimonVisualizer()" class="text-blue-500 hover:text-white hover:bg-blue-600/20 p-2 rounded transition">
+              <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#050510]">
+          <div class="absolute inset-0 opacity-10 pointer-events-none" 
+               style="background-image: radial-gradient(#1e3a8a 1px, transparent 1px); background-size: 40px 40px;"></div>
+          
+          <div class="container mx-auto px-4 py-8 relative z-0 flex flex-col gap-10">
+              <div id="digimon-groups-container" class="space-y-12 pb-20">
+                  </div>
+          </div>
+      </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -420,6 +473,27 @@
         Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A',
         Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Steel: '#B7B7CE',
         Dark: '#705746', Fairy: '#D685AD', None: '#333333'
+    };
+
+    // --- CONSTANTES DIGIMON ---
+    const DIGI_TYPES = {
+        'Vaccine': { color: '#00B5E2', icon: 'shield-check', label: 'Vacina' }, // Azul/Teal
+        'Virus': { color: '#9d4dbb', icon: 'skull', label: 'Vírus' },          // Roxo
+        'Data': { color: '#EAB308', icon: 'database', label: 'Dados' },        // Amarelo/Laranja
+        'Free': { color: '#22C55E', icon: 'circle-dashed', label: 'Livre' }    // Verde
+    };
+
+    const DIGI_ATTRS = {
+        'Fire': { color: '#EF4444', icon: 'flame', label: 'Fogo' },
+        'Water': { color: '#3B82F6', icon: 'droplet', label: 'Água' },
+        'Plant': { color: '#4ADE80', icon: 'leaf', label: 'Planta' },
+        'Electric': { color: '#FACC15', icon: 'zap', label: 'Elétrico' },
+        'Earth': { color: '#A16207', icon: 'mountain', label: 'Terra' },
+        'Wind': { color: '#2DD4BF', icon: 'wind', label: 'Vento' },
+        'Light': { color: '#FEF08A', icon: 'sun', label: 'Luz' },
+        'Dark': { color: '#581C87', icon: 'moon', label: 'Trevas' },
+        'Steel': { color: '#94A3B8', icon: 'wrench', label: 'Metal' }, // Representado por chave inglesa/ferramenta
+        'Neutral': { color: '#737373', icon: 'circle', label: 'Neutro' }
     };
 
     const firebaseConfig = { apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91" };
@@ -572,6 +646,10 @@
                     viewBtn.onclick = () => openGeneralVisualizer(t);
                 } else if (t.type === 'Pokemon Principal') {
                     viewBtn.onclick = () => openPokemonVisualizer(t);
+                } else if (t.type === 'Pokemon Fazenda') {
+                    viewBtn.onclick = () => openFarmVisualizer(t);
+                }else if (t.type === 'Digimon') {
+                    viewBtn.onclick = () => openDigimonVisualizer(t);
                 } else {
                     viewBtn.classList.add('opacity-50', 'cursor-not-allowed');
                     viewBtn.onclick = () => alert('Visualização disponível apenas para Futebol e Geral.');
@@ -757,6 +835,202 @@
         `;
     };
 
+    // --- VISUALIZADOR FAZENDA (GROUPS) ---
+    const elsFarm = {
+        modal: document.getElementById('pokemon-farm-modal'),
+        title: document.getElementById('farm-viz-title'),
+        container: document.getElementById('farm-groups-container')
+    };
+
+    window.openFarmVisualizer = (team) => {
+        elsFarm.title.textContent = team.name;
+        renderFarmLayout(team.members || []);
+        elsFarm.modal.classList.remove('hidden');
+    };
+
+    window.closeFarmVisualizer = () => elsFarm.modal.classList.add('hidden');
+
+    const renderFarmLayout = (members) => {
+        elsFarm.container.innerHTML = '';
+
+        if (members.length === 0) {
+            elsFarm.container.innerHTML = `<div class="text-center text-gray-500 mt-20">A fazenda está vazia.</div>`;
+            return;
+        }
+
+        // 1. Agrupar membros por chave 'group'
+        const grouped = members.reduce((acc, curr) => {
+            const g = curr.group || 'Geral';
+            if (!acc[g]) acc[g] = [];
+            acc[g].push(curr);
+            return acc;
+        }, {});
+
+        // 2. Iterar sobre os grupos e criar seções
+        Object.keys(grouped).sort().forEach(groupName => {
+            const groupMembers = grouped[groupName];
+
+            // Container do Grupo
+            const section = document.createElement('div');
+            section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
+            
+            section.innerHTML = `
+                <div class="flex items-center gap-4 mb-6">
+                    <h3 class="text-2xl font-bold text-white capitalize">${groupName}</h3>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-[#333] to-transparent"></div>
+                    <span class="text-xs font-mono text-gray-500 bg-[#1a1a1a] px-2 py-1 rounded border border-[#333]">${groupMembers.length}</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 justify-items-center group-grid">
+                    </div>
+            `;
+
+            const grid = section.querySelector('.group-grid');
+            
+            // Criar cards para este grupo
+            groupMembers.forEach(p => {
+                grid.appendChild(createFarmCard(p));
+            });
+
+            elsFarm.container.appendChild(section);
+        });
+        
+        lucide.createIcons();
+    };
+
+    // Card Específico para Fazenda (Similar ao Principal, mas tamanho uniforme e otimizado para grids maiores)
+    const createFarmCard = (pokemon) => {
+        const c1 = TYPE_COLORS[pokemon.type1] || '#333';
+        const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
+        const gradientStyle = `linear-gradient(135deg, ${c1}, ${c2})`;
+
+        const card = document.createElement('div');
+        card.className = 'flex flex-col items-center group relative hover:-translate-y-2 transition-transform duration-300';
+        
+        card.innerHTML = `
+            <div class="w-32 h-32 rounded-full p-[3px] shadow-lg relative z-10 bg-[#1a1a1a]" style="background: ${gradientStyle}">
+                <div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative group-hover:brightness-110 transition">
+                    ${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}
+                </div>
+                
+                <div class="absolute -right-1 bottom-1 flex flex-col gap-1">
+                     <div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c1}" title="${pokemon.type1}"></div>
+                     ${pokemon.type2 ? `<div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c2}" title="${pokemon.type2}"></div>` : ''}
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <p class="font-bold text-gray-200 text-sm md:text-base leading-tight group-hover:text-white">${pokemon.name}</p>
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">${pokemon.type1} ${pokemon.type2 ? '/ '+pokemon.type2 : ''}</p>
+            </div>
+        `;
+        return card;
+    };
+
+    // --- VISUALIZADOR DIGIMON ---
+    const elsDigi = {
+        modal: document.getElementById('digimon-visualizer-modal'),
+        title: document.getElementById('digi-viz-title'),
+        container: document.getElementById('digimon-groups-container')
+    };
+
+    window.openDigimonVisualizer = (team) => {
+        elsDigi.title.textContent = team.name;
+        renderDigimonLayout(team.members || []);
+        elsDigi.modal.classList.remove('hidden');
+    };
+
+    window.closeDigimonVisualizer = () => elsDigi.modal.classList.add('hidden');
+
+    const renderDigimonLayout = (members) => {
+        elsDigi.container.innerHTML = '';
+        
+        // Define a ordem fixa de exibição
+        const order = ['Principal', 'Reserva', 'Box'];
+        
+        // Agrupa membros
+        const grouped = { 'Principal': [], 'Reserva': [], 'Box': [] };
+        members.forEach(m => {
+            const g = m.group || 'Box'; // Fallback para Box
+            if (grouped[g]) grouped[g].push(m);
+            else grouped['Box'].push(m); // Segurança
+        });
+
+        // Renderiza na ordem definida
+        order.forEach(groupName => {
+            const groupMembers = grouped[groupName];
+            if (groupMembers.length === 0) return; // Pula grupo vazio
+
+            // Design do Header do Grupo
+            const section = document.createElement('div');
+            section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
+            
+            // Cores do header dependendo do grupo
+            let headerColor = 'text-blue-400 border-blue-900';
+            if(groupName === 'Reserva') headerColor = 'text-yellow-500 border-yellow-900';
+            if(groupName === 'Box') headerColor = 'text-gray-500 border-gray-800';
+
+            section.innerHTML = `
+                <div class="flex items-end gap-3 mb-4 border-b ${headerColor} pb-2">
+                    <h3 class="text-2xl font-bold uppercase font-mono tracking-widest ${headerColor.split(' ')[0]}">${groupName}</h3>
+                    <div class="text-xs bg-[#111] px-2 py-0.5 rounded border border-[#333] text-gray-400 mb-1">
+                        MEM: ${String(groupMembers.length).padStart(2, '0')}
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    ${groupMembers.map(m => createDigimonCardHTML(m)).join('')}
+                </div>
+            `;
+            
+            elsDigi.container.appendChild(section);
+        });
+        
+        lucide.createIcons();
+    };
+
+    // Função que retorna STRING HTML do card (mais fácil para grids complexos)
+    const createDigimonCardHTML = (digimon) => {
+        // Dados visuais
+        const dType = DIGI_TYPES[digimon.digiType] || DIGI_TYPES['Free'];
+        const dAttr = DIGI_ATTRS[digimon.digiAttr] || DIGI_ATTRS['Neutral'];
+
+        // Fallback imagem
+        const imgUrl = (digimon.avatar && digimon.avatar.length > 5) ? digimon.avatar : 'https://placehold.co/150x150/111/333?text=D';
+
+        return `
+        <div class="group relative bg-[#0f0f1a] border border-[#333] hover:border-[${dType.color}] rounded-xl overflow-hidden flex h-28 transition-all hover:-translate-y-1 hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.7)] hover:shadow-[${dType.color}40]">
+            
+            <div class="w-1.5 h-full" style="background-color: ${dType.color}"></div>
+
+            <div class="w-28 h-full shrink-0 relative overflow-hidden bg-black">
+                <img src="${imgUrl}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between p-3 relative z-10">
+                
+                <div class="w-full border-b border-white/10 pb-1 mb-1">
+                    <h4 class="font-bold text-gray-100 truncate text-sm sm:text-base leading-tight font-mono">${digimon.name}</h4>
+                </div>
+
+                <div class="flex items-center gap-3 mt-auto">
+                    
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#1a1a2e] border border-white/10 shadow-sm" title="Tipo: ${dType.label}">
+                        <i data-lucide="${dType.icon}" class="w-3.5 h-3.5" style="color: ${dType.color}"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 hidden sm:inline">${dType.label.substring(0,3)}</span>
+                    </div>
+
+                    <div class="flex items-center justify-center w-7 h-7 rounded-full bg-[#1a1a2e] border border-white/10 shadow-sm" title="Atributo: ${dAttr.label}">
+                        <i data-lucide="${dAttr.icon}" class="w-4 h-4" style="color: ${dAttr.color}"></i>
+                    </div>
+
+                </div>
+
+                <i data-lucide="${dType.icon}" class="absolute right-[-10px] bottom-[-15px] w-20 h-20 opacity-[0.03] text-white rotate-12 pointer-events-none"></i>
+            </div>
+        </div>
+        `;
+    };
+
     const openNewTeamModal = () => { editingId = null; els.form.reset(); els.btns.delete.classList.add('hidden'); els.modalTitle.textContent = "Novo Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
     const openEditTeamModal = (data) => { editingId = data.id; els.inputs.name.value = data.name; els.inputs.game.value = data.game; els.inputs.img.value = data.img || ''; els.inputs.type.value = data.type || 'Geral'; els.btns.delete.classList.remove('hidden'); els.modalTitle.textContent = "Editar Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
     const saveTeam = async (e) => { e.preventDefault(); const data = { name: els.inputs.name.value, game: els.inputs.game.value, img: els.inputs.img.value, type: els.inputs.type.value, updatedAt: new Date() }; try { if (editingId) await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data); else { data.members = []; await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data); } els.modal.classList.add('hidden'); } catch (err) { console.error(err); } };
@@ -861,6 +1135,75 @@
             if(data.type1) document.getElementById('mem-poke-t1').value = data.type1;
             if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
         }
+        else if (type === 'Pokemon Fazenda') {
+            const typeOptions = POKE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+            
+            // Define o HTML extra específico para Fazenda (Campo Grupo)
+            let groupHtml = '';
+            if (type === 'Pokemon Fazenda') {
+                groupHtml = `
+                    <div class="col-span-2 mt-3">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label>
+                        <input id="mem-poke-group" type="text" list="existing-groups" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Fofos, Lendários, Shiny...">
+                        <datalist id="existing-groups"></datalist> </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 1</label>
+                        <select id="mem-poke-t1" class="w-full p-2.5 rounded-lg modal-input text-sm">${typeOptions}</select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 2</label>
+                        <select id="mem-poke-t2" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            <option value="">Nenhum</option>
+                            ${typeOptions}
+                        </select>
+                    </div>
+                    ${groupHtml}
+                </div>
+            `;
+            
+            if(data.type1) document.getElementById('mem-poke-t1').value = data.type1;
+            if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
+            if(type === 'Pokemon Fazenda' && data.group) document.getElementById('mem-poke-group').value = data.group;
+        }
+        else if (type === 'Digimon') {
+            // Gerar Options dos Selects
+            const typeOpts = Object.keys(DIGI_TYPES).map(k => `<option value="${k}">${DIGI_TYPES[k].label}</option>`).join('');
+            const attrOpts = Object.keys(DIGI_ATTRS).map(k => `<option value="${k}">${DIGI_ATTRS[k].label}</option>`).join('');
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label>
+                        <select id="mem-digi-type" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            ${typeOpts}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Atributo</label>
+                        <select id="mem-digi-attr" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            ${attrOpts}
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label>
+                        <select id="mem-digi-group" class="w-full p-2.5 rounded-lg modal-input text-sm">
+                            <option value="Principal">Principal (Party)</option>
+                            <option value="Reserva">Reserva (Backup)</option>
+                            <option value="Box">Box (Storage)</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            if(data.digiType) document.getElementById('mem-digi-type').value = data.digiType;
+            if(data.digiAttr) document.getElementById('mem-digi-attr').value = data.digiAttr;
+            if(data.group) document.getElementById('mem-digi-group').value = data.group;
+        }
         else {
             // Apenas campos básicos já existem no form principal, adicionamos a Observação aqui
             container.innerHTML = `
@@ -885,6 +1228,22 @@
             return {
                 type1: document.getElementById('mem-poke-t1').value,
                 type2: document.getElementById('mem-poke-t2').value
+            };
+        }
+
+        if (type === 'Pokemon Fazenda') {
+            return {
+                type1: document.getElementById('mem-poke-t1').value,
+                type2: document.getElementById('mem-poke-t2').value,
+                group: document.getElementById('mem-poke-group').value || 'Sem Grupo'
+            };
+        }
+
+        if (type === 'Digimon') {
+            return {
+                digiType: document.getElementById('mem-digi-type').value,
+                digiAttr: document.getElementById('mem-digi-attr').value,
+                group: document.getElementById('mem-digi-group').value
             };
         }
 
