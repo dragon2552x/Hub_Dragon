@@ -212,22 +212,22 @@
             </button>
 
             <div id="dropdownMenu" class="filter-dropdownMenu hidden">
-                <div class="filter-option selected" data-filter="inacabados" data-text="Todos inacabados" onclick="loadAnimeList('inacabados')">
+                <div class="filter-option selected" onclick="selecionarOpcaoMenu('inacabados', this)">
                     Todos inacabados
                 </div>
-                <div class="filter-option" data-filter="temporada" data-text="Temporada Atual" onclick="loadAnimeList('temporada')">
+                <div class="filter-option" onclick="selecionarOpcaoMenu('temporada', this)">
                     Temporada Atual
                 </div>
-                <div class="filter-option" data-filter="ult_temporada" data-text="Última Temporada" onclick="loadAnimeList('ult_temporada')">
+                <div class="filter-option" onclick="selecionarOpcaoMenu('ult_temporada', this)">
                     Última Temporada
                 </div>
-                <div class="filter-option" data-filter="andamento" data-text="andamento" onclick="loadAnimeList('andamento')">
+                <div class="filter-option" onclick="selecionarOpcaoMenu('andamento', this)">
                     Andamento
                 </div>
-                <div class="filter-option" data-filter="andamento" data-text="Selecionar Anime" onclick="abrirModalSelecao('anime')">
+                <div class="filter-option" onclick="selecionarOpcaoMenu('selecionar_anime', this)">
                     Selecionar Anime
                 </div>
-                <div class="filter-option" data-filter="andamento" data-text="Selecionar Temporada" onclick="abrirModalSelecao('temporada')">
+                <div class="filter-option" onclick="selecionarOpcaoMenu('selecionar_temporada', this)">
                     Selecionar Temporada
                 </div>
             </div>
@@ -251,85 +251,125 @@
 
 
 <!-- MODAL DE ANIME -->
-<div id="anime-modal"
-     class="fixed inset-0 hidden overflow-y-auto bg-black bg-opacity-75"
-     style="z-index: 9999;">
+<div id="anime-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm transition-all">
+    <div class="bg-[#151515] w-full max-w-lg sm:rounded-xl border-t sm:border border-[#2a2a2a] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-10 duration-300">
+        
+        <div class="relative h-32 bg-[#111] shrink-0">
+            <img id="modal-bg-blur" src="" class="absolute inset-0 w-full h-full object-cover opacity-30 blur-md">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent"></div>
+            
+            <button onclick="fecharModalAnime()" 
+                class="absolute top-4 right-4 z-[60] w-9 h-9 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-[#B9314F] hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10"
+                aria-label="Fechar Modal">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
 
-    <div class="relative w-11/12 max-w-lg mx-auto my-10 p-6 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-600">
+            <div class="absolute -bottom-4 left-5 flex items-end gap-4 z-10 w-full pr-5">
+                <img id="modal-imagem" src="" class="w-24 h-32 object-cover rounded-lg border-2 border-[#2a2a2a] shadow-lg bg-[#111]">
+                <div class="pb-6 flex-1 min-w-0">
+                    <h2 id="modal-nome" class="text-lg sm:text-xl font-bold text-white truncate leading-tight drop-shadow-md">
+                        Nome do Anime
+                    </h2>
+                    
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1.5">
+                        
+                        <span id="modal-tag-estilo" class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded bg-[#B9314F] text-white tracking-tighter">
+                            Anime
+                        </span>
 
-        <!-- HEADER -->
-        <div class="flex justify-between items-center pb-4 border-b border-gray-600">
-            <button id="anime-close-btn"
-                    class="p-2 rounded-full hover:bg-gray-700 transition"
-                    type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-6 w-6 text-gray-400"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                        <div class="flex items-center gap-2 text-[11px] text-gray-400 font-medium">
+                            <span id="modal-ano" class="font-mono">2024</span>
+                            <span class="text-[#2a2a2a]">|</span>
+                            <div class="flex items-center gap-1">
+                                <i data-lucide="play-circle" class="w-3 h-3 text-gray-500"></i>
+                                <span id="modal-epsa" class="text-gray-200">0</span>
+                                <span class="text-gray-600">/</span>
+                                <span id="modal-epst">0</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Nota F.</span>
+                            <span id="modal-tag-nota-f" class="text-xs font-black text-[#B9314F]">0.00</span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 pt-8 overflow-y-auto custom-scroll flex-1">
+            
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Estado</label>
+                    <select id="modal-estado" class="w-full bg-[#0a0a0a] border border-[#333] text-gray-200 text-xs rounded p-2 focus:border-[#B9314F] outline-none transition-colors" placeholder="0-5">
+                        <option value="Completo">Completo</option>
+                        <option value="Andamento">Andamento</option>
+                        <option value="Incompleto">Incompleto</option>
+                        <option value="Assistido">Assistido</option>
+                        <option value="Desistência">Desistência</option>
+                        <option value="N. Começado">N. Começado</option>
+                        <option value="N. Assistido">N. Assistido</option>
+                        <option value="N. Lançado">N. Lançado</option>
+                        <option value="N. Sei">N. Sei</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Nota MAL</label>
+                    <div class="relative">
+                        <input id="modal-mal" type="number" step="0.01" 
+                            class="w-full bg-[#0a0a0a] border border-[#333] text-gray-200 text-xs rounded p-2 pl-2 pr-9 focus:border-[#B9314F] outline-none transition-colors" 
+                            placeholder="0.0">
+                        
+                        <button type="button" onclick="pegarDoMAL()" 
+                            class="absolute right-1 top-1 bottom-1 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center justify-center transition-colors shadow-sm">
+                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Stars</label>
+                    <div class="relative">
+                        <select id="modal-stars" type="number" step="0.5" max="5" class="w-full bg-[#0a0a0a] border border-[#333] text-gray-200 text-xs rounded p-2 focus:border-[#B9314F] outline-none transition-colors" placeholder="0-5">
+                            <option value="">-</option>
+                            <option value="✶">🥇 R1</option>
+                            <option value="✶ ✶">🥈 R2</option>
+                            <option value="✶ ✶ ✶">🥉 R3</option>
+                            <option value="5">5 ⭐</option>
+                            <option value="4">4 ⭐</option>
+                            <option value="3">3 ⭐</option>
+                            <option value="2">2 ⭐</option>
+                            <option value="1">1 ⭐</option>
+                            <option value="0">0 ⭐</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-[1px] bg-[#2a2a2a] w-full mb-5"></div>
+
+            <div id="notas_content">
+                </div>
+
+        </div>
+
+        <div class="p-4 bg-[#111] border-t border-[#2a2a2a] flex gap-3">
+            <button id="btn-mais-um-ep" class="flex-1 bg-[#222] hover:bg-[#333] text-white border border-[#333] py-3 rounded-lg flex items-center justify-center gap-2 transition group">
+                <div class="bg-[#B9314F] rounded-full p-1 group-hover:scale-110 transition">
+                    <i data-lucide="plus" class="w-3 h-3 text-white"></i>
+                </div>
+                <div class="text-left leading-none">
+                    <span class="block text-[10px] text-gray-400 font-bold uppercase">Progresso</span>
+                    <span class="text-sm font-bold">+1 Episódio</span>
+                </div>
+            </button>
+
+            <button id="btn-salvar-tudo" class="flex-[2] bg-[#B9314F] hover:bg-[#a02641] text-white font-bold py-3 rounded-lg shadow-lg shadow-red-900/20 transition flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Salvar Alterações</span>
             </button>
         </div>
-
-        <!-- CONTEÚDO -->
-        <div class="mt-4 space-y-4">
-
-            <!-- CABEÇALHO COM IMAGEM E NOME -->
-            <div class="flex items-start space-x-4 mb-4">
-                <!-- Imagem quadrada -->
-                <img id="modal-imagem"
-                     class="w-16 h-16 rounded-lg border border-gray-600 shadow-lg flex-shrink-0"
-                     alt="Anime">
-                
-                <!-- Nome do anime -->
-                <div class="flex-1 min-w-0">
-                    <h2 id="modal-nome" class="text-xl font-bold text-white break-words leading-tight">Anime</h2>
-                </div>
-            </div>
-
-            <!-- INFORMAÇÕES DETALHADAS -->
-            <div id="modal-info" class="bg-[#1f1f1f] p-4 rounded-lg border border-gray-600">
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Episódios Assistidos:</span>
-                        <span id="modal-eps-assistidos" class="text-white font-medium">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Episódios Totais:</span>
-                        <span id="modal-eps-totais" class="text-white font-medium">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Estilo:</span>
-                        <span id="modal-estilo" class="text-white font-medium">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Estado:</span>
-                        <span id="modal-estado" class="text-white font-medium">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Ano:</span>
-                        <span id="modal-ano" class="text-white font-medium">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Temporada:</span>
-                        <span id="modal-temporada" class="text-white font-medium">-</span>
-                    </div>
-                </div>
-            </div>
-            <!-- ÁREA PARA ADICIONAR INFORMAÇÕES -->
-            <div id="modal-info-adicional" class="bg-[#1f1f1f] p-4 rounded-lg border border-gray-600">
-                <div id="info-adicional-container" class="space-y-2">
-                    <!-- Conteúdo adicional será adicionado aqui -->
-                    <p class="text-gray-500 text-sm italic">Nenhuma informação adicional adicionada ainda.</p>
-                </div>
-            </div>
-
-        </div>
-
     </div>
 </div>
 
@@ -413,11 +453,12 @@
   }
 </script>
 
-<!-- FIREBASE -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, where, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
         authDomain: "list-games-9bddd.firebaseapp.com",
@@ -430,228 +471,797 @@
 
     const firebaseApp = initializeApp(firebaseConfig);
     const auth = getAuth(firebaseApp);
-
-    const userEmailEl = document.getElementById("user-email");
-
-    let animeCache = [];
-    if (!window.animeCache) window.animeCache = [];
-
-    import { getFirestore, collection, getDocs, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
     const db = getFirestore(firebaseApp);
 
+    // --- VARIÁVEIS GLOBAIS ---
+    window.animeCache = [];
+    window._notasAnime = { ep1: "", eps: [], epf: "" }; // Estado temporário das notas
+
+    // --- 1. CARREGAMENTO DE DADOS ---
     async function carregarAnimesParaCache() {
         const user = auth.currentUser;
         if (!user) return [];
 
-        const ref = collection(db, "users", user.uid, "animes");
-        const snapshot = await getDocs(ref);
-        const dados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Salva no cache global da janela e no localStorage
-        window.animeCache = dados;
-        localStorage.setItem(`animes_${user.uid}`, JSON.stringify(dados));
-        
-        return dados;
-    }
-    window.carregarAnimesParaCache = carregarAnimesParaCache;
-
-    function toggleMoreOptions(event) {
-        event.stopPropagation(); // Previne que o clique feche imediatamente
-        const dropdown = document.getElementById('more-options-dropdown');
-        dropdown.classList.toggle('hidden');
-    }
-
-    // Função para fechar o dropdown se o usuário clicar fora dele
-    document.addEventListener('click', (e) => {
-        const dropdown = document.getElementById('more-options-dropdown');
-        const button = document.getElementById('more-options-btn');
-        if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.add('hidden');
+        try {
+            const ref = collection(db, "users", user.uid, "animes");
+            const snapshot = await getDocs(ref);
+            // Mapeia doc.id para facilitar updates futuros
+            const dados = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+            
+            window.animeCache = dados;
+            localStorage.setItem(`animes_${user.uid}`, JSON.stringify(dados));
+            return dados;
+        } catch (e) {
+            console.error("Erro ao carregar do Firebase:", e);
+            return [];
         }
-    });
-
-    window.toggleMoreOptions = toggleMoreOptions;
-
-    function toggleFilterDropdown() {
-        const dropdownMenu = document.getElementById("dropdownMenu");
-        if (!dropdownMenu) {
-            console.warn("toggleFilterDropdown: dropdown não encontrado.");
-            return;
-        }
-        dropdownMenu.classList.toggle("hidden");
-    }
-    window.toggleFilterDropdown = toggleFilterDropdown;
-
-    window.selectFilter = (filterType) => {
-        const dropdownMenu = document.getElementById("dropdownMenu");
-        const selectedTextEl = document.getElementById("selected-filter-text");
-
-        if (!dropdownMenu || !selectedTextEl) return;
-
-        // Atualiza seleção visual
-        document.querySelectorAll("#dropdownMenu .filter-option").forEach(option => {
-            option.classList.remove("selected");
-
-            if (option.getAttribute("data-filter") === filterType) {
-                option.classList.add("selected");
-
-                // Atualiza o texto do botão principal
-                const label = option.getAttribute("data-text") || option.textContent.trim();
-                selectedTextEl.textContent = label;
-            }
-        });
-
-        // Fecha o menu
-        toggleFilterDropdown();
-
-        // Aplica o filtro
-        loadAnimeList(filterType);
-    };
-
-    // garante que o dropdown exista antes de anexar listeners
-    (function setupDropdownLabelSync() {
-    const menu = document.getElementById('dropdownMenu');
-    const selectedTextEl = document.getElementById('selected-filter-text');
-
-    if (!menu || !selectedTextEl) {
-        // se ainda não existir, tenta novamente depois de 200ms (caso o script rode antes do HTML)
-        setTimeout(setupDropdownLabelSync, 200);
-        return;
-    }
-
-    // Delegation: quando clicar em uma .filter-option, atualiza o texto, a classe selected e fecha o menu.
-    menu.addEventListener('click', (ev) => {
-        const opt = ev.target.closest('.filter-option');
-        if (!opt || !menu.contains(opt)) return;
-
-        // pega o texto do data-text ou o texto interno
-        const label = (opt.getAttribute('data-text') || opt.textContent || '').trim();
-        if (label) selectedTextEl.textContent = label;
-
-        // atualiza seleção visual
-        document.querySelectorAll('#dropdownMenu .filter-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-
-        // fecha o dropdown (não chamamos loadAnimeList aqui pois seu onclick inline já faz)
-        menu.classList.add('hidden');
-    });
-
-    // Também fecha o dropdown se clicar fora (melhora UX)
-    document.addEventListener('click', (ev) => {
-        const toggle = document.getElementById('dropdown-toggle');
-        if (!menu.contains(ev.target) && ev.target !== toggle && !toggle.contains(ev.target)) {
-        menu.classList.add('hidden');
-        }
-    });
-
-    // opcional: atualiza o texto inicial baseado na opção com .selected (se houver)
-    const initial = document.querySelector('#dropdownMenu .filter-option.selected');
-    if (initial) {
-        const label = (initial.getAttribute('data-text') || initial.textContent || '').trim();
-        if (label) selectedTextEl.textContent = label;
-    }
-    })();
-
-    function criarCardAnime(anime) {
-        const imagem = anime.IMAGEM || "https://via.placeholder.com/300x450?text=Sem+Imagem";
-
-        return `
-            <div class="anime-card" data-nome="${anime.NOME}">
-
-                <div class="card-image">
-                    <img src="${imagem}" alt="${anime.NOME}">
-                </div>
-
-                <div class="p-2">
-                    <h3 class="font-bold text-sm truncate text-white">${anime.NOME}</h3>
-                    <p class="text-xs text-gray-400">${anime.ESTILO || "Anime"}</p>
-                </div>
-
-            </div>
-        `;
-    }
-
-    function getTemporadaAtual() {
-        const mes = new Date().getMonth() + 1; // 1..12
-        if (mes >= 1 && mes <= 3) return 1;    // Inverno
-        if (mes >= 4 && mes <= 6) return 4;    // Primavera
-        if (mes >= 7 && mes <= 9) return 7;    // Verão
-        return 10;                             // Outono
     }
 
     async function loadAnimeList(filtro = "inacabados") {        
         const user = auth.currentUser;
         if (!user) return;
 
-        // 1. GARANTIA DE DADOS (LocalStorage > Firebase)
+        // Recuperação Inteligente (Memória > LocalStorage > Firebase)
         if (!window.animeCache || window.animeCache.length === 0) {
-            const cacheKey = `animes_${user.uid}`;
-            const cachedData = localStorage.getItem(cacheKey);
-
+            const cachedData = localStorage.getItem(`animes_${user.uid}`);
             if (cachedData) {
-                console.log("📦 loadAnimeList: Dados recuperados do localStorage");
                 window.animeCache = JSON.parse(cachedData);
             } else {
-                console.log("🔥 loadAnimeList: Cache vazio, realizando leitura única no Firebase...");
-                await carregarAnimesParaCache(); // Esta função deve salvar no localStorage
+                await carregarAnimesParaCache();
             }
         }
 
-        // Fallback para evitar erro de .filter
-        let lista = Array.isArray(window.animeCache) ? [...window.animeCache] : [];
+        let lista = [...window.animeCache];
 
-        // 2. APLICAÇÃO DOS FILTROS
+        // Filtros
         if (filtro === "andamento") {
-            lista = lista.filter(a => (a.ESTADO || "") === "Andamento");
+            lista = lista.filter(a => a.ESTADO === "Andamento");
         } else if (filtro === "inacabados") {
-            lista = lista.filter(a => {
-                const st = (a.ESTADO || "");
-                return st !== "Completo" && st !== "Assistido" && st !== "Desistência";
-            });
+            lista = lista.filter(a => !["Completo", "Assistido", "Desistência"].includes(a.ESTADO));
         } else if (filtro === "temporada" || filtro === "ult_temporada") {
-            // Lógica de Temporada (Otimizada para evitar repetição de código)
             let anoAlvo = new Date().getFullYear();
             let tempAlvo = getTemporadaAtual();
 
             if (filtro === "ult_temporada") {
-                if (tempAlvo === 1) { tempAlvo = 10; anoAlvo -= 1; }
-                else if (tempAlvo === 4) { tempAlvo = 1; }
-                else if (tempAlvo === 7) { tempAlvo = 4; }
-                else if (tempAlvo === 10) { tempAlvo = 7; }
+                if (tempAlvo === 1) { tempAlvo = 10; anoAlvo--; }
+                else tempAlvo -= 3;
             }
 
             lista = lista.filter(anime => {
-                const tempStr = (anime.TEMPORADA || "").trim();
-                const ano = Number(anime.ANO);
-                if (!tempStr || isNaN(ano) || ano !== anoAlvo) return false;
-                
-                const lower = tempStr.toLowerCase();
-                if (lower.includes("outro") || lower.includes("outra")) return false;
-
-                const m = tempStr.match(/\((\d+)\)/);
-                if (!m) return false;
-                return Number(m[1]) === tempAlvo;
+                const t = (anime.TEMPORADA || "").toLowerCase();
+                const a = Number(anime.ANO);
+                if (!t || a !== anoAlvo || t.includes("outra")) return false;
+                return t.includes(`(${tempAlvo})`);
             });
         } else {
-            // Filtros genéricos (ex: "Completo", "Pausado")
             lista = lista.filter(a => (a.ESTADO || "").toLowerCase() === String(filtro).toLowerCase());
         }
 
-        // 3. ORDENAÇÃO (Opcional: Geralmente por número de série ou nome)
-        lista.sort((a, b) => (a.N || 0) - (b.N || 0));
+        // Ordenação por Número (assumindo campo N ou Num)
+        lista.sort((a, b) => (Number(a.N) || 0) - (Number(b.N) || 0));
 
-        // 4. RENDERIZAÇÃO
-        if (typeof renderAnimeCards === "function") {
-            renderAnimeCards(lista);
-        } else {
-            console.error("Função renderAnimeCards não encontrada!");
-        }
+        renderAnimeCards(lista);
     }
-
     window.loadAnimeList = loadAnimeList;
 
-    // --- LÓGICA DE FILTROS POR SELEÇÃO ---
+    function getTemporadaAtual() {
+        const mes = new Date().getMonth() + 1;
+        if (mes <= 3) return 1;
+        if (mes <= 6) return 4;
+        if (mes <= 9) return 7;
+        return 10;
+    }
+
+    // --- 2. RENDERIZAÇÃO DA LISTA ---
+    function renderAnimeCards(lista) {        
+        const grid = document.getElementById("anime-list-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        if (lista.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10">Nenhum anime encontrado.</div>`;
+            return;
+        }
+        
+        lista.forEach(anime => {            
+            const div = document.createElement("div");
+            div.className = "anime-card cursor-pointer bg-[#151515] rounded-lg overflow-hidden shadow-md border border-[#2a2a2a] hover:border-[#B9314F] transition-all";
+            div.innerHTML = `
+                <div class="w-full h-40 bg-[#111] relative">
+                    <img src="${anime.IMAGEM || ''}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                    <div class="absolute bottom-0 left-0 bg-black/70 px-2 py-1 text-[10px] text-white font-bold rounded-tr-lg">
+                        ${anime.ASSIS || 0}/${anime.TOTAIS || '?'}
+                    </div>
+                </div>
+                <div class="p-3">
+                    <h3 class="font-bold text-sm text-white truncate mb-1">${anime.NOME}</h3>
+                    <p class="text-xs text-gray-400">${anime.ESTILO || "Anime"} • ${anime.ANO || "?"}</p>
+                    <span class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded bg-[#222] text-gray-300 border border-[#333]">${anime.ESTADO}</span>
+                </div>
+            `;
+            div.onclick = () => abrirModalAnime(anime.NOME);
+            grid.appendChild(div);
+        });
+    }
+
+    // --- 3. MODAL DE EDIÇÃO (Lógica Principal) ---
+    function abrirModalAnime(nome) {
+        const anime = window.animeCache.find(a => a.NOME === nome);
+        if (!anime) return console.error("Anime não encontrado:", nome);
+
+        const ref = doc(db, "users", auth.currentUser.uid, "animes", nome);
+
+        const modal = document.getElementById("anime-modal");
+        modal.classList.remove("hidden");
+
+        // 1. Preenche Topo (Capa e Infos)
+        document.getElementById("modal-nome").textContent = anime.NOME;
+        document.getElementById("modal-imagem").src = anime.IMAGEM || "https://placehold.co/150x200/111/333?text=?";
+        document.getElementById("modal-bg-blur").src = anime.IMAGEM || ""; // Fundo desfocado
+        document.getElementById("modal-tag-estilo").textContent = anime.ESTILO || "Anime";
+        document.getElementById("modal-ano").textContent = anime.ANO || "????";
+        document.getElementById("modal-epsa").textContent = anime.ASSIS || "0";
+        document.getElementById("modal-epst").textContent = anime.TOTAIS || "0";
+
+        document.getElementById("modal-tag-nota-f").textContent = 
+            (anime.NOTA_F !== undefined && anime.NOTA_F !== null && anime.NOTA_F !== '')
+            ? anime.NOTA_F.toFixed(2)
+            : "";
+        
+        // 2. Preenche Edição Básica (Estado, MAL, Stars)
+        // Usa valores existentes ou padrões vazios
+        document.getElementById("modal-estado").value = anime.ESTADO || "Andamento";
+        document.getElementById("modal-mal").value = anime.N_MAL || ""; // Assumindo campo MAL no banco
+        document.getElementById("modal-stars").value = anime.STARS || ""; // Assumindo campo STARS no banco
+
+        // 3. Prepara Notas (Lógica de Estilo)
+        const estilo = anime.ESTILO || "Anime";
+        
+        // Normaliza "Anime Inf" para comportar como "Anime"
+        const isSerie = estilo === "Anime" || estilo === "Anime Inf";
+
+        if (isSerie) {
+            const rawEps = anime.EPS || anime.N_Eps || "";
+            window._notasAnime = {
+                ep1: anime.EP1 || anime.N_Ep_1 || "",
+                eps: rawEps ? rawEps.split(",") : new Array(16).fill(""),
+                epf: anime.EPF || anime.N_Ep_F || ""
+            };
+        } else {
+            window._notasAnime = { ep1: "", eps: [], epf: "" };
+        }
+
+        renderizarFormularioNotas(estilo, anime);
+
+        // 4. Configura Botões de Ação
+        let epAtual = parseInt(anime.ASSIS || 0);
+        
+        // Botão +1 EP (Apenas visual update no botão até salvar, ou salva direto?)
+        // Aqui faremos ele atualizar o contador visual e preparar o save.
+        const btnEp = document.getElementById("btn-mais-um-ep");
+        btnEp.onclick = () => {
+            epAtual++;
+            document.getElementById("modal-epsa").textContent = epAtual;
+        };
+
+        // Botão Salvar Tudo
+        const btnSalvar = document.getElementById("btn-salvar-tudo");
+
+        btnSalvar.disabled = false;
+        btnSalvar.textContent = "SALVAR ALTERAÇÕES";
+        btnSalvar.classList.remove("bg-green-600"); // Caso você mude a cor ao salvar
+        btnSalvar.classList.add("bg-[#B9314F]");    // Garante a cor original
+        
+        // Limpa o dataset de episódios da busca anterior
+        document.getElementById("modal-nome").dataset.tempTotalEps = "";
+
+        btnSalvar.onclick = async () => {
+            btnSalvar.disabled = true;
+            btnSalvar.textContent = "PROCESSANDO NOTAS...";
+
+            const ESTILO = document.getElementById("modal-tag-estilo").textContent;
+            const MAL = parseFloat(document.getElementById("modal-mal").value) || 0;
+            const STARS = parseFloat(document.getElementById("modal-stars").value) || 0;
+            const nomeAnime = document.getElementById("modal-nome").textContent;
+            const totalEps = document.getElementById("modal-nome").dataset.tempTotalEps || anime.TOTAIS;
+
+            let payloadNotas = {};
+
+            let dadosNotas = {
+                notasAnime: null,
+                notasOpening: null,
+                notaFilme: null,
+                notaEspecial: null,
+                notaInf: null,
+            };
+
+            // --- SUA LÓGICA DE FILTRAGEM POR ESTILO ---
+            if (ESTILO === "Anime") {
+                const notas = window._notasAnime || { ep1: "", eps: [], epf: "" };
+                const OP_FINAL = parseFloat(anime.OP) || 0;
+                const OP_FORMATADA = OP_FINAL.toFixed(2);
+
+                dadosNotas.notasAnime = notas;
+                dadosNotas.notaOp = OP_FORMATADA;
+
+                payloadNotas = {
+                    ...payloadNotas,
+                    N_Ep_1: notas.ep1,
+                    N_Ep_F: notas.epf,
+                    N_Eps: notas.eps.join(","),
+                };
+
+            } else if (ESTILO === "Filme") {
+                const NOTA_FILME = document.getElementById("edit_nota_unica")?.value || "";
+                dadosNotas.notaFilme = NOTA_FILME;
+                payloadNotas = {
+                    ...payloadNotas,
+                    "N. FILME ESP.": NOTA_FILME,
+                };
+
+            } else if (ESTILO === "Especial") {
+                const NOTA_ESPECIAL = document.getElementById("edit_nota_unica")?.value || "";
+                dadosNotas.notaEspecial = NOTA_ESPECIAL;
+                payloadNotas = {
+                    ...payloadNotas,
+                    "N. FILME ESP.": NOTA_ESPECIAL,
+                };
+            } else if (ESTILO === "Anime Inf.") {
+                const arcos = window._arcosAnime || {};
+                let totalSomasMediasArcos = 0, totalContagemArcos = 0;
+
+                Object.values(arcos).forEach(arco => {
+                    const notasValidas = [arco.i, arco.m, arco.f].map(n => parseFloat(n) || 0).filter(n => n > 0);
+                    if (notasValidas.length > 0) {
+                        totalSomasMediasArcos += (notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length);
+                        totalContagemArcos++;
+                    }
+                });
+
+                const MEDIA_ARCOS = totalContagemArcos > 0 ? (totalSomasMediasArcos / totalContagemArcos).toFixed(2) : "";
+                
+                // Cálculo Openings Inf.
+                const openings = window._openingsAnime || {};
+                let totalSomasOpenings = 0, totalContagemOpenings = 0;
+                Object.values(openings).forEach(op => {
+                    const scoreOp = (parseFloat(op.musica) || 0) + (parseFloat(op.animacao) || 0);
+                    if (scoreOp > 0) { totalSomasOpenings += scoreOp; totalContagemOpenings++; }
+                });
+                const MEDIA_OPENINGS = totalContagemOpenings > 0 ? (totalSomasOpenings / totalContagemOpenings).toFixed(2) : "";
+
+                dadosNotas.notaInf = MEDIA_ARCOS;
+                dadosNotas.notaInfOpenings = MEDIA_OPENINGS;
+
+                payloadNotas = {
+                    ...payloadNotas,
+                    "N_INFT": MEDIA_ARCOS,
+                    "OP": MEDIA_OPENINGS,
+                    "N. A+ e INFT.": JSON.stringify(arcos),
+                    "OPENINGS_INFT": JSON.stringify(openings)
+                };
+            }
+
+            // --- CÁLCULO DA NOTA FINAL ---
+            const NOTA_F = calcularNotaFinal(ESTILO, MAL, STARS, dadosNotas);
+
+            let payload = {
+                ESTADO: document.getElementById("modal-estado").value,
+                STARS: STARS,
+                N_MAL: MAL,
+                TOTAIS: parseInt(totalEps) || 0,
+                ASSIS: epAtual, // Variável do controle de episódios
+                ultima_atualizacao: new Date().toISOString(),
+
+                // Nota Final (Calculada)
+                NOTA_F: NOTA_F,
+
+                // Notas e listas estruturadas
+                ...payloadNotas
+            };
+
+            console.log("payload:", payload);
+
+            try {
+                // Salvar no Firebase
+                const docRef = doc(db, "users", auth.currentUser.uid, "animes", nomeAnime);
+                await setDoc(ref, payload, { merge: true });
+
+                // Atualizar Cache Local
+                const idx = window.animeCache.findIndex(a => a.NOME === nomeAnime);
+                if (idx !== -1) {
+                    window.animeCache[idx] = { ...window.animeCache[idx], ...payload };
+                    localStorage.setItem(`animes_${auth.currentUser.uid}`, JSON.stringify(window.animeCache));
+                }
+
+                btnSalvar.textContent = "SALVO COM SUCESSO!";
+                setTimeout(() => {
+                    fecharModalAnime();
+                    loadAnimeList();
+                }, 1000);
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao salvar notas.");
+                btnSalvar.disabled = false;
+                btnSalvar.textContent = "Tentar Novamente";
+            }
+        };
+        
+        lucide.createIcons();
+    }
+
+    function calcularNotaFinal(estilo, mal, stars, dadosNotas) {
+        let nota_f = "";
+
+        // ====================================================================
+        // 1. M.A.L. + Stars (mal_star_d)
+        // ====================================================================
+
+        const n_mal = parseFloat(mal) || 0;
+        const n_mal_d = n_mal / 2;
+
+        const star_map = { "": 0, "0": 3, "1": 7, "2": 8, "3": 9, "4": 10, "5": 10.2, "✶ ✶ ✶": 10.3, "✶ ✶": 10.4, "✶": 10.5 };
+        const star_n = star_map[stars] !== undefined ? star_map[stars] : 0;
+
+        const mal_star_d = (n_mal_d + star_n) / 1.5;
+
+        // ====================================================================
+        // 2. Cálculo Base por Estilo
+        // ====================================================================
+
+        if (estilo === "Anime") {
+            // NOTAS DE EPISÓDIOS
+            const notas = dadosNotas.notasAnime;
+            const opNotas = dadosNotas.notasOpening;
+            const ep_tot = parseInt(dadosNotas.TOTAIS) || 0;
+
+            const n_eps_list = notas.eps.map(n => parseFloat(n)).filter(n => !isNaN(n) && n > 0);
+            
+            const n_a = n_eps_list.length > 0 ? n_eps_list.reduce((sum, current) => sum + current, 0) / n_eps_list.length : 0;
+
+            // --- Região Eps + Op + Eps a+ (n_f_1) ---
+            const ep1 = parseFloat(notas.ep1) || 0;
+            const epf = parseFloat(notas.epf) || 0;
+            const nota_op = parseFloat(dadosNotas.notaOp) || 0;
+
+            const notas_para_media = [];
+
+            if (ep1 > 0) notas_para_media.push(ep1);
+            
+            notas_para_media.push(...n_eps_list); 
+
+            if (epf > 0) notas_para_media.push(epf);
+            
+            if (nota_op > 0) notas_para_media.push(nota_op);
+
+            let n_f_1 = 0;
+            if (notas_para_media.length > 0) {
+                // Soma todas as notas e divide pela quantidade
+                n_f_1 = notas_para_media.reduce((sum, current) => sum + current, 0) / notas_para_media.length;
+            }
+
+            // --- Região Adição por quantidade de eps (bonus_ep) ---
+            let bonus_ep = 0.00;
+            if (ep_tot > 0) {
+                if (ep_tot <= 15) {
+                    bonus_ep = 0.01;
+                } else if (ep_tot <= 26) {
+                    bonus_ep = 0.02;
+                } else {
+                    bonus_ep = 0.03;
+                }
+            }
+
+            // --- Fórmula final ANIME ---
+            if (n_f_1 > 0 || mal_star_d > 0) {
+                nota_f = (((n_f_1 + mal_star_d) / 2) + bonus_ep).toFixed(2);
+            }
+        } 
+        else if (estilo === "Anime Inf.") {
+            const notaArcos = parseFloat(dadosNotas.notaInf) || 0;
+            const notaOpenings = parseFloat(dadosNotas.notaInfOpenings) || 0;
+
+            let n_f_1 = 0;
+
+            if (notaArcos > 0 && notaOpenings > 0) {
+                // Se ambas as notas (Arcos e Openings) forem válidas, calcula a média
+                n_f_1 = (notaArcos + notaOpenings) / 2;
+            } else if (notaArcos > 0) {
+                // Se somente a nota de Arcos for válida, usa ela
+                n_f_1 = notaArcos;
+            } else if (notaOpenings > 0) {
+                // Se somente a nota de Openings for válida, usa ela
+                n_f_1 = notaOpenings;
+            }
+
+            // --- Fórmula final ANIME INF. ---
+            if (n_f_1 > 0 || mal_star_d > 0) {
+                // Assumindo um bônus de 0.04 fixo para Anime Inf.
+                nota_f = (((n_f_1 + mal_star_d) / 2) + 0.04).toFixed(2);
+            }
+
+        } 
+        else if (estilo === "Filme") {
+            
+            // Nota específica de Filme
+            const n_f_e = parseFloat(dadosNotas.notaFilme) || 0;
+            
+            // --- Fórmula final FILME ---
+            if (n_f_e > 0 || mal_star_d > 0) {
+                nota_f = ((n_f_e + mal_star_d) / 2).toFixed(2);
+            }
+        } 
+        else if (estilo === "Especial") {
+                // Nota específica de Especial
+                const n_f_e = parseFloat(dadosNotas.notaEspecial) || 0;
+
+                // --- Fórmula final ESPECIAL ---
+                if (n_f_e > 0 || mal_star_d > 0) {
+                    nota_f = ((n_f_e + mal_star_d) / 2).toFixed(2);
+                }
+        }
+
+        return nota_f !== "" ? parseFloat(nota_f) : "";
+    }
+
+    // --- 4. RENDERIZADORES DE CAMPOS (Visual Atualizado) ---
+    function renderizarFormularioNotas(estilo, anime) {
+        const container = document.getElementById("notas_content");
+        container.innerHTML = "";
+
+        // Título da Seção
+        const header = `<div class="mb-3 flex items-center gap-2"><i data-lucide="notebook-pen" class="w-4 h-4 text-[#B9314F]"></i><h3 class="text-sm font-bold text-white uppercase">Notas de Episódios</h3></div>`;
+
+        if (estilo === "Filme" || estilo === "Especial") {
+            container.innerHTML = `
+                ${header}
+                <div class="bg-[#0a0a0a] p-4 rounded-lg border border-[#2a2a2a]">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Nota Geral (${estilo})</label>
+                    <input id="edit_nota_unica" type="number" step="0.1" value="${anime["N. FILME ESP."] || ''}" 
+                        class="w-full bg-[#151515] border border-[#333] text-white p-3 rounded mt-2 focus:border-[#B9314F] outline-none text-lg font-mono">
+                </div>`;
+        } 
+        else if (estilo === "Anime Inf.") {
+            // 1. PRIMEIRO: Injete o HTML base que contém os IDs 'ai_media_arcos', 'ai_arco_lista', etc.
+            container.innerHTML = `
+                ${header}
+                <div class="space-y-4 bg-[#0a0a0a] p-3 rounded-lg border border-[#2a2a2a]">
+                    
+                    <div class="border-b border-[#333] pb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-[#31B94F] text-xs uppercase">Notas por Arco</h3>
+                            <span id="ai_media_arcos" class="text-[10px] font-mono text-gray-400">Média: --</span>
+                        </div>
+                        
+                        <div>
+                            <label class="font-bold text-[10px] text-gray-500 uppercase mb-1 block">Selecionar Arco</label>
+                            <select id="ai_arco_select" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white text-xs rounded focus:border-[#31B94F] outline-none transition-colors">
+                                </select>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mt-2">
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1">Início</label>
+                                <input id="ai_nota_i" type="number" min="0" max="10" step="0.5" placeholder="-"
+                                    class="w-full px-1 py-2 bg-[#151515] border border-[#333] text-white rounded text-center text-xs focus:border-[#31B94F] outline-none">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1">Meio</label>
+                                <input id="ai_nota_m" type="number" min="0" max="10" step="0.5" placeholder="-"
+                                    class="w-full px-1 py-2 bg-[#151515] border border-[#333] text-white rounded text-center text-xs focus:border-[#31B94F] outline-none">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1">Fim</label>
+                                <input id="ai_nota_f" type="number" min="0" max="10" step="0.5" placeholder="-"
+                                    class="w-full px-1 py-2 bg-[#151515] border border-[#333] text-white rounded text-center text-xs focus:border-[#31B94F] outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mt-3">
+                            <button class="flex-1 bg-[#1d8f3c]/10 border border-[#1d8f3c]/30 text-[#1d8f3c] hover:bg-[#1d8f3c] hover:text-white py-1.5 rounded text-[10px] font-bold uppercase transition"
+                                    onclick="aiAdicionarArco()">Salvar Arco</button>
+                            <button class="flex-1 bg-[#7a0e20]/10 border border-[#7a0e20]/30 text-[#7a0e20] hover:bg-[#7a0e20] hover:text-white py-1.5 rounded text-[10px] font-bold uppercase transition"
+                                    onclick="aiExcluirArco()">Excluir</button>
+                        </div>
+
+                        <div id="ai_arco_lista" class="bg-[#111] border border-[#333] rounded p-2 h-24 overflow-y-auto custom-scroll text-xs mt-3 flex flex-col gap-1">
+                            <span class="text-gray-600 italic text-[10px] p-1">Carregando arcos...</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-[#B9314F] text-xs uppercase">Openings</h3>
+                            <span id="ai_media_ops" class="text-[10px] font-mono text-gray-400">Média: --</span>
+                        </div>
+
+                        <div>
+                            <label class="font-bold text-[10px] text-gray-500 uppercase mb-1 block">Opening (Op)</label>
+                            <select id="ai_op_select" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white text-xs rounded focus:border-[#B9314F] outline-none transition-colors">
+                                <option value="">-- Nova Opening --</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1">Música</label>
+                                <input id="ai_op_musica" type="number" min="0" max="5" step="0.5" placeholder="0-5"
+                                    class="w-full px-1 py-2 bg-[#151515] border border-[#333] text-white rounded text-center text-xs focus:border-[#B9314F] outline-none">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1">Animação</label>
+                                <input id="ai_op_animacao" type="number" min="0" max="5" step="0.5" placeholder="0-5"
+                                    class="w-full px-1 py-2 bg-[#151515] border border-[#333] text-white rounded text-center text-xs focus:border-[#B9314F] outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mt-3">
+                            <button class="flex-1 bg-[#1d8f3c]/10 border border-[#1d8f3c]/30 text-[#1d8f3c] hover:bg-[#1d8f3c] hover:text-white py-1.5 rounded text-[10px] font-bold uppercase transition"
+                                    onclick="aiAdicionarOpening()">Salvar OP</button>
+                            <button class="flex-1 bg-[#7a0e20]/10 border border-[#7a0e20]/30 text-[#7a0e20] hover:bg-[#7a0e20] hover:text-white py-1.5 rounded text-[10px] font-bold uppercase transition"
+                                    onclick="aiExcluirOpening()">Excluir</button>
+                        </div>
+
+                        <div id="ai_op_lista" class="bg-[#111] border border-[#333] rounded p-2 h-24 overflow-y-auto custom-scroll text-xs mt-3 flex flex-col gap-1">
+                            <span class="text-gray-600 italic text-[10px] p-1">Nenhuma OP cadastrada.</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 2. AGORA SIM: Chame as funções de atualização, pois os elementos já existem no DOM.
+            atualizarVisualizacaoArcos();
+            atualizarVisualizacaoOpenings();
+            
+            // Carregar selects também, se necessário
+            // renderizarListaArcos();     // Preenche o <select> de Arcos
+            // renderizarListaOpenings();  // Preenche o <select> de Openings
+        
+        }
+        else {
+            // Anime
+            let opts = `<option value="1">Episódio 1</option>`;
+            // Gera faixas
+            for(let i=1; i<=16; i++) { // Simplificado para mostrar indices do array
+                // A logica visual de "2-3", "4-6" depende de como você quer mapear.
+                // Vamos manter a lógica visual anterior:
+                if(i==1) opts += `<option value="2-3">Eps 2-3</option>`;
+                else {
+                    let start = 4 + (i-2)*3;
+                    opts += `<option value="${start}-${start+2}">Eps ${start}-${start+2}</option>`;
+                }
+            }
+            opts += `<option value="Final">Episódio Final</option>`;
+
+            container.innerHTML = `
+                ${header}
+                <div class="bg-[#0a0a0a] p-3 rounded-lg border border-[#2a2a2a]">
+                    <div class="flex gap-2 mb-3">
+                        <div class="flex-[2]">
+                            <label class="text-[10px] text-gray-500 font-bold uppercase mb-1 block">Selecionar Faixa</label>
+                            <select id="nota_faixa" class="w-full bg-[#151515] border border-[#333] text-gray-300 p-2.5 rounded text-xs focus:border-[#B9314F] outline-none">${opts}</select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-[10px] text-gray-500 font-bold uppercase mb-1 block">Nota</label>
+                            <input id="nota_valor" type="number" step="0.1" class="w-full bg-[#151515] border border-[#333] text-white p-2.5 rounded text-xs font-bold text-center focus:border-[#B9314F] outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <button onclick="addNotaAnime()" class="bg-[#1d8f3c]/10 text-[#1d8f3c] border border-[#1d8f3c]/30 hover:bg-[#1d8f3c] hover:text-white py-2 rounded text-[10px] font-bold uppercase transition">Adicionar</button>
+                        <button onclick="editNotaAnime()" class="bg-[#B97E0F]/10 text-[#B97E0F] border border-[#B97E0F]/30 hover:bg-[#B97E0F] hover:text-white py-2 rounded text-[10px] font-bold uppercase transition">Atualizar</button>
+                        <button onclick="deleteNotaAnime()" class="bg-[#7a0e20]/10 text-[#7a0e20] border border-[#7a0e20]/30 hover:bg-[#7a0e20] hover:text-white py-2 rounded text-[10px] font-bold uppercase transition">Apagar</button>
+                    </div>
+                    
+                    <div class="text-[10px] font-bold text-gray-500 uppercase mb-2">Resumo das Notas</div>
+                    <div id="anime_notas_visualizacao" class="flex flex-wrap gap-2 min-h-[40px] p-2 bg-[#111] rounded border border-[#222]">
+                        </div>
+                </div>
+            `;
+            atualizarVisualizacaoNotasAnime();
+        }
+        lucide.createIcons();
+    }
+
+    function atualizarVisualizacaoArcos() {
+        const lista = document.getElementById("ai_arco_lista");
+        const dados = window._dadosAnimeInf?.arcos || []; // Supondo que você guarde aqui
+        
+        // Cálculo da Média Geral dos Arcos para exibir no topo
+        const mediaGeral = dados.length > 0 
+            ? (dados.reduce((acc, curr) => acc + ((parseFloat(curr.i)+parseFloat(curr.m)+parseFloat(curr.f))/3), 0) / dados.length).toFixed(2)
+            : "--";
+        document.getElementById("ai_media_arcos").textContent = `Média: ${mediaGeral}`;
+
+        if (dados.length === 0) {
+            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
+                <i data-lucide="layers" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px]">Sem arcos</span>
+            </div>`;
+            lucide.createIcons();
+            return;
+        }
+
+        lista.innerHTML = dados.map((arco, index) => {
+            // Calcula média do arco individual
+            const mediaArco = ((parseFloat(arco.i) + parseFloat(arco.m) + parseFloat(arco.f)) / 3).toFixed(1);
+            
+            return `
+            <div class="group flex items-center justify-between bg-[#151515] hover:bg-[#1a1a1a] p-2 rounded border-l-2 border-[#31B94F] transition-all mb-1">
+                
+                <div class="flex flex-col overflow-hidden mr-2">
+                    <span class="text-[11px] font-bold text-gray-200 truncate" title="${arco.nome}">${arco.nome}</span>
+                    <span class="text-[9px] font-mono text-[#31B94F] opacity-80">Méd: ${mediaArco}</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-1 bg-black/40 p-1 rounded">
+                        <div class="flex flex-col items-center w-5">
+                            <span class="text-[7px] text-gray-500 uppercase">I</span>
+                            <span class="text-[10px] font-bold text-white">${arco.i}</span>
+                        </div>
+                        <div class="w-px bg-white/10"></div>
+                        <div class="flex flex-col items-center w-5">
+                            <span class="text-[7px] text-gray-500 uppercase">M</span>
+                            <span class="text-[10px] font-bold text-white">${arco.m}</span>
+                        </div>
+                        <div class="w-px bg-white/10"></div>
+                        <div class="flex flex-col items-center w-5">
+                            <span class="text-[7px] text-gray-500 uppercase">F</span>
+                            <span class="text-[10px] font-bold text-white">${arco.f}</span>
+                        </div>
+                    </div>
+
+                    <button onclick="aiRemoverArco(${index})" 
+                        class="text-gray-600 hover:text-red-500 p-1 rounded-md transition-colors" title="Remover Arco">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+        `}).join("");
+
+        lucide.createIcons();
+    }
+
+    function atualizarVisualizacaoOpenings() {
+        const lista = document.getElementById("ai_op_lista");
+        const dados = window._dadosAnimeInf?.openings || [];
+
+        // Cálculo da Média Geral das Openings
+        const mediaGeral = dados.length > 0 
+            ? (dados.reduce((acc, curr) => acc + ((parseFloat(curr.musica)+parseFloat(curr.animacao))/2), 0) / dados.length).toFixed(2)
+            : "--";
+        document.getElementById("ai_media_ops").textContent = `Média: ${mediaGeral}`;
+
+        if (dados.length === 0) {
+            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
+                <i data-lucide="music" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px]">Sem openings</span>
+            </div>`;
+            lucide.createIcons();
+            return;
+        }
+
+        lista.innerHTML = dados.map((op, index) => {
+            // Média da OP
+            const mediaOp = ((parseFloat(op.musica) + parseFloat(op.animacao)) / 2).toFixed(1);
+
+            return `
+            <div class="group flex items-center justify-between bg-[#151515] hover:bg-[#1a1a1a] p-2 rounded border-l-2 border-[#B9314F] transition-all mb-1">
+                
+                <div class="flex items-center gap-2 mr-2">
+                    <span class="text-[10px] font-bold text-[#B9314F] bg-[#B9314F]/10 px-1.5 rounded">OP ${index + 1}</span>
+                    <span class="text-[11px] font-medium text-gray-300 truncate max-w-[80px]" title="${op.nome || 'Opening ' + (index+1)}">${op.nome || 'Tema'}</span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1" title="Música">
+                            <i data-lucide="music-2" class="w-3 h-3 text-gray-500"></i>
+                            <span class="text-[10px] font-bold text-white">${op.musica}</span>
+                        </div>
+                        <div class="flex items-center gap-1" title="Animação">
+                            <i data-lucide="film" class="w-3 h-3 text-gray-500"></i>
+                            <span class="text-[10px] font-bold text-white">${op.animacao}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="h-3 w-px bg-white/10"></div>
+
+                    <span class="text-[10px] font-mono font-bold text-[#B9314F] w-6 text-right">${mediaOp}</span>
+
+                    <button onclick="aiRemoverOpening(${index})" 
+                        class="text-gray-600 hover:text-red-500 p-1 rounded-md transition-colors ml-1">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+        `}).join("");
+
+        lucide.createIcons();
+    }
+        
+    // --- 5. LOGICA DE MANIPULAÇÃO DE NOTAS (ANIME) ---
+    function faixaParaIndice(faixa) {
+        if (faixa === "2-3") return 0;
+        const [ini] = faixa.split("-").map(n => parseInt(n));
+        return Math.floor((ini - 4) / 3) + 1;
+    }
+
+    function addNotaAnime() {
+        const faixa = document.getElementById("nota_faixa").value;
+        const valor = document.getElementById("nota_valor").value;
+        if (!valor) return alert("Digite uma nota!");
+
+        if (faixa === "1") window._notasAnime.ep1 = valor;
+        else if (faixa === "Final") window._notasAnime.epf = valor;
+        else window._notasAnime.eps[faixaParaIndice(faixa)] = valor;
+
+        atualizarVisualizacaoNotasAnime();
+        document.getElementById("nota_valor").value = "";
+    }
+    window.addNotaAnime = addNotaAnime; // Expor para HTML
+
+    function editNotaAnime() {
+        addNotaAnime(); // Mesma lógica, sobrescreve
+    }
+    window.editNotaAnime = editNotaAnime;
+
+    function deleteNotaAnime() {
+        const faixa = document.getElementById("nota_faixa").value;
+        if (faixa === "1") window._notasAnime.ep1 = "";
+        else if (faixa === "Final") window._notasAnime.epf = "";
+        else window._notasAnime.eps[faixaParaIndice(faixa)] = "";
+        
+        atualizarVisualizacaoNotasAnime();
+    }
+    window.deleteNotaAnime = deleteNotaAnime;
+
+    function atualizarVisualizacaoNotasAnime() {
+        const box = document.getElementById("anime_notas_visualizacao");
+        if (!box) return;
+        
+        const { ep1, eps, epf } = window._notasAnime;
+        let html = "";
+
+        if (ep1) html += `<div class="bg-[#B9314F]/20 border border-[#B9314F] text-[#B9314F] px-2 py-1 rounded text-xs whitespace-nowrap"><b>Ep 1:</b> ${ep1}</div>`;
+        
+        eps.forEach((nota, idx) => {
+            if (!nota) return;
+            let label = (idx === 0) ? "2-3" : `${4 + (idx-1)*3}-${4 + (idx-1)*3 + 2}`;
+            html += `<div class="bg-[#333] border border-[#444] text-gray-300 px-2 py-1 rounded text-xs whitespace-nowrap"><b>${label}:</b> ${nota}</div>`;
+        });
+
+        if (epf) html += `<div class="bg-[#FCD34D]/20 border border-[#FCD34D] text-[#FCD34D] px-2 py-1 rounded text-xs whitespace-nowrap"><b>Final:</b> ${epf}</div>`;
+
+        box.innerHTML = html || `<span class="text-xs text-gray-500 italic">Sem notas registradas.</span>`;
+    }
+
+    // --- CORREÇÃO: Função unificada para selecionar opção do menu ---
+    window.selecionarOpcaoMenu = function(filtro, elemento) {
+        // 1. Atualiza o texto do botão principal
+        const texto = elemento.innerText || elemento.textContent;
+        document.getElementById("selected-filter-text").textContent = texto;
+
+        // 2. Atualiza a cor visual da seleção (classe .selected)
+        document.querySelectorAll("#dropdownMenu .filter-option").forEach(opt => {
+            opt.classList.remove("selected");
+        });
+        elemento.classList.add("selected");
+
+        // 3. Fecha o menu
+        document.getElementById("dropdownMenu").classList.add("hidden");
+
+        // 4. Executa a ação
+        if (filtro === 'selecionar_anime') {
+            abrirModalSelecao('anime');
+        } else if (filtro === 'selecionar_temporada') {
+            abrirModalSelecao('temporada');
+        } else {
+            loadAnimeList(filtro);
+        }
+    };
+
+    // --- LÓGICA DE FILTROS POR SELEÇÃO (ATUALIZADA) ---
 
     window.abrirModalSelecao = function(tipo) {
         const modal = document.getElementById('modal-selecao');
@@ -659,33 +1269,38 @@
         const listaHtml = document.getElementById('lista-selecao');
         const inputBusca = document.getElementById('input-busca-selecao');
         
+        // Fecha o dropdown principal se estiver aberto
+        document.getElementById("dropdownMenu").classList.add("hidden");
+
         listaHtml.innerHTML = "";
         inputBusca.value = "";
         modal.classList.remove('hidden');
+        inputBusca.focus(); // Foca no input automaticamente
         
         let itensParaFiltrar = [];
 
         if (tipo === 'anime') {
             titulo.textContent = "Selecionar Anime";
-            // Mapeamos os animes para um formato de objeto simples
             itensParaFiltrar = window.animeCache.map(a => ({
-                idUnico: a.Num, // Usamos o NUM para identificar
+                // Tenta usar Num, senão usa ID do firestore, senão usa Nome
+                idUnico: a.Num || a.id || a.NOME, 
                 textoPrincipal: a.NOME,
-                labelExibicao: `${a.Num}. ${a.NOME}` // O que aparece na lista
+                labelExibicao: `${a.Num ? a.Num + '. ' : ''}${a.NOME}`
             })).sort((a, b) => a.textoPrincipal.localeCompare(b.textoPrincipal));
         } else {
             titulo.textContent = "Selecionar Temporada";
+            // Cria lista única de temporadas
             const tempsUnicas = [...new Set(window.animeCache.map(a => {
                 const t = (a.TEMPORADA || "").trim();
                 const ano = String(a.ANO || "").trim();
-                return t && ano ? `${t} ${ano}` : null;
+                return (t && ano) ? `${t} ${ano}` : null;
             }).filter(x => x))];
 
             itensParaFiltrar = tempsUnicas.map(t => ({
                 idUnico: t,
                 textoPrincipal: t,
                 labelExibicao: t
-            })).sort((a, b) => b.textoPrincipal.localeCompare(a.textoPrincipal));
+            })).sort((a, b) => b.textoPrincipal.localeCompare(a.textoPrincipal)); // Ordena Z-A (anos recentes primeiro)
         }
 
         const renderItensNoModal = (busca = "") => {
@@ -694,18 +1309,22 @@
 
             const filtrados = itensParaFiltrar.filter(item => 
                 item.textoPrincipal.toLowerCase().includes(termo) || 
-                item.idUnico.toString().includes(termo)
+                String(item.idUnico).toLowerCase().includes(termo)
             );
+
+            if (filtrados.length === 0) {
+                listaHtml.innerHTML = `<div class="p-4 text-center text-gray-500 text-sm">Nenhum resultado encontrado.</div>`;
+                return;
+            }
 
             filtrados.forEach(item => {
                 const div = document.createElement('div');
                 div.className = "p-3 hover:bg-[#B9314F]/20 rounded-lg cursor-pointer transition-colors border-b border-[#222] text-white flex items-center";
-                
-                // Usamos textContent para o nome (protege contra [Oshi no Ko], aspas, etc)
                 div.textContent = item.labelExibicao;
 
                 div.onclick = () => {
-                    window.aplicarFiltroSelecao(tipo, item.idUnico);
+                    // Passa o label também para atualizar o título do menu
+                    window.aplicarFiltroSelecao(tipo, item.idUnico, item.labelExibicao);
                 };
 
                 listaHtml.appendChild(div);
@@ -716,20 +1335,35 @@
         renderItensNoModal();
     };
 
-    window.aplicarFiltroSelecao = function(tipo, idAlvo) {
+    window.aplicarFiltroSelecao = function(tipo, idAlvo, textoExibicao) {
+        console.log(`Filtrando por ${tipo}: ${idAlvo}`);
+
         const animesFiltrados = window.animeCache.filter(a => {
             if (tipo === 'anime') {
-                // Filtra pelo NUM (ID Único numérico)
-                return Number(a.Num) === Number(idAlvo);
+                // Compara Num ou ID ou Nome (flexível)
+                return (a.Num == idAlvo) || (a.id == idAlvo) || (a.NOME == idAlvo);
             } else {
-                // Filtra pela Temporada concatenada
                 const tempAnime = `${(a.TEMPORADA || "").trim()} ${String(a.ANO || "").trim()}`;
                 return tempAnime === idAlvo;
             }
         });
 
+        // 1. Renderiza os cards filtrados
         if (typeof renderAnimeCards === "function") {
             renderAnimeCards(animesFiltrados);
+        } else {
+            console.error("Função renderAnimeCards não encontrada");
+        }
+
+        // 2. ATUALIZA O TEXTO DO MENU PRINCIPAL (Correção do Bug)
+        const btnTexto = document.getElementById("selected-filter-text");
+        if (btnTexto) {
+            // Se for anime, encurta o nome se for muito longo
+            if (tipo === 'anime' && textoExibicao.length > 25) {
+                btnTexto.textContent = textoExibicao.substring(0, 25) + "...";
+            } else {
+                btnTexto.textContent = textoExibicao;
+            }
         }
         
         fecharModalSelecao();
@@ -739,1190 +1373,71 @@
         document.getElementById('modal-selecao').classList.add('hidden');
     };
 
-    // ABRIR MODAL
-    function abrirModalAnime(nome) {
-        const anime = window.animeCache.find(a =>
-            String(a.NOME).replace(/^"+|"+$/g, "") === nome
-        );
-
-        if (!anime) {
-            console.error("❌ Anime não encontrado:", nome);
-            return;
-        }
-
-        const modal = document.getElementById("anime-modal");
-        if (!modal) return;
-
-        // Preencher dados básicos
-        document.getElementById("modal-nome").textContent = anime.NOME.replace(/^"+|"+$/g, "");
-        document.getElementById("modal-imagem").src =
-            anime.IMAGEM || "https://via.placeholder.com/300x450";
-
-        document.getElementById("modal-info").innerHTML = `
-            <b>Estado:</b> <span id="modal-estado">${anime.ESTADO || "-"}</span><br>
-            <b>Estilo:</b> ${anime.ESTILO || "-"}<br>
-            <b>Ano:</b> ${anime.ANO || "-"}<br>
-            <b>Temporada:</b> ${anime.TEMPORADA || "-"}<br>
-            <b>Episódios:</b> <span id="contagem-ep-atual">${anime.ASSIS || 0}</span> / ${anime.TOTAIS || 0}<br>
-            <b>Nota M.A.L.:</b> ${anime.N_MAL || "-"}<br>
-            <b>Nota Final:</b> ${anime.NOTA_F || "-"}
-        `;
-
-        // ---------------------------------------------------------
-        // INICIALIZAÇÃO DO AMBIENTE DE EDIÇÃO (Igual à aba de edição)
-        // ---------------------------------------------------------
-        const estilo = anime.ESTILO || "Anime";
-
-        // Inicializa estrutura de notas na memória global para manipulação
-        console.log("Iniciando modal para estilo:", anime);
-        if (estilo === "Anime") {
-            window._notasAnime = {
-                ep1: anime.N_Ep_1 || "",
-                eps: anime.N_Eps ? anime.N_Eps.split(",") : new Array(16).fill(""),
-                epf: anime.N_Ep_F || ""
-            };
-
-            let notasArray = ["", "", "", "", "", ""];
-            if (anime.OPENING && typeof anime.OPENING === 'string') {
-                const salvas = anime.OPENING.split(",");
-                salvas.forEach((n, i) => { if(i < 6) notasArray[i] = n.trim(); });
-            }
-        } else if (estilo === "Anime Inf.") {
-            window._arcosAnime = {}; 
-            window._openingsAnime = {}; 
-        }
-
-        // Renderiza a estrutura HTML específica do estilo
-        const contentContainer = document.getElementById("info-adicional-container");
+    async function pegarDoMAL() {
+        const nomeAnime = document.getElementById("modal-nome").textContent;
+        const campoMAL = document.getElementById("modal-mal");
+        const displayTotalEps = document.getElementById("modal-epst"); // O span que criamos no cabeçalho
         
-        // Limpa container e prepara estrutura base
-        contentContainer.innerHTML = `
-            <div id="notas_content" class="mt-2">
-                </div>
+        if (!nomeAnime || nomeAnime === "Nome do Anime") return;
 
-            <div class="flex gap-3 mt-6">
-                 <button id="btn-mais-um-ep" 
-                    class="flex-1 bg-[#B9314F] hover:bg-[#992743] text-white font-bold py-2.5 rounded-lg active:scale-95 transition-all uppercase text-[11px] tracking-wider border border-[#B9314F]">
-                    +1 Ep.
-                </button>
-
-                <button id="btn-salvar-tudo" 
-                    class="flex-[2] bg-white text-black font-black py-2.5 rounded-lg active:scale-95 transition-all uppercase text-[11px] tracking-wider border border-white">
-                    Confirmar Alterações
-                </button>
-            </div>
-        `;
-
-        // Renderiza os campos de acordo com o estilo
-        renderizarFormularioNotas(estilo, anime);
-
-        // Configura eventos dos botões principais
-        let epTemp = parseInt(anime.EPISODIO || 0);
-        
-        document.getElementById("btn-mais-um-ep").onclick = () => {
-            epTemp++;
-            document.getElementById("contagem-ep-atual").innerHTML = `${epTemp}`;
-            // Feedback visual rápido no botão se quiser
-        };
-
-        document.getElementById("btn-salvar-tudo").onclick = async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = "SALVANDO...";
-
-            try {
-                let updateObj = { EPISODIO: epTemp };
-
-                // Coleta dados específicos do estilo
-                if (estilo === "Filme" || estilo === "Especial") {
-                    const inputId = estilo === "Filme" ? "edit_nota_filme" : "edit_nota_especial";
-                    const val = document.getElementById(inputId)?.value;
-                    updateObj["N. FILME ESP."] = val;
-                }
-                else if (estilo === "Anime") {
-                    updateObj["EP1"] = window._notasAnime.ep1;
-                    updateObj["EPF"] = window._notasAnime.epf;
-                    updateObj["EPS"] = window._notasAnime.eps.join(",");
-                    
-                    // Salvar Openings também se houver inputs
-                    // (Lógica de coleta de openings pode ser adicionada aqui se os inputs existirem no DOM)
-                }
-                // Adicione lógica para Anime Inf. se necessário
-
-                // Salvar no Firebase
-                const snap = await getDocs(query(collection(db, "users", auth.currentUser.uid, "animes"), where("NOME", "==", nome)));
-                
-                if (!snap.empty) {
-                    await updateDoc(snap.docs[0].ref, updateObj);
-                    
-                    // Atualiza Cache Local
-                    Object.assign(anime, updateObj);
-                    localStorage.setItem(`animes_${auth.currentUser.uid}`, JSON.stringify(window.animeCache));
-                    
-                    btn.classList.replace("bg-white", "bg-green-600");
-                    btn.classList.replace("text-black", "text-white");
-                    btn.style.border = "1px solid #16a34a"; // green-600
-                    btn.textContent = "SALVO!";
-                }
-            } catch (e) {
-                console.error(e);
-                btn.textContent = "ERRO";
-                btn.classList.replace("bg-white", "bg-red-600");
-                btn.classList.replace("text-black", "text-white");
-            } finally {
-                setTimeout(() => {
-                    // Reseta botão após 2s
-                    btn.disabled = false;
-                    btn.classList.remove("bg-green-600", "bg-red-600", "text-white");
-                    btn.classList.add("bg-white", "text-black");
-                    btn.style.border = "1px solid white";
-                    btn.textContent = "CONFIRMAR ALTERAÇÕES";
-                }, 2000);
-            }
-        };
-
-        modal.classList.remove("hidden");
-    }
-
-    // ---------------------------------------------------------
-    // FUNÇÕES DE RENDERIZAÇÃO E LÓGICA DE NOTAS (Adaptadas)
-    // ---------------------------------------------------------
-
-    function renderizarFormularioNotas(estilo, animeData) {
-        const content = document.getElementById("notas_content");
-        if (!content) return;
-
-        content.innerHTML = ""; // Limpa anterior
-
-        // --- ESTILO: FILME ---
-        if (estilo === "Filme") {
-            content.innerHTML = `
-                <div class="grid grid-cols-1 gap-2 w-full">
-                    <div>
-                        <label class="font-bold text-sm text-gray-400">Nota Filme</label>
-                        <input id="edit_nota_filme" type="number" step="0.01" value="${animeData["N. FILME ESP."] || ""}"
-                            class="w-full px-3 py-2 bg-[#151515] border border-[#333] text-white rounded-lg focus:border-[#B9314F] outline-none">
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        // --- ESTILO: ESPECIAL ---
-        if (estilo === "Especial") {
-            content.innerHTML = `
-                <div class="grid grid-cols-1 gap-2 w-full">
-                    <div>
-                        <label class="font-bold text-sm text-gray-400">Nota Especial</label>
-                        <input id="edit_nota_especial" type="number" step="0.01" value="${animeData["N. FILME ESP."] || ""}"
-                            class="w-full px-3 py-2 bg-[#151515] border border-[#333] text-white rounded-lg focus:border-[#B9314F] outline-none">
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        // --- ESTILO: ANIME ---
-        if (estilo === "Anime") {
-            content.innerHTML = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="font-bold text-xs text-gray-500 uppercase">Faixa</label>
-                            <select id="nota_faixa" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white rounded-md text-sm focus:border-[#B9314F] outline-none">
-                                ${gerarFaixasNota()}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="font-bold text-xs text-gray-500 uppercase">Nota</label>
-                            <input id="nota_valor" type="number" step="0.01" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white rounded-md text-sm focus:border-[#B9314F] outline-none">
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button class="flex-1 bg-[#1d8f3c]/20 border border-[#1d8f3c]/50 text-[#1d8f3c] hover:bg-[#1d8f3c] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors"
-                                onclick="addNotaAnime()">ADICIONAR</button>
-                        <button class="flex-1 bg-[#B97E0F]/20 border border-[#B97E0F]/50 text-[#B97E0F] hover:bg-[#B97E0F] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors"
-                                onclick="editNotaAnime()">EDITAR</button>
-                        <button class="flex-1 bg-[#7a0e20]/20 border border-[#7a0e20]/50 text-[#7a0e20] hover:bg-[#7a0e20] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors"
-                                onclick="deleteNotaAnime()">EXCLUIR</button>
-                    </div>
-
-                    <div id="anime_notas_visualizacao" class="bg-[#111] border border-[#333] rounded-lg p-3 overflow-x-auto whitespace-nowrap text-sm min-h-[50px] flex items-center">
-                        <span class="text-gray-600 text-xs italic">Nenhuma nota cadastrada.</span>
-                    </div>
-
-                    <div class="pt-2 border-t border-[#333]">
-                        <h3 class="font-bold text-[#B9314F] text-xs uppercase mb-3">Opening</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Música</label>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <input id="op_musica_1" type="number" placeholder="1" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                    <input id="op_musica_2" type="number" placeholder="2" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                    <input id="op_musica_3" type="number" placeholder="3" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Animação</label>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <input id="op_anim_1" type="number" placeholder="1" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                    <input id="op_anim_2" type="number" placeholder="2" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                    <input id="op_anim_3" type="number" placeholder="3" class="px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Atualiza visualização inicial
-            atualizarVisualizacaoNotasAnime();
-            // Preenche Openings se existirem (Lógica simplificada, ajuste conforme seu formato de dados)
-            // if (animeData.OPENING) { ... } 
-            return;
-        }
-
-        // --- ESTILO: ANIME INF. ---
-        if (estilo === "Anime Inf.") {
-             content.innerHTML = `
-                <div class="space-y-4">
-                    <div class="border-b border-[#333] pb-4">
-                        <h3 class="font-bold text-[#31B94F] mb-2 text-sm uppercase">Notas por Arco</h3>
-                        <div>
-                            <select id="ai_arco_select" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white rounded-lg text-sm focus:border-[#31B94F] outline-none">
-                                </select>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mt-2">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-500 block text-center mb-1">INÍCIO</label>
-                                <input id="ai_nota_i" type="number" step="0.5" class="w-full px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#31B94F] outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-500 block text-center mb-1">MEIO</label>
-                                <input id="ai_nota_m" type="number" step="0.5" class="w-full px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#31B94F] outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-500 block text-center mb-1">FIM</label>
-                                <input id="ai_nota_f" type="number" step="0.5" class="w-full px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#31B94F] outline-none">
-                            </div>
-                        </div>
-                        <div class="flex gap-2 mt-3">
-                            <button class="flex-1 bg-[#1d8f3c]/20 border border-[#1d8f3c]/50 text-[#1d8f3c] hover:bg-[#1d8f3c] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors" onclick="aiAdicionarArco()">SALVAR ARCO</button>
-                            <button class="flex-1 bg-[#7a0e20]/20 border border-[#7a0e20]/50 text-[#7a0e20] hover:bg-[#7a0e20] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors" onclick="aiExcluirArco()">EXCLUIR ARCO</button>
-                        </div>
-                        <div id="ai_arco_lista" class="bg-[#111] border border-[#333] rounded-lg p-2 h-24 overflow-y-auto text-xs mt-3 text-gray-400">
-                            Nenhum arco.
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="font-bold text-[#B9314F] mb-2 text-sm uppercase">Openings</h3>
-                        <div>
-                            <select id="ai_op_select" class="w-full px-2 py-2 bg-[#151515] border border-[#333] text-white rounded-lg text-sm focus:border-[#B9314F] outline-none">
-                                <option value="">-- Nova Opening --</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                             <div>
-                                <label class="text-[10px] font-bold text-gray-500 block text-center mb-1">MÚSICA</label>
-                                <input id="ai_op_musica" type="number" step="0.5" class="w-full px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-500 block text-center mb-1">ANIMAÇÃO</label>
-                                <input id="ai_op_animacao" type="number" step="0.5" class="w-full px-1 py-1.5 bg-[#151515] border border-[#333] text-white rounded text-center text-sm focus:border-[#B9314F] outline-none">
-                            </div>
-                        </div>
-                        <div class="flex gap-2 mt-3">
-                             <button class="flex-1 bg-[#1d8f3c]/20 border border-[#1d8f3c]/50 text-[#1d8f3c] hover:bg-[#1d8f3c] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors" onclick="aiAdicionarOpening()">SALVAR OP</button>
-                            <button class="flex-1 bg-[#7a0e20]/20 border border-[#7a0e20]/50 text-[#7a0e20] hover:bg-[#7a0e20] hover:text-white px-2 py-1.5 rounded-md font-bold text-xs transition-colors" onclick="aiExcluirOpening()">EXCLUIR OP</button>
-                        </div>
-                        <div id="ai_op_lista" class="bg-[#111] border border-[#333] rounded-lg p-2 h-24 overflow-y-auto text-xs mt-3 text-gray-400">
-                            Nenhuma Opening.
-                        </div>
-                    </div>
-                </div>
-            `;
-            // Chamar funções de inicialização do Anime Inf. aqui se existirem
-            return;
-        }
-
-        // Fallback
-        content.innerHTML = `<div class="text-gray-500 text-center text-sm py-4">Sem campos definidos para o estilo: ${estilo}</div>`;
-    }
-
-
-    // ---------------------------------------------------------
-    // HELPERS: FAIXAS E ÍNDICES (Copiado da sua lógica)
-    // ---------------------------------------------------------
-
-    function gerarFaixasNota() {
-        let faixas = `
-            <option value="1">Episódio 1</option>
-            <option value="2-3">Episódios 2-3</option>
-            <option value="4-6">Episódios 4-6</option>
-            <option value="7-9">Episódios 7-9</option>
-        `;
-        for (let i = 10; i <= 50; i += 3) {
-            const fim = i + 2;
-            faixas += `<option value="${i}-${fim}">${i}-${fim}</option>`;
-        }
-        faixas += `<option value="Final">Episódio Final</option>`;
-        return faixas;
-    }
-
-    function faixaParaIndice(faixa) {
-        const [ini, fim] = faixa.split("-").map(n => parseInt(n));
-        if (ini === 2 && fim === 3) return 0;
-        return 1 + Math.floor((ini - 4) / 3);
-    }
-
-    // ---------------------------------------------------------
-    // AÇÕES: ADICIONAR / EDITAR / EXCLUIR (Lógica "Anime")
-    // ---------------------------------------------------------
-
-    function addNotaAnime() {
-        const faixa = document.getElementById("nota_faixa").value;
-        const valor = document.getElementById("nota_valor").value;
-
-        if (!faixa || valor === "") {
-            alert("⚠️ Selecione uma faixa e informe uma nota!");
-            return;
-        }
-
-        if (faixa === "1") {
-            if (window._notasAnime.ep1) { alert("⚠️ Já existe nota para o Episódio 1!"); return; }
-            window._notasAnime.ep1 = valor;
-        }
-        else if (faixa === "Final") {
-            if (window._notasAnime.epf) { alert("⚠️ Já existe nota para o Episódio Final!"); return; }
-            window._notasAnime.epf = valor;
-        }
-        else {
-            const pos = faixaParaIndice(faixa);
-            if (window._notasAnime.eps[pos]) { alert("⚠️ Esta faixa já tem nota!"); return; }
-            window._notasAnime.eps[pos] = valor;
-        }
-
-        atualizarVisualizacaoNotasAnime();
-        document.getElementById("nota_valor").value = ""; // Limpa input
-    }
-    window.addNotaAnime = addNotaAnime;
-
-    function editNotaAnime() {
-        const faixa = document.getElementById("nota_faixa").value;
-        const valor = document.getElementById("nota_valor").value;
-
-        if (!faixa || valor === "") {
-            alert("⚠️ Selecione uma faixa e informe a nova nota!");
-            return;
-        }
-
-        if (faixa === "1") window._notasAnime.ep1 = valor;
-        else if (faixa === "Final") window._notasAnime.epf = valor;
-        else {
-            const pos = faixaParaIndice(faixa);
-            window._notasAnime.eps[pos] = valor;
-        }
-
-        atualizarVisualizacaoNotasAnime();
-        document.getElementById("nota_valor").value = "";
-    }
-    window.editNotaAnime = editNotaAnime;
-
-    function deleteNotaAnime() {
-        const faixa = document.getElementById("nota_faixa").value;
-        if (!faixa) { alert("⚠️ Selecione uma faixa para excluir."); return; }
-
-        if (confirm(`Tem certeza que deseja apagar a nota da faixa ${faixa}?`)) {
-            if (faixa === "1") window._notasAnime.ep1 = "";
-            else if (faixa === "Final") window._notasAnime.epf = "";
-            else {
-                const pos = faixaParaIndice(faixa);
-                window._notasAnime.eps[pos] = "";
-            }
-            atualizarVisualizacaoNotasAnime();
-        }
-    }
-    window.deleteNotaAnime = deleteNotaAnime;
-
-    // ---------------------------------------------------------
-    // VISUALIZAÇÃO DAS NOTAS (Renderiza as "tags" coloridas)
-    // ---------------------------------------------------------
-    function atualizarVisualizacaoNotasAnime() {
-        const box = document.getElementById("anime_notas_visualizacao");
-        if (!box) return;
-
-        console.log(window._notasAnime);
-
-        const { ep1, eps, epf } = window._notasAnime;
-        let html = `<div class="flex gap-2 items-center whitespace-nowrap">`;
-        let temNota = false;
-
-        // Nota 1
-        if (ep1 && ep1 !== "") {
-            temNota = true;
-            html += `<span class="bg-[#B9314F]/20 text-[#B9314F] border border-[#B9314F]/40 px-2 py-1 rounded text-xs font-bold">EP 1: ${ep1}</span>`;
-        }
-
-        // Notas Intermediárias
-        for (let i = 0; i < eps.length; i++) {
-            if (!eps[i] || eps[i].trim() === "") continue;
-            temNota = true;
-            let label = "";
-            if (i === 0) label = "2-3";
-            else {
-                const ini = 4 + (i - 1) * 3;
-                label = `${ini}-${ini + 2}`;
-            }
-            html += `<span class="bg-gray-800 text-gray-300 border border-gray-700 px-2 py-1 rounded text-xs font-medium">${label}: <b class="text-white">${eps[i]}</b></span>`;
-        }
-
-        // Nota Final
-        if (epf && epf !== "") {
-            temNota = true;
-            html += `<span class="bg-[#FCD34D]/20 text-[#FCD34D] border border-[#FCD34D]/40 px-2 py-1 rounded text-xs font-bold">FINAL: ${epf}</span>`;
-        }
-
-        html += `</div>`;
-
-        if (!temNota) {
-            box.innerHTML = `<span class="text-gray-600 text-xs italic">Nenhuma nota cadastrada.</span>`;
-        } else {
-            box.innerHTML = html;
-        }
-    }
-    window.atualizarVisualizacaoNotasAnime = atualizarVisualizacaoNotasAnime;
-
-    // FECHAR MODAL
-    function fecharModalAnime() {
-        document.getElementById("anime-modal").classList.add("hidden");
-    }
-
-    // Função para adicionar informação adicional
-    function adicionarInfoAdicional(titulo, conteudo) {
-        const container = document.getElementById("info-adicional-container");
-        
-        // Remover a mensagem padrão se ainda existir
-        const msgDefault = container.querySelector('.text-gray-500.text-sm.italic');
-        if (msgDefault) {
-            msgDefault.remove();
-        }
-
-        // Criar nova informação
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'bg-[#2a2a2a] p-3 rounded border border-gray-600';
-        infoDiv.innerHTML = `
-            <h4 class="font-medium text-white mb-1">${titulo}</h4>
-            <p class="text-sm text-gray-300">${conteudo}</p>
-        `;
-
-        container.appendChild(infoDiv);
-    }
-
-    // Função para adicionar episódio assistido
-    async function adicionarEpisodioAssistido() {
-        const nomeAnime = document.getElementById("modal-nome").textContent.trim();
-        const anime = window.animeCache.find(item => item.NOME === nomeAnime);
-
-        if (!anime) return;
-
-        const container = document.getElementById("info-adicional-container");
-        const estilo = anime.ESTILO || "Anime";
-
-        // Inicializa objetos de notas para manipulação em tempo real
-        if (estilo === "Anime") {
-            window._notasAnime = {
-                ep1: anime.EP1 || "",
-                eps: anime.EPS ? anime.EPS.split(",") : new Array(16).fill(""),
-                epf: anime.EPF || ""
-            };
-        }
-
-        // --- LÓGICA DE CONTEÚDO (IDÊNTICA À SUA FUNÇÃO ATUALIZARGRUPONOTAS) ---
-        let contentHTML = "";
-
-        if (estilo === "Filme") {
-            contentHTML = `
-                <div class="grid grid-cols-1 gap-2 w-full">
-                    <div>
-                        <label class="font-bold text-sm">Nota</label>
-                        <input id="edit_nota_filme" type="number" step="0.01" value="${anime["N. FILME ESP."] || ""}"
-                            class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                    </div>
-                </div>`;
-        } 
-        else if (estilo === "Especial") {
-            contentHTML = `
-                <div class="grid grid-cols-1 gap-2 w-full">
-                    <div>
-                        <label class="font-bold text-sm">Nota</label>
-                        <input id="edit_nota_especial" type="number" step="0.01" value="${anime["N. FILME ESP."] || ""}"
-                            class="w-full px-3 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                    </div>
-                </div>`;
-        } 
-        else if (estilo === "Anime") {
-            contentHTML = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="font-bold text-sm">Faixa de Eps.</label>
-                            <select id="nota_faixa" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                                ${typeof gerarFaixasNota === 'function' ? gerarFaixasNota() : ""}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="font-bold text-sm">Nota</label>
-                            <input id="nota_valor" type="number" step="0.01" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                        </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75" onclick="addNotaAnime()">Adicionar</button>
-                        <button class="bg-[#B97E0F] px-2 py-1 rounded-md font-bold hover:opacity-75" onclick="editNotaAnime()">Editar</button>
-                        <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75" onclick="deleteNotaAnime()">Excluir</button>
-                    </div>
-                    <div id="anime_notas_visualizacao" class="bg-[#111] border border-[#333] rounded-md p-2 overflow-x-auto whitespace-nowrap text-sm">
-                        <span class="text-gray-500">Carregando notas...</span>
-                    </div>
-                    <h3 class="font-bold text-[#B9314F] mt-4">Opening</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="font-bold text-sm">Música</label>
-                            <div class="grid grid-cols-3 gap-2 mt-1">
-                                <input id="op_musica_1" type="number" placeholder="N1" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                                <input id="op_musica_2" type="number" placeholder="N2" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                                <input id="op_musica_3" type="number" placeholder="N3" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="font-bold text-sm">Animação</label>
-                            <div class="grid grid-cols-3 gap-2 mt-1">
-                                <input id="op_anim_1" type="number" placeholder="N1" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                                <input id="op_anim_2" type="number" placeholder="N2" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                                <input id="op_anim_3" type="number" placeholder="N3" class="px-2 py-1 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-        } 
-        else if (estilo === "Anime Inf.") {
-            // --- SEU CÓDIGO EXATO DE ANIME INF. ABAIXO ---
-            contentHTML = `
-                <div class="space-y-4">
-                    <div class="border-b border-[#333] pb-4">
-                        <h3 class="font-bold text-[#31B94F] mb-2">Notas por Arco</h3>
-                        <div>
-                            <label class="font-bold text-sm">Arco</label>
-                            <select id="ai_arco_select" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mt-2">
-                            <div>
-                                <label class="font-bold text-sm">Início (I)</label>
-                                <input id="ai_nota_i" type="number" min="0" max="10" step="0.5" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                            <div>
-                                <label class="font-bold text-sm">Meio (M)</label>
-                                <input id="ai_nota_m" type="number" min="0" max="10" step="0.5" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                            <div>
-                                <label class="font-bold text-sm">Fim (F)</label>
-                                <input id="ai_nota_f" type="number" min="0" max="10" step="0.5" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                        </div>
-                        <div class="flex gap-3 mt-3">
-                            <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75 text-sm" onclick="aiAdicionarArco()">Adicionar/Editar</button>
-                            <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75 text-sm" onclick="aiExcluirArco()">Excluir</button>
-                        </div>
-                        <div id="ai_arco_lista" class="bg-[#111] border border-[#333] rounded-md p-2 h-28 overflow-y-auto text-sm mt-3">
-                            <span class="text-gray-500">Nenhum arco cadastrado ainda.</span>
-                        </div>
-                    </div>
-                    <div class="border-b border-[#333] pb-4">
-                        <h3 class="font-bold text-[#B9314F] mb-2">Openings</h3>
-                        <div>
-                            <label class="font-bold text-sm">Opening (Op.)</label>
-                            <select id="ai_op_select" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md">
-                                <option value="">-- Nova Opening --</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <div>
-                                <label class="font-bold text-sm">Música</label>
-                                <input id="ai_op_musica" type="number" min="0" max="10" step="0.5" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                            <div>
-                                <label class="font-bold text-sm">Animação</label>
-                                <input id="ai_op_animacao" type="number" min="0" max="10" step="0.5" class="w-full px-2 py-1.5 bg-[#151515] border border-[#333] text-white rounded-md text-center">
-                            </div>
-                        </div>
-                        <div class="flex gap-3 mt-3">
-                            <button class="bg-[#1d8f3c] px-2 py-1 rounded-md font-bold hover:opacity-75 text-sm" onclick="aiAdicionarOpening()">Adicionar/Editar</button>
-                            <button class="bg-[#7a0e20] px-2 py-1 rounded-md font-bold hover:opacity-75 text-sm" onclick="aiExcluirOpening()">Excluir</button>
-                        </div>
-                        <div id="ai_op_lista" class="bg-[#111] border border-[#333] rounded-md p-2 h-28 overflow-y-auto text-sm mt-3">
-                            <span class="text-gray-500">Nenhuma Opening cadastrada ainda.</span>
-                        </div>
-                    </div>
-                </div>`;
-        }
-
-        // --- MONTAGEM FINAL NO MODAL ---
-        container.innerHTML = `
-            <div class="p-2">
-                <div id="notas_content">
-                    ${contentHTML}
-                </div>
-                <div class="flex gap-3 mt-6">
-                    <button id="btn-mais-um-ep" 
-                        class="flex-1 px-2 py-2 bg-[#B9314F] hover:bg-[#992743] rounded-md font-bold text-white text-sm">
-                        +1 Ep.
-                    </button>
-
-                    <button id="btn-salvar-tudo" 
-                        class="flex-[2] px-2 py-2 bg-[#B9314F] hover:bg-[#992743] rounded-md font-bold text-white text-sm">
-                        Confirmar Alterações
-                    </button>
-                </div>
-        `;
-
-        // Ativa ícones e inicializa funções de suporte se necessário
-        lucide.createIcons();
-        if (estilo === "Anime") {
-            if (typeof atualizarVisualizacaoNotasAnime === "function") atualizarVisualizacaoNotasAnime();
-            if (typeof instalarEventosOP === "function") instalarEventosOP();
-        }
-        
-        // Inicializadores específicos de Anime Inf. (se você tiver essas funções globais)
-        if (estilo === "Anime Inf.") {
-            if (typeof aiCarregarDadosIniciais === "function") aiCarregarDadosIniciais();
-        }
-
-        // --- LÓGICA DO BOTÃO +1 EP ---
-        let epTemp = parseInt(anime.EPISODIO || 0);
-        document.getElementById("btn-mais-um-ep").onclick = () => {
-            epTemp++;
-            document.getElementById("contagem-ep-atual").innerHTML = `${epTemp} <span class="text-sm font-normal">Eps</span>`;
-        };
-
-        // --- LÓGICA DE SALVAMENTO NO FIREBASE ---
-        document.getElementById("btn-salvar-tudo").onclick = async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = "SALVANDO...";
-
-            try {
-                let updateObj = { EPISODIO: epTemp };
-
-                // Captura dados conforme o estilo
-                if (estilo === "Filme" || estilo === "Especial") {
-                    const idInput = estilo === "Filme" ? "edit_nota_filme" : "edit_nota_especial";
-                    updateObj["N. FILME ESP."] = document.getElementById(idInput).value;
-                }
-                if (estilo === "Anime") {
-                    updateObj["EP1"] = window._notasAnime.ep1;
-                    updateObj["EPF"] = window._notasAnime.epf;
-                    updateObj["EPS"] = window._notasAnime.eps.join(",");
-                }
-                // Para Anime Inf, os dados geralmente são salvos pelas funções aiAdicionar... 
-                // Mas aqui garantimos a atualização do episódio.
-
-                const snap = await getDocs(query(collection(db, "users", auth.currentUser.uid, "animes"), where("NOME", "==", nomeAnime)));
-                if (!snap.empty) {
-                    await updateDoc(snap.docs[0].ref, updateObj);
-                    
-                    // Atualiza Cache Local
-                    Object.assign(anime, updateObj);
-                    localStorage.setItem(`animes_${auth.currentUser.uid}`, JSON.stringify(window.animeCache));
-                    
-                    btn.classList.replace("bg-white", "bg-green-600");
-                    btn.classList.add("text-white");
-                    btn.textContent = "SALVO COM SUCESSO!";
-                    setTimeout(() => adicionarEpisodioAssistido(), 1200);
-                }
-            } catch (e) {
-                console.error(e);
-                btn.textContent = "ERRO AO SALVAR";
-            } finally {
-                btn.disabled = false;
-            }
-        };
-    }
-
-    function obterIndiceFaixa(faixa) {
-        if (faixa === "2-3") return 0;
-
-        const [ini] = faixa.split("-").map(n => parseInt(n));
-        return Math.floor((ini - 4) / 3) + 1;
-    }
-
-    // Função para alterar estado do anime
-    async function alterarEstadoAnime() {
-        // 1. Pegar o nome do anime que está aberto no modal
-        const nomeAnime = document.getElementById("modal-nome").textContent.trim();
-        
-        // 2. Encontrar o objeto do anime no seu cache
-        const anime = window.animeCache.find(item => item.NOME === nomeAnime);
-
-        if (!anime) {
-            console.error("Anime não encontrado no cache.");
-            return;
-        }
-
-        const estadoAtual = anime.ESTADO || "Indefinido";
-        const estados = ["Completo", "Andamento", "Incompleto", "Assistido", "Desistência", "N. Começado", "N. Assistido", "N. Lançado", "N. Sei"];
-        
-        // Limpar container de informações adicionais
-        const container = document.getElementById("info-adicional-container");
-        container.innerHTML = '';
-        
-        // Criar interface de seleção de estado
-        const estadoInterface = document.createElement('div');
-        estadoInterface.className = 'space-y-3';
-        estadoInterface.innerHTML = `
-            <h4 class="font-medium text-white flex items-center">
-                <i data-lucide="settings" class="w-4 h-4 mr-2"></i>
-                Alterar Estado
-            </h4>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Novo Estado:</label>
-                    <select id="novo-estado-select" 
-                            class="w-full bg-[#2a2a2a] border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-[#B9314F]">
-                        ${estados.map(estado => 
-                            `<option value="${estado}" ${estado === estadoAtual ? 'selected' : ''}>${estado}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-                <button id="confirmar-novo-estado" 
-                        class="w-full bg-[#B9314F] hover:bg-[#992743] text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                    Atualizar Estado
-                </button>
-            </div>
-        `;
-
-        container.appendChild(estadoInterface);
-        lucide.createIcons();
-        
-        // Lógica do botão Salvar
-        const btnConfirmar = document.getElementById("confirmar-novo-estado");
-        const selectEstado = document.getElementById("novo-estado-select");
-        
-        btnConfirmar.addEventListener("click", async () => {
-            const novoEstado = selectEstado.value;
-            
-            // Feedback visual de carregamento
-            btnConfirmar.textContent = "Salvando...";
-            btnConfirmar.disabled = true;
-
-            try {
-                if (!auth.currentUser) throw new Error("Usuário não logado");
-
-                // 1. Buscar a referência do documento no Firebase pelo NOME
-                const animesRef = collection(db, "users", auth.currentUser.uid, "animes");
-                const q = query(animesRef, where("NOME", "==", nomeAnime));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    throw new Error("Anime não encontrado no banco de dados.");
-                }
-
-                // 2. Atualizar no Firebase (pega o primeiro doc encontrado)
-                const docRef = querySnapshot.docs[0].ref;
-                await updateDoc(docRef, { ESTADO: novoEstado });
-
-                // 3. Atualizar no Cache local (para não precisar recarregar a página)
-                anime.ESTADO = novoEstado;
-
-                // 4. Atualizar o texto no Visual
-                const modalEstadoEl = document.getElementById("modal-estado");
-                modalEstadoEl.textContent = novoEstado;
-
-                // 5. Mensagem de sucesso
-                adicionarInfoAdicional("Sucesso", `Estado alterado para "${novoEstado}"`);
-                
-                btnConfirmar.textContent = "Atualizar Estado";
-
-            } catch (error) {
-                console.error("Erro ao atualizar:", error);
-                adicionarInfoAdicional("Erro", "Falha ao atualizar. Tente novamente.");
-                btnConfirmar.textContent = "Tentar Novamente";
-                btnConfirmar.disabled = false;
-            }
-        });
-        
-        console.log("🔄 Interface de alteração de estado criada");
-    }
-
-    async function mostrarOpenings() {
-        const nomeAnime = document.getElementById("modal-nome").textContent.trim();
-        const anime = window.animeCache.find(item => item.NOME === nomeAnime);
-
-        if (!anime) return;
-
-        const container = document.getElementById("info-adicional-container");
-        container.innerHTML = '';
-        const estilo = anime.ESTILO || "Anime";
-        
-        // Tratamento dos dados do cache (Campo OPENING: "m1,a1,m2,a2,m3,a3")
-        let notasArray = ["", "", "", "", "", ""];
-        if (anime.OPENING && typeof anime.OPENING === 'string') {
-            const salvas = anime.OPENING.split(",");
-            salvas.forEach((n, i) => { if(i < 6) notasArray[i] = n.trim(); });
-        }
-
-        // Unificando Anime Inf., Especial e Filme para não exibirem campos
-        if (estilo === "Especial" || estilo === "Filme" || estilo === "Anime Inf.") {
-            container.innerHTML = `
-                <div class="bg-[#2a2a2a] p-4 rounded-lg border border-gray-600 text-center animate-in fade-in duration-300">
-                    <p class="text-sm text-gray-400 font-medium">Estilo "${estilo}" não é possivel dar nota para Openings.</p>
-                </div>`;
-            return;
-        }
-
-        // LÓGICA PARA ANIME COMUM (Compacto)
-        let inputsHTML = '';
-        for (let i = 0; i < 3; i++) {
-            inputsHTML += `
-                <div class="flex items-center justify-between p-2 bg-neutral-900/50 rounded-lg border border-gray-800">
-                    <span class="text-xs font-bold text-gray-500 w-8">OP${i+1}</span>
-                    <div class="flex gap-2">
-                        <div class="flex items-center gap-1">
-                            <span class="text-[10px] text-gray-500 font-medium">Mús.</span>
-                            <input type="number" id="op-m-${i}" value="${notasArray[i*2]}" min="1" max="5" 
-                                class="w-10 bg-[#111] border border-gray-700 text-center text-white rounded py-1 text-xs focus:border-[#B9314F] outline-none">
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <span class="text-[10px] text-gray-500 font-medium">Anim.</span>
-                            <input type="number" id="op-a-${i}" value="${notasArray[i*2+1]}" min="1" max="5" 
-                                class="w-10 bg-[#111] border border-gray-700 text-center text-white rounded py-1 text-xs focus:border-[#B9314F] outline-none">
-                        </div>
-                    </div>
-                </div>`;
-        }
-
-        container.innerHTML = `
-            <div class="space-y-3 animate-in fade-in duration-300">
-                <div class="flex justify-between items-end mb-1">
-                    <h4 class="text-xs font-black uppercase tracking-tighter text-gray-400 flex items-center">
-                        <i data-lucide="music" class="w-3 h-3 mr-1 text-[#B9314F]"></i> Notas de Openings
-                    </h4>
-                    <div class="text-right">
-                        <p class="text-[9px] text-gray-500 font-bold leading-none uppercase">Média Geral (OP)</p>
-                        <span id="openings-nota-total" class="text-xl font-black text-[#B9314F]">${anime.OP || '0.00'}</span>
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    ${inputsHTML}
-                    <button id="confirmar-notas-op" class="w-full bg-[#B9314F] text-white text-xs font-bold py-3 rounded-lg mt-2 shadow-lg active:scale-95 transition-all">
-                        SALVAR TODAS AS NOTAS
-                    </button>
-                </div>
-            </div>`;
-
-        lucide.createIcons();
-
-        const btn = document.getElementById("confirmar-notas-op");
-        btn.onclick = async function() {
-            btn.disabled = true;
-            btn.textContent = "PROCESSANDO...";
-
-            try {
-                let novasNotas = [];
-                let soma = 0, contagem = 0;
-
-                for (let i = 0; i < 3; i++) {
-                    const m = document.getElementById(`op-m-${i}`).value;
-                    const a = document.getElementById(`op-a-${i}`).value;
-                    
-                    novasNotas.push(m, a);
-                    
-                    if (m !== "" && !isNaN(m)) { soma += parseFloat(m); contagem++; }
-                    if (a !== "" && !isNaN(a)) { soma += parseFloat(a); contagem++; }
-                }
-
-                const mediaFinal = contagem > 0 ? (soma / (contagem/2)) : 0;
-                const stringOpening = novasNotas.join(",");
-
-                // 1. Firebase
-                const animesRef = collection(db, "users", auth.currentUser.uid, "animes");
-                const q = query(animesRef, where("NOME", "==", nomeAnime));
-                const snap = await getDocs(q);
-
-                if (!snap.empty) {
-                    await updateDoc(snap.docs[0].ref, {
-                        OPENING: stringOpening,
-                        OP: mediaFinal
-                    });
-
-                    // 2. Cache Local (window.animeCache + LocalStorage)
-                    anime.OPENING = stringOpening;
-                    anime.OP = mediaFinal;
-                    const userId = auth.currentUser.uid;
-                    localStorage.setItem(`animes_${userId}`, JSON.stringify(window.animeCache));
-
-                    document.getElementById("openings-nota-total").textContent = mediaFinal;
-                    btn.classList.replace("bg-[#B9314F]", "bg-green-600");
-                    btn.textContent = "SALVO COM SUCESSO!";
-                }
-            } catch (e) {
-                console.error(e);
-                btn.textContent = "ERRO AO SALVAR";
-            } finally {
-                setTimeout(() => {
-                    btn.classList.replace("bg-green-600", "bg-[#B9314F]");
-                    btn.disabled = false;
-                    btn.textContent = "SALVAR TODAS AS NOTAS";
-                }, 2000);
-            }
-        };
-    }
-
-    // Tornar funções globais
-    window.abrirModalAnime = abrirModalAnime;
-    window.fecharModalAnime = fecharModalAnime;
-    window.adicionarInfoAdicional = adicionarInfoAdicional;
-    window.adicionarEpisodioAssistido = adicionarEpisodioAssistido;
-    window.alterarEstadoAnime = alterarEstadoAnime;
-    window.mostrarOpenings = mostrarOpenings;
-
-    // Configurar eventos do modal quando DOM estiver pronto
-    function setupModalEvents() {
-        const modal = document.getElementById("anime-modal");
-
-        const closeBtn = document.getElementById("anime-close-btn");
-
-        if (closeBtn) {
-            closeBtn.addEventListener("click", fecharModalAnime);
-        } else {
-            console.error("❌ Botão de fechar não encontrado");
-        }
-
-        if (modal) {
-            modal.addEventListener("click", (e) => {
-                if (e.target === modal) {
-                    fecharModalAnime();
-                }
-            });
-        } else {
-            console.error("❌ Modal não encontrado");
-        }
-
-        // Configurar eventos dos botões de ação
-        const btnOpenings = document.getElementById("btn-openings");
-        const btnEstado = document.getElementById("btn-estado");
-        const btnEpisodio = document.getElementById("btn-episodio");
-
-        if (btnOpenings) {
-            btnOpenings.addEventListener("click", () => {
-                console.log("🎵 Botão Openings clicado");
-                mostrarOpenings();
-            });
-        }
-
-        if (btnEstado) {
-            btnEstado.addEventListener("click", () => {
-                console.log("📊 Botão Estado clicado");
-                alterarEstadoAnime();
-            });
-        }
-
-        if (btnEpisodio) {
-            btnEpisodio.addEventListener("click", () => {
-                console.log("➕ Botão +1 Ep clicado");
-                adicionarEpisodioAssistido();
-            });
-        }
-    }
-
-    // Chamar quando DOM estiver pronto
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", setupModalEvents);
-    } else {
-        setupModalEvents();
-    }
-
-    function renderAnimeCards(lista) {        
-        const grid = document.getElementById("anime-list-grid");
-        if (!grid) {
-            console.error("renderAnimeCards: #anime-list-grid não encontrado.");
-            return;
-        }
-
-        grid.innerHTML = "";
-
-        if (!Array.isArray(lista) || lista.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full text-center text-gray-400">
-                    Nenhum anime encontrado.
-                </div>`;
-            return;
-        }
-        
-        lista.forEach(anime => {            
-            const nome = anime.NOME || "Sem nome";
-            const imagem = anime.IMAGEM || "";
-            const estilo = anime.ESTILO || "";
-            const estado = anime.ESTADO || "";
-
-            // ➤ NOVOS CAMPOS
-            const ano = anime.ANO || "";
-            const temporada = anime.TEMPORADA || "";
-            const epAssistidos = anime.ASSIS || 0;
-            const epTotais = anime.TOTAIS || 0;
-
-            // Exibição de temporada
-            let temporadaLabel = temporada;
-            if (temporada === "1") temporadaLabel = "Inverno";
-            else if (temporada === "4") temporadaLabel = "Primavera";
-            else if (temporada === "7") temporadaLabel = "Verão";
-            else if (temporada === "10") temporadaLabel = "Outono";
-            else if (temporada === "Outra") temporadaLabel = "Outra";
-
-            const div = document.createElement("div");
-            div.className =
-                "anime-card cursor-pointer bg-[#151515] rounded-lg overflow-hidden shadow-md border border-[#2a2a2a]";
-            div.setAttribute("data-nome", nome);
-
-            div.innerHTML = `
-                <div class="w-full h-40 overflow-hidden bg-[#111] flex items-center justify-center">
-                    <img 
-                        src="${imagem}"
-                        class="w-full h-full object-cover rounded-lg"
-                        onerror="
-                            this.onerror=null;
-                            this.src='';
-                            this.removeAttribute('src');
-                            this.closest('.img-box')?.classList.add('no-img');
-                        "
-                    />
-                </div>
-
-                <div class="p-3">
-
-                    <!-- Nome -->
-                    <h3 class="font-bold text-sm text-white truncate">${nome}</h3>
-
-                    <!-- Ano + Temporada -->
-                    <p class="text-xs text-gray-400">
-                        ${estilo} • ${ano} ${temporadaLabel ? "• " + temporadaLabel : ""}
-                    </p>
-
-                    <!-- Episódios -->
-                    <p class="text-xs text-gray-400 mt-1">
-                        Episódios: <span class="text-white">${epAssistidos}</span> / ${epTotais}
-                    </p>
-
-                    <!-- Estado -->
-                    <p class="text-xs text-gray-500 mt-1">Estado: ${estado}</p>
-                </div>
-            `;
-
-            div.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const nomeAnime = div.getAttribute("data-nome");
-
-                if (typeof window.abrirModalAnime === "function") {
-                    window.abrirModalAnime(nomeAnime);
-                } else {
-                    console.error("❌ abrirModalAnime NÃO encontrada no window");
-                    console.log("❌ window.abrirModalAnime:", window.abrirModalAnime);
-                }
-            });
-
-            grid.appendChild(div);
-        });
-    }
-    window.renderAnimeCards = renderAnimeCards;
-
-    window.fecharModal = () => {
-        document.getElementById("anime-modal").classList.add("hidden");
-    };
-    
-    onAuthStateChanged(auth, async (user) => {        
-        if (!user) {
-            console.log("🔄 Redirecionando para login...");
-            window.location.href = "login.html";
-            return;
-        }
-
-        document.getElementById("loading-indicator").classList.remove("hidden");
-        document.getElementById("error-message").classList.add("hidden");
+        campoMAL.placeholder = "Buscando...";
 
         try {
-            // 📦 Tenta pegar do Cache primeiro
-            const cacheKey = `animes_${user.uid}`;
-            const cachedData = localStorage.getItem(cacheKey);
-            
-            if (cachedData) {
-                console.log("📦 Lista: Carregando dados do Cache Local");
-                window.animeCache = JSON.parse(cachedData);
-            } else {
-                // 🔥 Se não tiver cache, busca uma única vez no Firebase
-                console.log("🔥 Lista: Cache vazio, buscando no Firebase...");
-                await carregarAnimesParaCache(); 
-            }
-                        
-            if (!window.animeCache || window.animeCache.length === 0) {
-                console.log("⚠️ Nenhum anime encontrado");
-                document.getElementById("error-message").classList.remove("hidden");
-            } else {
-                // Renderiza a lista usando os dados que agora estão em window.animeCache
-                await loadAnimeList("inacabados");
-            }
-            
-        } catch (error) {
-            console.error("❌ Erro ao carregar dados:", error);
-            document.getElementById("error-message").classList.remove("hidden");
-        } finally {
-            document.getElementById("loading-indicator").classList.add("hidden");
-        }
+            const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(nomeAnime)}&limit=1`);
+            const data = await response.json();
 
-        if (user?.email) userEmailEl.textContent = user.email;
-    });
-
-    // Verificação final das funções
-    document.addEventListener("DOMContentLoaded", () => {
-        window.debugCache = () => {
-            console.log("🔍 Estado atual do animeCache:", window.animeCache);
-            console.log("🔍 Quantidade de animes:", window.animeCache?.length || 0);
-            if (window.animeCache && window.animeCache.length > 0) {
-                console.log("🔍 Primeiros 3 animes:", window.animeCache.slice(0, 3));
-            }
-        };
-
-        // Função de teste manual
-        window.testarModal = async () => {
-            console.log("🧪 Verificando cache para teste...");
-            window.debugCache();
-            
-            if (window.animeCache && window.animeCache.length > 0) {
-                const primeiroAnime = window.animeCache[0];
-                console.log("🧪 Testando modal com:", primeiroAnime.NOME);
-                window.abrirModalAnime(primeiroAnime.NOME);
-            } else {
-                console.log("🧪 Nenhum anime no cache para testar");
-                console.log("🧪 Tentando recarregar...");
-                try {
-                    await carregarAnimesParaCache();
-                    console.log("🧪 Recarregamento concluído");
-                    window.debugCache();
+            if (data.data && data.data.length > 0) {
+                const info = data.data[0];
+                const totalEps = info.episodes || 0;
+                
+                // 1. Atualiza a nota visualmente no input
+                campoMAL.value = info.score || 0;
+                
+                // 2. ATUALIZAÇÃO GRÁFICA: Muda o texto no cabeçalho do modal
+                if (displayTotalEps) {
+                    displayTotalEps.textContent = totalEps;
                     
-                    if (window.animeCache && window.animeCache.length > 0) {
-                        window.testarModal(); // Recursivo para tentar novamente
-                    } else {
-                        console.log("🧪 Ainda sem dados após recarregamento");
-                    }
-                } catch (error) {
-                    console.error("🧪 Erro ao recarregar:", error);
+                    // Feedback visual: Faz o número brilhar em azul por 2 segundos
+                    displayTotalEps.classList.add("text-blue-400", "scale-110", "transition-all");
+                    setTimeout(() => {
+                        displayTotalEps.classList.remove("text-blue-400", "scale-110");
+                    }, 2000);
                 }
-            }
-        };
-    });
-</script>
 
-</body>
-</html>
+                // 3. Guarda no dataset para o botão "Salvar" capturar depois
+                document.getElementById("modal-nome").dataset.tempTotalEps = totalEps;
+
+                console.log(`Sucesso: Nota ${info.score} e ${totalEps} episódios encontrados.`);
+            }
+        } catch (error) {
+            console.error("Erro MAL:", error);
+        } finally {
+            campoMAL.placeholder = "0.0";
+        }
+    }
+
+    // Torna a função global para o onclick funcionar
+    window.pegarDoMAL = pegarDoMAL;
+
+    // --- HELPERS GERAIS ---
+    window.fecharModalAnime = () => document.getElementById("anime-modal").classList.add("hidden");
+    
+    // Auth Listener
+    onAuthStateChanged(auth, (user) => {
+        if (!user) return window.location.href = "login.html";
+        document.getElementById("user-email").textContent = user.email;
+        loadAnimeList("inacabados");
+    });
+
+    // Funções de UI (Dropdowns)
+    window.toggleFilterDropdown = () => document.getElementById("dropdownMenu").classList.toggle("hidden");
+    window.toggleMoreOptions = (e) => {
+        e.stopPropagation();
+        document.getElementById('more-options-dropdown').classList.toggle('hidden');
+    }
+    document.onclick = (e) => {
+        if (!e.target.closest('#more-options-btn')) document.getElementById('more-options-dropdown').classList.add('hidden');
+        if (!e.target.closest('#dropdown-toggle')) document.getElementById("dropdownMenu").classList.add('hidden');
+    }
+
+</script>
