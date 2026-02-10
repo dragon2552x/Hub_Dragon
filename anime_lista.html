@@ -594,50 +594,60 @@
         const modal = document.getElementById("anime-modal");
         modal.classList.remove("hidden");
 
-        // 1. Preenche Topo (Capa e Infos)
+        // --- RESET DO BOTÃO SALVAR ---
+        const btnSalvar = document.getElementById("btn-salvar-tudo");
+        btnSalvar.disabled = false;
+        btnSalvar.textContent = "SALVAR ALTERAÇÕES";
+        btnSalvar.classList.replace("bg-green-600", "bg-[#B9314F]");
+        
+        // 1. Preenche Topo
         document.getElementById("modal-nome").textContent = anime.NOME;
+        document.getElementById("modal-nome").dataset.tempTotalEps = ""; // Limpa cache de eps da busca anterior
         document.getElementById("modal-imagem").src = anime.IMAGEM || "https://placehold.co/150x200/111/333?text=?";
-        document.getElementById("modal-bg-blur").src = anime.IMAGEM || ""; // Fundo desfocado
+        document.getElementById("modal-bg-blur").src = anime.IMAGEM || "";
         document.getElementById("modal-tag-estilo").textContent = anime.ESTILO || "Anime";
         document.getElementById("modal-ano").textContent = anime.ANO || "????";
         document.getElementById("modal-epsa").textContent = anime.ASSIS || "0";
         document.getElementById("modal-epst").textContent = anime.TOTAIS || "0";
-
         document.getElementById("modal-tag-nota-f").textContent = 
-            (anime.NOTA_F !== undefined && anime.NOTA_F !== null && anime.NOTA_F !== '')
-            ? anime.NOTA_F.toFixed(2)
-            : "";
-        
-        // 2. Preenche Edição Básica (Estado, MAL, Stars)
-        // Usa valores existentes ou padrões vazios
+            (anime.NOTA_F !== undefined && anime.NOTA_F !== null && anime.NOTA_F !== '') ? anime.NOTA_F.toFixed(2) : "0.00";
+
+        // 2. Preenche Edição Básica
         document.getElementById("modal-estado").value = anime.ESTADO || "Andamento";
-        document.getElementById("modal-mal").value = anime.N_MAL || ""; // Assumindo campo MAL no banco
-        document.getElementById("modal-stars").value = anime.STARS || ""; // Assumindo campo STARS no banco
+        document.getElementById("modal-mal").value = anime.N_MAL || ""; 
+        document.getElementById("modal-stars").value = anime.STARS || ""; 
 
-        // 3. Prepara Notas (Lógica de Estilo)
+        // 3. Prepara Variáveis Globais de Notas
         const estilo = anime.ESTILO || "Anime";
-        
-        // Normaliza "Anime Inf" para comportar como "Anime"
-        const isSerie = estilo === "Anime" || estilo === "Anime Inf";
 
-        if (isSerie) {
+        // >> CORREÇÃO AQUI: Inicializar Anime Inf. <<
+        window._arcosAnime = {};
+        window._openingsAnime = {};
+        window._notasAnime = { ep1: "", eps: [], epf: "" };
+
+        if (estilo === "Anime Inf.") {
+            try {
+                // Carrega do banco e converte de JSON String para Objeto
+                if (anime["N. A+ e INFT."]) window._arcosAnime = JSON.parse(anime["N. A+ e INFT."]);
+                if (anime["OPENINGS_INFT"]) window._openingsAnime = JSON.parse(anime["OPENINGS_INFT"]);
+            } catch (e) {
+                console.error("Erro ao ler JSON de Anime Inf:", e);
+            }
+        } 
+        else if (estilo === "Anime" || estilo === "Anime Inf") { // "Anime Inf" legado
             const rawEps = anime.EPS || anime.N_Eps || "";
             window._notasAnime = {
                 ep1: anime.EP1 || anime.N_Ep_1 || "",
                 eps: rawEps ? rawEps.split(",") : new Array(16).fill(""),
                 epf: anime.EPF || anime.N_Ep_F || ""
             };
-        } else {
-            window._notasAnime = { ep1: "", eps: [], epf: "" };
         }
 
+        // Renderiza o formulário correto
         renderizarFormularioNotas(estilo, anime);
 
         // 4. Configura Botões de Ação
         let epAtual = parseInt(anime.ASSIS || 0);
-        
-        // Botão +1 EP (Apenas visual update no botão até salvar, ou salva direto?)
-        // Aqui faremos ele atualizar o contador visual e preparar o save.
         const btnEp = document.getElementById("btn-mais-um-ep");
         btnEp.onclick = () => {
             epAtual++;
@@ -645,7 +655,6 @@
         };
 
         // Botão Salvar Tudo
-        const btnSalvar = document.getElementById("btn-salvar-tudo");
 
         btnSalvar.disabled = false;
         btnSalvar.textContent = "SALVAR ALTERAÇÕES";
@@ -1009,12 +1018,14 @@
             `;
             
             // 2. AGORA SIM: Chame as funções de atualização, pois os elementos já existem no DOM.
+            renderizarListaArcos();     
+            renderizarListaOpenings();
+            
+            // Atualiza os cards visuais bonitos
             atualizarVisualizacaoArcos();
             atualizarVisualizacaoOpenings();
             
-            // Carregar selects também, se necessário
-            // renderizarListaArcos();     // Preenche o <select> de Arcos
-            // renderizarListaOpenings();  // Preenche o <select> de Openings
+            lucide.createIcons();
         
         }
         else {
@@ -1064,119 +1075,108 @@
 
     function atualizarVisualizacaoArcos() {
         const lista = document.getElementById("ai_arco_lista");
-        const dados = window._dadosAnimeInf?.arcos || []; // Supondo que você guarde aqui
+        const mediaEl = document.getElementById("ai_media_arcos");
         
-        // Cálculo da Média Geral dos Arcos para exibir no topo
-        const mediaGeral = dados.length > 0 
-            ? (dados.reduce((acc, curr) => acc + ((parseFloat(curr.i)+parseFloat(curr.m)+parseFloat(curr.f))/3), 0) / dados.length).toFixed(2)
-            : "--";
-        document.getElementById("ai_media_arcos").textContent = `Média: ${mediaGeral}`;
-
+        const dados = Object.entries(window._arcosAnime || {}).map(([key, val]) => ({ nome: key, ...val }));
+        
         if (dados.length === 0) {
-            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
-                <i data-lucide="layers" class="w-6 h-6 mb-1"></i>
-                <span class="text-[10px]">Sem arcos</span>
-            </div>`;
+            mediaEl.textContent = "Média: --";
+            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50 py-2"><i data-lucide="layers" class="w-5 h-5 mb-1"></i><span class="text-[10px]">Sem arcos</span></div>`;
             lucide.createIcons();
             return;
         }
 
-        lista.innerHTML = dados.map((arco, index) => {
-            // Calcula média do arco individual
+        // Cálculo da Média Geral
+        const somaTotal = dados.reduce((acc, curr) => acc + ((parseFloat(curr.i)+parseFloat(curr.m)+parseFloat(curr.f))/3), 0);
+        const mediaGeral = (somaTotal / dados.length).toFixed(2);
+        mediaEl.textContent = `Média: ${mediaGeral}`;
+
+        // --- NOVO DESIGN COMPACTO ---
+        lista.innerHTML = dados.map((arco) => {
             const mediaArco = ((parseFloat(arco.i) + parseFloat(arco.m) + parseFloat(arco.f)) / 3).toFixed(1);
             
             return `
-            <div class="group flex items-center justify-between bg-[#151515] hover:bg-[#1a1a1a] p-2 rounded border-l-2 border-[#31B94F] transition-all mb-1">
+            <div class="group flex items-center justify-between bg-[#151515] hover:bg-[#1a1a1a] py-1.5 px-3 rounded-md border-l-[3px] border-[#31B94F] transition-all mb-1 gap-2">
                 
-                <div class="flex flex-col overflow-hidden mr-2">
-                    <span class="text-[11px] font-bold text-gray-200 truncate" title="${arco.nome}">${arco.nome}</span>
-                    <span class="text-[9px] font-mono text-[#31B94F] opacity-80">Méd: ${mediaArco}</span>
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-[11px] font-bold text-gray-300 truncate" title="${arco.nome}">
+                        ${arco.nome}
+                    </span>
+                    <span class="text-[9px] font-black text-[#31B94F] bg-[#31B94F]/10 px-1.5 py-0.5 rounded border border-[#31B94F]/20">
+                        ${mediaArco}
+                    </span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <div class="flex gap-1 bg-black/40 p-1 rounded">
-                        <div class="flex flex-col items-center w-5">
-                            <span class="text-[7px] text-gray-500 uppercase">I</span>
-                            <span class="text-[10px] font-bold text-white">${arco.i}</span>
+                <div class="flex items-center gap-3">
+                    
+                    <div class="flex items-center text-[10px] font-mono text-gray-400 gap-2">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] font-bold text-[#31B94F] uppercase">I</span>
+                            <span class="text-white font-bold">${arco.i}</span>
                         </div>
-                        <div class="w-px bg-white/10"></div>
-                        <div class="flex flex-col items-center w-5">
-                            <span class="text-[7px] text-gray-500 uppercase">M</span>
-                            <span class="text-[10px] font-bold text-white">${arco.m}</span>
+                        <div class="w-px h-3 bg-[#333]"></div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] font-bold text-[#31B94F] uppercase">M</span>
+                            <span class="text-white font-bold">${arco.m}</span>
                         </div>
-                        <div class="w-px bg-white/10"></div>
-                        <div class="flex flex-col items-center w-5">
-                            <span class="text-[7px] text-gray-500 uppercase">F</span>
-                            <span class="text-[10px] font-bold text-white">${arco.f}</span>
+                        <div class="w-px h-3 bg-[#333]"></div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] font-bold text-[#31B94F] uppercase">F</span>
+                            <span class="text-white font-bold">${arco.f}</span>
                         </div>
                     </div>
 
-                    <button onclick="aiRemoverArco(${index})" 
-                        class="text-gray-600 hover:text-red-500 p-1 rounded-md transition-colors" title="Remover Arco">
-                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    <button onclick="aiExcluirArco('${arco.nome}')" 
+                        class="text-gray-600 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-all pl-1" title="Excluir">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
-            </div>
-        `}).join("");
-
+            </div>`;
+        }).join("");
+        
         lucide.createIcons();
     }
 
     function atualizarVisualizacaoOpenings() {
         const lista = document.getElementById("ai_op_lista");
-        const dados = window._dadosAnimeInf?.openings || [];
-
-        // Cálculo da Média Geral das Openings
-        const mediaGeral = dados.length > 0 
-            ? (dados.reduce((acc, curr) => acc + ((parseFloat(curr.musica)+parseFloat(curr.animacao))/2), 0) / dados.length).toFixed(2)
-            : "--";
-        document.getElementById("ai_media_ops").textContent = `Média: ${mediaGeral}`;
+        const mediaEl = document.getElementById("ai_media_ops");
+        const dados = Object.entries(window._openingsAnime || {}).map(([key, val]) => ({ nome: key, ...val }));
 
         if (dados.length === 0) {
-            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
-                <i data-lucide="music" class="w-6 h-6 mb-1"></i>
-                <span class="text-[10px]">Sem openings</span>
-            </div>`;
+            mediaEl.textContent = "Média: --";
+            lista.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-600 opacity-50"><i data-lucide="music" class="w-6 h-6 mb-1"></i><span class="text-[10px]">Sem openings</span></div>`;
             lucide.createIcons();
             return;
         }
 
+        const somaTotal = dados.reduce((acc, curr) => acc + ((parseFloat(curr.musica)+parseFloat(curr.animacao))), 0);
+        // Média de openings geralmente é a média das somas (ou ajuste conforme sua regra)
+        const mediaGeral = (somaTotal / dados.length).toFixed(2); 
+        mediaEl.textContent = `Média: ${mediaGeral}`;
+
         lista.innerHTML = dados.map((op, index) => {
-            // Média da OP
-            const mediaOp = ((parseFloat(op.musica) + parseFloat(op.animacao)) / 2).toFixed(1);
+            // No seu sistema, Op pode ser soma ou media. Vou usar soma conforme seu ultimo codigo
+            const totalOp = (parseFloat(op.musica) + parseFloat(op.animacao)).toFixed(1);
 
             return `
             <div class="group flex items-center justify-between bg-[#151515] hover:bg-[#1a1a1a] p-2 rounded border-l-2 border-[#B9314F] transition-all mb-1">
-                
                 <div class="flex items-center gap-2 mr-2">
                     <span class="text-[10px] font-bold text-[#B9314F] bg-[#B9314F]/10 px-1.5 rounded">OP ${index + 1}</span>
-                    <span class="text-[11px] font-medium text-gray-300 truncate max-w-[80px]" title="${op.nome || 'Opening ' + (index+1)}">${op.nome || 'Tema'}</span>
+                    <span class="text-[11px] font-medium text-gray-300 truncate max-w-[80px]" title="${op.nome}">${op.nome}</span>
                 </div>
-
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2">
-                        <div class="flex items-center gap-1" title="Música">
-                            <i data-lucide="music-2" class="w-3 h-3 text-gray-500"></i>
-                            <span class="text-[10px] font-bold text-white">${op.musica}</span>
-                        </div>
-                        <div class="flex items-center gap-1" title="Animação">
-                            <i data-lucide="film" class="w-3 h-3 text-gray-500"></i>
-                            <span class="text-[10px] font-bold text-white">${op.animacao}</span>
-                        </div>
+                        <div class="flex items-center gap-1" title="Música"><i data-lucide="music-2" class="w-3 h-3 text-gray-500"></i><span class="text-[10px] font-bold text-white">${op.musica}</span></div>
+                        <div class="flex items-center gap-1" title="Animação"><i data-lucide="film" class="w-3 h-3 text-gray-500"></i><span class="text-[10px] font-bold text-white">${op.animacao}</span></div>
                     </div>
-                    
                     <div class="h-3 w-px bg-white/10"></div>
-
-                    <span class="text-[10px] font-mono font-bold text-[#B9314F] w-6 text-right">${mediaOp}</span>
-
-                    <button onclick="aiRemoverOpening(${index})" 
-                        class="text-gray-600 hover:text-red-500 p-1 rounded-md transition-colors ml-1">
+                    <span class="text-[10px] font-mono font-bold text-[#B9314F] w-6 text-right">${totalOp}</span>
+                    <button onclick="aiExcluirOpening('${op.nome}')" class="text-gray-600 hover:text-red-500 p-1 rounded-md transition-colors ml-1">
                         <i data-lucide="trash-2" class="w-3 h-3"></i>
                     </button>
                 </div>
-            </div>
-        `}).join("");
-
+            </div>`;
+        }).join("");
         lucide.createIcons();
     }
         
@@ -1415,6 +1415,274 @@
             campoMAL.placeholder = "0.0";
         }
     }
+
+    // ------------------------------------------
+    // 📌 HELPERS NECESSÁRIOS (Para o código abaixo funcionar)
+    // ------------------------------------------
+    
+    // Função simples de feedback visual (Toast)
+    function exibirMensagem(msg, type = 'success') {
+        // Cria um elemento de aviso flutuante se não existir
+        let msgBox = document.getElementById("toast-feedback");
+        if (!msgBox) {
+            msgBox = document.createElement("div");
+            msgBox.id = "toast-feedback";
+            msgBox.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded shadow-lg font-bold transition-opacity duration-300";
+            document.body.appendChild(msgBox);
+        }
+
+        // Define cores baseadas no tipo
+        if (type === 'error') {
+            msgBox.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded shadow-lg font-bold bg-red-600 text-white";
+        } else if (type === 'warning') {
+            msgBox.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded shadow-lg font-bold bg-yellow-600 text-white";
+        } else {
+            msgBox.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded shadow-lg font-bold bg-green-600 text-white";
+        }
+
+        msgBox.textContent = msg;
+        msgBox.style.opacity = "1";
+
+        // Some depois de 3 segundos
+        setTimeout(() => {
+            msgBox.style.opacity = "0";
+        }, 3000);
+    }
+
+    // Função dummy para evitar erro de referência (já que salvamos tudo no botão Salvar Alterações)
+    function salvarDadosTemporarios() {
+        console.log("Dados atualizados em memória (Arcos/Ops). Prontos para salvar.");
+    }
+
+    // ------------------------------------------
+    // 📌 Funções de Gerenciamento de Arcos (Anime Infinito)
+    // ------------------------------------------
+
+    function renderizarListaArcos() {
+        const selectEl = document.getElementById('ai_arco_select');
+        if (!selectEl) return;
+
+        // 1. Popula Select
+        selectEl.innerHTML = '<option value="">-- Novo Arco --</option>';
+        Object.keys(window._arcosAnime).forEach(nomeArco => {
+            const option = document.createElement('option');
+            option.value = nomeArco;
+            option.textContent = nomeArco;
+            selectEl.appendChild(option);
+        });
+        
+        selectEl.onchange = function() {
+            const nomeArco = selectEl.value;
+            const arco = window._arcosAnime[nomeArco];
+            document.getElementById('ai_nota_i').value = arco ? arco.i : '';
+            document.getElementById('ai_nota_m').value = arco ? arco.m : '';
+            document.getElementById('ai_nota_f').value = arco ? arco.f : '';
+        };
+
+        // NOTA: Removemos a parte que desenha a lista simples aqui dentro, 
+        // para deixar apenas a função atualizarVisualizacaoArcos cuidar disso.
+    }
+    window.renderizarListaArcos = renderizarListaArcos;
+
+    function aiAdicionarArco() {
+        const selectEl = document.getElementById('ai_arco_select');
+        const notaI = parseFloat(document.getElementById('ai_nota_i').value);
+        const notaM = parseFloat(document.getElementById('ai_nota_m').value);
+        const notaF = parseFloat(document.getElementById('ai_nota_f').value);
+
+        // Validação
+        const notasValidas = [notaI, notaM, notaF].filter(n => !isNaN(n) && n >= 0);
+
+        if (notasValidas.length === 0) {
+            exibirMensagem('Preencha pelo menos uma nota (0-10).', 'error');
+            return;
+        }
+
+        let nomeArco = selectEl.value;
+        const isEditing = nomeArco !== '';
+
+        if (!isEditing) {
+            let maxIndex = 0;
+            Object.keys(window._arcosAnime).forEach(key => {
+                const match = key.match(/Arco (\d+)/);
+                if (match) maxIndex = Math.max(maxIndex, parseInt(match[1]));
+            });
+            maxIndex++;
+            nomeArco = `Arco ${maxIndex}`;
+            exibirMensagem(`Arco adicionado!`, 'success');
+        } else {
+            exibirMensagem(`Arco editado!`, 'success');
+        }
+
+        // Atualiza Dados
+        window._arcosAnime[nomeArco] = {
+            i: isNaN(notaI) ? 0 : notaI,
+            m: isNaN(notaM) ? 0 : notaM,
+            f: isNaN(notaF) ? 0 : notaF
+        };
+
+        // --- CORREÇÃO: ATUALIZAR AS LISTAS ---
+        renderizarListaArcos(); // Atualiza o Dropdown
+        atualizarVisualizacaoArcos(); // Atualiza os CARDS VISUAIS (Importante!)
+        
+        // Seleciona o arco atual
+        selectEl.value = nomeArco;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    window.aiAdicionarArco = aiAdicionarArco;
+
+    function aiExcluirArco(nomePassado = null) {
+        const selectEl = document.getElementById('ai_arco_select');
+        // Se veio nome por parâmetro (lixeira), usa ele. Senão, pega do select.
+        const nomeArco = nomePassado || selectEl.value;
+
+        if (!nomeArco) {
+            exibirMensagem('Selecione um arco para excluir.', 'error');
+            return;
+        }
+
+        if (!window.confirm(`Excluir "${nomeArco}"?`)) return;
+
+        // Deleta do objeto global
+        delete window._arcosAnime[nomeArco];
+
+        // Atualiza Dropdown
+        renderizarListaArcos();
+        
+        // Atualiza Lista Visual (Clean)
+        if (typeof atualizarVisualizacaoArcos === "function") atualizarVisualizacaoArcos();
+
+        // Limpa Inputs
+        selectEl.value = "";
+        selectEl.dispatchEvent(new Event('change')); 
+        exibirMensagem(`Arco excluído.`, 'warning');
+    }
+    window.aiExcluirArco = aiExcluirArco;
+
+    // ------------------------------------------
+    // 📌 Funções de Gerenciamento de Openings (Anime Infinito)
+    // ------------------------------------------
+
+    function renderizarListaOpenings() {
+        const selectEl = document.getElementById('ai_op_select');
+        const listaEl = document.getElementById('ai_op_lista');
+        if (!selectEl || !listaEl) return;
+
+        selectEl.innerHTML = '<option value="">-- Nova Opening --</option>';
+        Object.keys(window._openingsAnime).forEach(nomeOp => {
+            const option = document.createElement('option');
+            option.value = nomeOp;
+            option.textContent = nomeOp;
+            selectEl.appendChild(option);
+        });
+        
+        selectEl.onchange = function() {
+            const nomeOp = selectEl.value;
+            const op = window._openingsAnime[nomeOp];
+            
+            document.getElementById('ai_op_musica').value = op ? op.musica : '';
+            document.getElementById('ai_op_animacao').value = op ? op.animacao : '';
+        };
+
+        listaEl.innerHTML = '';
+        if (Object.keys(window._openingsAnime).length === 0) {
+            listaEl.innerHTML = '<span class="text-gray-500 italic p-2 block text-center">Nenhuma Opening cadastrada.</span>';
+            return;
+        }
+
+        // Verifica se a função de atualização "Clean" existe
+        if (typeof atualizarVisualizacaoOpenings === "function") {
+            atualizarVisualizacaoOpenings();
+            return;
+        }
+
+        // Fallback
+        Object.entries(window._openingsAnime).forEach(([nome, notas]) => {
+            const notasValidas = [notas.musica, notas.animacao].filter(n => n > 0);
+            const total = notasValidas.reduce((sum, current) => sum + current, 0).toFixed(2);
+            
+            const item = document.createElement('div');
+            item.className = 'py-1 px-2 border-b border-[#222] last:border-b-0 cursor-pointer hover:bg-[#151515] rounded-md text-xs';
+            item.textContent = `🎵 ${nome} (Música:${notas.musica}, Animação:${notas.animacao} | Total: ${total})`;
+            
+            item.onclick = () => {
+                selectEl.value = nome;
+                selectEl.dispatchEvent(new Event('change')); 
+            };
+            listaEl.appendChild(item);
+        });
+
+        if (selectEl.value === "") {
+             document.getElementById('ai_op_musica').value = '';
+             document.getElementById('ai_op_animacao').value = '';
+        }
+        
+        salvarDadosTemporarios();
+    }
+    window.renderizarListaOpenings = renderizarListaOpenings;
+
+    function aiAdicionarOpening() {
+        const selectEl = document.getElementById('ai_op_select');
+        const notaMusica = parseFloat(document.getElementById('ai_op_musica').value);
+        const notaAnimacao = parseFloat(document.getElementById('ai_op_animacao').value);
+
+        const isNotaMusicaValida = !isNaN(notaMusica) && notaMusica >= 0 && notaMusica <= 5;
+        const isNotaAnimacaoValida = !isNaN(notaAnimacao) && notaAnimacao >= 0 && notaAnimacao <= 5;
+
+        if (!isNotaMusicaValida && !isNotaAnimacaoValida) {
+            exibirMensagem('Preencha Música ou Animação (0-5).', 'error');
+            return;
+        }
+        
+        let nomeOp = selectEl.value;
+        const isEditing = nomeOp !== '';
+
+        if (!isEditing) {
+            let maxIndex = 0;
+            Object.keys(window._openingsAnime).forEach(key => {
+                const match = key.match(/Op. (\d+)/);
+                if (match) maxIndex = Math.max(maxIndex, parseInt(match[1]));
+            });
+            maxIndex++;
+            nomeOp = `Op. ${maxIndex}`;
+            exibirMensagem(`Opening "${nomeOp}" adicionada!`, 'success');
+        } else {
+            exibirMensagem(`Opening "${nomeOp}" editada!`, 'success');
+        }
+
+        window._openingsAnime[nomeOp] = {
+            musica: isNotaMusicaValida ? notaMusica : 0,
+            animacao: isNotaAnimacaoValida ? notaAnimacao : 0
+        };
+
+        renderizarListaOpenings();
+        
+        selectEl.value = nomeOp;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    window.aiAdicionarOpening = aiAdicionarOpening;
+
+    function aiExcluirOpening(nomePassado = null) {
+        const selectEl = document.getElementById('ai_op_select');
+        const nomeOp = nomePassado || selectEl.value;
+
+        if (!nomeOp) {
+            exibirMensagem('Selecione uma Opening para excluir.', 'error');
+            return;
+        }
+
+        if (!window.confirm(`Excluir "${nomeOp}"?`)) return;
+
+        delete window._openingsAnime[nomeOp];
+
+        renderizarListaOpenings();
+        if (typeof atualizarVisualizacaoOpenings === "function") atualizarVisualizacaoOpenings();
+        
+        selectEl.value = "";
+        selectEl.dispatchEvent(new Event('change')); 
+        exibirMensagem(`Opening excluída.`, 'warning');
+    }
+    window.aiExcluirOpening = aiExcluirOpening;
 
     // Torna a função global para o onclick funcionar
     window.pegarDoMAL = pegarDoMAL;
