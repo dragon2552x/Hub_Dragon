@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Class Animes - Análise de Séries</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e6e6e6;
+      padding-bottom: 100px;
+    }
+
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 50;
+    }
+
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #b3b3b3;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+
+    .stat-card {
+      background: #151515;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      border-color: #B9314F;
+      transform: translateY(-2px);
+    }
+
+    .ranking-bar {
+      position: relative;
+      height: 6px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .ranking-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #B9314F, #d04968);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      background: #0a0a0a;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .anime-item {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .anime-item:hover {
+      background: #222;
+      border-color: #B9314F;
+    }
+
+    .star-gold {
+      color: #daa520;
+    }
+
+    .star-red {
+      color: #e32636;
+    }
+
+    .position-marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #B9314F;
+      border: 3px solid #0b0b0b;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      transition: all 0.5s ease;
+      z-index: 10;
+    }
+
+    .timeline-line {
+      height: 2px;
+      background: linear-gradient(90deg, #333, #B9314F, #333);
+      position: relative;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-track {
+      background: #1a1a1a;
+      border-radius: 4px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb {
+      background: #B9314F;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" class="container mx-auto max-w-7xl px-4 pt-4">
+
+  <!-- HEADER -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
+        My Hub
+      </button>
+      <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+        <i data-lucide="layers"></i> Análise de Séries
+      </h1>
+    </div>
+    <div class="text-sm text-gray-300 mt-1">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+    </div>
+  </header>
+
+  <!-- SELETOR DE SÉRIE -->
+  <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- Por Número da Série -->
+      <div>
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Selecionar por Número da Série</label>
+        <select id="select-serie" class="w-full px-3 py-2 bg-[#0a0a0a] border border-[#333] text-white rounded-md focus:border-[#B9314F] outline-none">
+          <option value="">Selecione uma série...</option>
+        </select>
+      </div>
+
+      <!-- Por Nome do Anime -->
+      <div>
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ou selecionar por Anime</label>
+        <select id="select-anime" class="w-full px-3 py-2 bg-[#0a0a0a] border border-[#333] text-white rounded-md focus:border-[#B9314F] outline-none">
+          <option value="">Selecione um anime...</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-3">
+      <button onclick="pesquisarSerie()" class="px-4 py-2 bg-[#B9314F] hover:bg-[#992743] text-white rounded-md font-semibold text-sm flex items-center gap-2">
+        <i data-lucide="search" class="w-4 h-4"></i> Pesquisar
+      </button>
+      <button onclick="limparPesquisa()" class="px-4 py-2 bg-[#444] hover:bg-[#555] text-white rounded-md font-semibold text-sm flex items-center gap-2">
+        <i data-lucide="x" class="w-4 h-4"></i> Limpar
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div id="main-content" class="hidden">
+
+    <!-- HEADER DA SÉRIE -->
+    <div class="bg-gradient-to-r from-[#1f1f1f] to-[#151515] p-6 rounded-xl border border-[#2a2a2a] mb-4 relative overflow-hidden">
+      <div class="relative z-10">
+        <div class="flex items-start gap-4">
+          <img id="serie-img" src="" class="w-24 h-32 object-cover rounded-lg border-2 border-[#B9314F] shadow-lg">
+          <div class="flex-1">
+            <h2 id="serie-nome" class="text-2xl font-bold text-white mb-2">Nome da Série</h2>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <span class="px-3 py-1 bg-[#B9314F]/20 border border-[#B9314F] text-[#B9314F] rounded-full text-xs font-bold">
+                Série <span id="serie-numero">0</span>
+              </span>
+              <span class="px-3 py-1 bg-blue-900/20 border border-blue-500 text-blue-400 rounded-full text-xs font-bold">
+                <span id="serie-qtd-animes">0</span> Animes
+              </span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <div class="text-xs text-gray-500">Episódios</div>
+                <div class="text-lg font-bold text-white"><span id="serie-eps-assistidos">0</span>/<span id="serie-eps-totais">0</span></div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">Nota Final</div>
+                <div id="serie-nota-final" class="text-lg font-bold text-green-400">0.00</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">MAL Média</div>
+                <div id="serie-mal-media" class="text-lg font-bold text-blue-400">0.00</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">Classificação</div>
+                <div id="serie-classificacao" class="text-lg font-bold text-yellow-400">#0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Gradient Overlay -->
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] to-transparent opacity-50"></div>
+    </div>
+
+    <!-- ESTATÍSTICAS GERAIS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      
+      <!-- Melhor Nota -->
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-2">
+          <i data-lucide="arrow-up" class="w-5 h-5 text-green-400"></i>
+          <span class="text-xs text-gray-500 uppercase font-bold">Melhor</span>
+        </div>
+        <div id="stat-melhor-nota" class="text-2xl font-bold text-green-400 mb-1">0.00</div>
+        <div id="stat-melhor-nome" class="text-xs text-gray-400 truncate">-</div>
+      </div>
+
+      <!-- Pior Nota -->
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-2">
+          <i data-lucide="arrow-down" class="w-5 h-5 text-red-400"></i>
+          <span class="text-xs text-gray-500 uppercase font-bold">Pior</span>
+        </div>
+        <div id="stat-pior-nota" class="text-2xl font-bold text-red-400 mb-1">0.00</div>
+        <div id="stat-pior-nome" class="text-xs text-gray-400 truncate">-</div>
+      </div>
+
+      <!-- Melhor MAL -->
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-2">
+          <i data-lucide="star" class="w-5 h-5 text-blue-400"></i>
+          <span class="text-xs text-gray-500 uppercase font-bold">Maior MAL</span>
+        </div>
+        <div id="stat-melhor-mal" class="text-2xl font-bold text-blue-400 mb-1">0.00</div>
+        <div id="stat-melhor-mal-nome" class="text-xs text-gray-400 truncate">-</div>
+      </div>
+
+      <!-- Pior MAL -->
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-2">
+          <i data-lucide="star-off" class="w-5 h-5 text-gray-500"></i>
+          <span class="text-xs text-gray-500 uppercase font-bold">Menor MAL</span>
+        </div>
+        <div id="stat-pior-mal" class="text-2xl font-bold text-gray-500 mb-1">0.00</div>
+        <div id="stat-pior-mal-nome" class="text-xs text-gray-400 truncate">-</div>
+      </div>
+
+    </div>
+
+    <!-- STARS -->
+    <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+        <i data-lucide="award" class="w-5 h-5"></i> Análise de Stars
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div>
+          <div class="text-xs text-gray-500 mb-2">Média de Stars</div>
+          <div id="stars-media" class="text-2xl font-bold star-gold">-</div>
+        </div>
+
+        <div>
+          <div class="text-xs text-gray-500 mb-2">Melhor Star</div>
+          <div id="stars-melhor" class="text-2xl font-bold star-gold mb-1">-</div>
+          <div id="stars-melhor-nome" class="text-xs text-gray-400 truncate">-</div>
+        </div>
+
+        <div>
+          <div class="text-xs text-gray-500 mb-2">Pior Star</div>
+          <div id="stars-pior" class="text-2xl font-bold star-gold mb-1">-</div>
+          <div id="stars-pior-nome" class="text-xs text-gray-400 truncate">-</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GRÁFICO DE LINHA - EVOLUÇÃO DAS NOTAS -->
+    <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+        <i data-lucide="trending-up" class="w-5 h-5"></i> Evolução das Notas
+      </h3>
+      <div class="chart-container">
+        <canvas id="chart-evolucao"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+        <i data-lucide="activity" class="w-5 h-5"></i> Histórico Detalhado (Por Episódio/Arco)
+      </h3>
+      <div class="chart-container" style="height: 350px;">
+        <canvas id="chart-historico-detalhado"></canvas>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS - PIZZA E BARRA -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      
+      <!-- Distribuição por Estado -->
+      <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a]">
+        <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-5 h-5"></i> Estados
+        </h3>
+        <div class="chart-container" style="height: 250px;">
+          <canvas id="chart-estados"></canvas>
+        </div>
+      </div>
+
+      <!-- Distribuição de Notas -->
+      <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a]">
+        <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Faixas de Notas
+        </h3>
+        <div class="chart-container" style="height: 250px;">
+          <canvas id="chart-notas-dist"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RANKING VISUAL -->
+    <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+        <i data-lucide="target" class="w-5 h-5"></i> Posição no Ranking Geral
+      </h3>
+      
+      <div class="relative py-6">
+        <!-- Linha do Ranking -->
+        <div class="timeline-line"></div>
+        
+        <!-- Marcador de Posição -->
+        <div id="position-marker" class="position-marker" style="left: 50%; top: 50%;"></div>
+        
+        <!-- Labels -->
+        <div class="flex justify-between mt-4 text-xs text-gray-500">
+          <span>#1</span>
+          <span id="ranking-posicao-text" class="text-[#B9314F] font-bold">#0</span>
+          <span id="ranking-total">#0</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-4 text-center">
+        <div>
+          <div class="text-xs text-gray-500">Melhor Anime</div>
+          <div id="ranking-melhor-posicao" class="text-lg font-bold text-green-400">#0</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500">Série</div>
+          <div id="ranking-serie-posicao" class="text-lg font-bold text-[#B9314F]">#0</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500">Pior Anime</div>
+          <div id="ranking-pior-posicao" class="text-lg font-bold text-red-400">#0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTA DE ANIMES DA SÉRIE -->
+    <div class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+        <i data-lucide="list" class="w-5 h-5"></i> Animes da Série
+      </h3>
+      
+      <div id="animes-lista" class="space-y-2 max-h-96 overflow-y-auto scrollbar-custom">
+        <!-- Lista será preenchida dinamicamente -->
+      </div>
+    </div>
+
+    <!-- DETALHES DO ANIME SELECIONADO -->
+    <div id="detalhes-anime" class="bg-[#151515] p-4 rounded-xl border border-[#2a2a2a] mb-4 hidden">
+      <h3 class="text-lg font-bold text-[#B9314F] mb-4 flex items-center gap-2">
+        <i data-lucide="info" class="w-5 h-5"></i> Detalhes do Anime
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Info Básica -->
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <img id="det-img" src="" class="w-20 h-28 object-cover rounded-lg border border-[#333]">
+            <div class="flex-1">
+              <h4 id="det-nome" class="font-bold text-white mb-2">Nome</h4>
+              <div class="space-y-1 text-sm">
+                <div><span class="text-gray-500">N°:</span> <span id="det-num" class="text-white font-mono">0</span></div>
+                <div><span class="text-gray-500">Estado:</span> <span id="det-estado" class="text-white">-</span></div>
+                <div><span class="text-gray-500">Estilo:</span> <span id="det-estilo" class="text-white">-</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="bg-[#0a0a0a] p-2 rounded border border-[#333]">
+              <div class="text-gray-500 text-xs">Temporada</div>
+              <div id="det-temporada" class="text-white font-semibold">-</div>
+            </div>
+            <div class="bg-[#0a0a0a] p-2 rounded border border-[#333]">
+              <div class="text-gray-500 text-xs">Ano</div>
+              <div id="det-ano" class="text-white font-semibold">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notas -->
+        <div class="space-y-3">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-[#0a0a0a] p-3 rounded border border-[#333] text-center">
+              <div class="text-gray-500 text-xs mb-1">Nota Final</div>
+              <div id="det-nota-final" class="text-xl font-bold text-green-400">0.00</div>
+            </div>
+            <div class="bg-[#0a0a0a] p-3 rounded border border-[#333] text-center">
+              <div class="text-gray-500 text-xs mb-1">MAL</div>
+              <div id="det-mal" class="text-xl font-bold text-blue-400">0.00</div>
+            </div>
+            <div class="bg-[#0a0a0a] p-3 rounded border border-[#333] text-center">
+              <div class="text-gray-500 text-xs mb-1">Stars</div>
+              <div id="det-stars" class="text-lg font-bold star-gold">-</div>
+            </div>
+          </div>
+
+          <div class="bg-[#0a0a0a] p-3 rounded border border-[#333]">
+            <div class="text-gray-500 text-xs mb-2">Progresso</div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-white"><span id="det-eps-ass">0</span> eps</span>
+              <span class="text-gray-500"><span id="det-eps-tot">0</span> total</span>
+            </div>
+            <div class="w-full bg-[#222] rounded-full h-2">
+              <div id="det-progress-bar" class="bg-[#B9314F] h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="bg-[#0a0a0a] p-3 rounded border border-[#333]">
+            <div class="text-gray-500 text-xs mb-1">Classificação Geral</div>
+            <div id="det-classificacao" class="text-2xl font-bold text-yellow-400">#0</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Gráfico de Pizza - Progresso de Episódios -->
+      <div class="mt-4">
+        <h4 class="text-sm font-bold text-gray-400 mb-2">Distribuição de Episódios</h4>
+        <div class="chart-container" style="height: 200px;">
+          <canvas id="chart-eps-progress"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENSAGEM INICIAL -->
+  <div id="initial-message" class="text-center py-20">
+    <i data-lucide="layers" class="w-16 h-16 mx-auto mb-4 text-gray-600"></i>
+    <h3 class="text-xl font-bold text-gray-400 mb-2">Selecione uma Série</h3>
+    <p class="text-gray-600">Escolha uma série acima para ver análises detalhadas</p>
+  </div>
+
+</div>
+
+<!-- MENU INFERIOR -->
+<nav class="menu">
+  <button class="menu-btn" onclick="window.location.href='animes_manager.html'">
+    <i data-lucide="home" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Início</span>
+  </button>
+
+  <button class="menu-btn" onclick="window.location.href='animes_cadastro.html'">
+    <i data-lucide="file-edit" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Gestão</span>
+  </button>
+
+  <button class="menu-btn" onclick="window.location.href='anime_lista.html'">
+    <i data-lucide="list" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Lista</span>
+  </button>
+
+  <div class="relative flex">
+    <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
+      <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
+      <span class="text-[10px]">Mais</span>
+    </button>
+
+    <div id="more-options-dropdown"
+         class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50">
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_classificacoes.html'">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Classificação</span>
+      </button>
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_estrelas.html'">
+        <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Estrelas</span>
+      </button>
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_torneio.html'">
+        <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Torneio</span>
+      </button>
+
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3 bg-[#2a2a2a]" 
+              onclick="window.location.href='animes_serie.html'">
+        <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Serie</span>
+      </button>
+
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_database.html'">
+        <i data-lucide="database" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Database</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  lucide.createIcons();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+    authDomain: "list-games-9bddd.firebaseapp.com",
+    projectId: "list-games-9bddd",
+    storageBucket: "list-games-9bddd.firebasestorage.app",
+    messagingSenderId: "756898313156",
+    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+    measurementId: "G-GLM50YVLXP"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+
+  let allAnimes = [];
+  let serieAtual = null;
+  let animesClassificados = [];
+  let seriesClassificadas = [];
+  
+  // Referências dos gráficos
+  let chartEvolucao = null;
+  let chartEstados = null;
+  let chartNotasDist = null;
+  let chartEpsProgress = null;
+  let chartHistoricoDetalhado = null;
+
+  // ===================================
+  // CARREGAR DADOS
+  // ===================================
+  async function loadData() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const cacheKey = `animes_${user.uid}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      allAnimes = JSON.parse(cachedData);
+      console.log("📦 Dados carregados do Cache");
+    } else {
+      console.log("🔥 Buscando no Firebase...");
+      const animesRef = collection(db, "users", user.uid, "animes");
+      const snapshot = await getDocs(animesRef);
+      allAnimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+    }
+
+    prepararDados();
+    popularSelects();
+  }
+
+  // ===================================
+  // PREPARAR DADOS
+  // ===================================
+  function prepararDados() {
+    // Classificação de animes por nota
+    animesClassificados = [...allAnimes]
+      .filter(a => a.NOTA_F && a.NOTA_F > 0)
+      .sort((a, b) => (b.NOTA_F || 0) - (a.NOTA_F || 0));
+
+    // Agrupar por série e calcular médias
+    const series = {};
+    allAnimes.forEach(anime => {
+      const serieId = anime.SERIE || Math.floor(anime.Num);
+      if (!series[serieId]) {
+        series[serieId] = [];
+      }
+      series[serieId].push(anime);
+    });
+
+    seriesClassificadas = Object.entries(series).map(([serieId, animes]) => {
+      const notasValidas = animes.filter(a => a.NOTA_F && a.NOTA_F > 0);
+      const mediaNotaFinal = notasValidas.length > 0
+        ? notasValidas.reduce((sum, a) => sum + a.NOTA_F, 0) / notasValidas.length
+        : 0;
+      
+      return {
+        serieId,
+        animes,
+        mediaNotaFinal,
+        qtdAnimes: animes.length
+      };
+    }).sort((a, b) => b.mediaNotaFinal - a.mediaNotaFinal);
+  }
+
+  // ===================================
+  // POPULAR SELECTS
+  // ===================================
+  function popularSelects() {
+    const selectSerie = document.getElementById('select-serie');
+    const selectAnime = document.getElementById('select-anime');
+
+    // Popular séries (apenas as que têm mais de 1 anime)
+    seriesClassificadas
+      .filter(s => s.qtdAnimes > 1)
+      .forEach(serie => {
+        const option = document.createElement('option');
+        option.value = serie.serieId;
+        option.textContent = `Série ${serie.serieId} (${serie.qtdAnimes} animes) - Nota: ${serie.mediaNotaFinal.toFixed(2)}`;
+        selectSerie.appendChild(option);
+      });
+
+    // Popular animes
+    allAnimes
+      .sort((a, b) => (a.NOME || '').localeCompare(b.NOME || ''))
+      .forEach(anime => {
+        const option = document.createElement('option');
+        option.value = anime.NOME;
+        option.dataset.serie = anime.SERIE || Math.floor(anime.Num);
+        option.textContent = anime.NOME;
+        selectAnime.appendChild(option);
+      });
+
+    // Sincronizar selects
+    selectAnime.addEventListener('change', (e) => {
+      const selected = e.target.selectedOptions[0];
+      if (selected && selected.dataset.serie) {
+        selectSerie.value = selected.dataset.serie;
+      }
+    });
+
+    selectSerie.addEventListener('change', () => {
+      selectAnime.value = '';
+    });
+  }
+
+  // ===================================
+  // PESQUISAR SÉRIE
+  // ===================================
+  window.pesquisarSerie = function() {
+    let serieId = document.getElementById('select-serie').value;
+    
+    // Se selecionou por anime
+    if (!serieId) {
+      const animeNome = document.getElementById('select-anime').value;
+      if (animeNome) {
+        const anime = allAnimes.find(a => a.NOME === animeNome);
+        if (anime) {
+          serieId = anime.SERIE || Math.floor(anime.Num);
+        }
+      }
+    }
+
+    if (!serieId) {
+      alert('Selecione uma série ou anime!');
+      return;
+    }
+
+    exibirSerie(serieId);
+  };
+
+  // ===================================
+  // EXIBIR SÉRIE
+  // ===================================
+  function exibirSerie(serieId) {
+    const animesDaSerie = allAnimes.filter(a => 
+      (a.SERIE || Math.floor(a.Num)) == serieId
+    ).sort((a, b) => (a.Num || 0) - (b.Num || 0));
+
+    if (animesDaSerie.length === 0) {
+      alert('Série não encontrada!');
+      return;
+    }
+
+    serieAtual = {
+      serieId,
+      animes: animesDaSerie
+    };
+
+    document.getElementById('initial-message').classList.add('hidden');
+    document.getElementById('main-content').classList.remove('hidden');
+
+    preencherHeaderSerie();
+    preencherEstatisticas();
+    preencherStars();
+    criarGraficoEvolucao();
+    criarGraficosDistribuicao();
+    atualizarRanking();
+    listarAnimes();
+    criarGraficoHistoricoDetalhado(); // <--- ADICIONE ISSO
+    
+    lucide.createIcons();
+  }
+
+  // ===================================
+  // PREENCHER HEADER
+  // ===================================
+  function preencherHeaderSerie() {
+    const { serieId, animes } = serieAtual;
+    
+    document.getElementById('serie-numero').textContent = serieId;
+    document.getElementById('serie-nome').textContent = animes[0].NOME;
+    document.getElementById('serie-img').src = animes[0].IMAGEM || 'https://placehold.co/150x200/222/666?text=?';
+    document.getElementById('serie-qtd-animes').textContent = animes.length;
+
+    // Episódios
+    const epsAssistidos = animes.reduce((sum, a) => sum + (parseInt(a.ASSIS) || 0), 0);
+    const epsTotais = animes.reduce((sum, a) => sum + (parseInt(a.TOTAIS) || 0), 0);
+    document.getElementById('serie-eps-assistidos').textContent = epsAssistidos;
+    document.getElementById('serie-eps-totais').textContent = epsTotais;
+
+    // Nota Final Média
+    const notasValidas = animes.filter(a => a.NOTA_F && a.NOTA_F > 0);
+    const notaMedia = notasValidas.length > 0
+      ? notasValidas.reduce((sum, a) => sum + a.NOTA_F, 0) / notasValidas.length
+      : 0;
+    document.getElementById('serie-nota-final').textContent = notaMedia.toFixed(2);
+
+    // MAL Média
+    const malsValidos = animes.filter(a => a.N_MAL && a.N_MAL > 0);
+    const malMedia = malsValidos.length > 0
+      ? malsValidos.reduce((sum, a) => sum + parseFloat(a.N_MAL), 0) / malsValidos.length
+      : 0;
+    document.getElementById('serie-mal-media').textContent = malMedia.toFixed(2);
+
+    // Classificação
+    const posicao = seriesClassificadas.findIndex(s => s.serieId == serieId) + 1;
+    document.getElementById('serie-classificacao').textContent = `#${posicao}`;
+  }
+
+  // ===================================
+  // PREENCHER ESTATÍSTICAS
+  // ===================================
+  function preencherEstatisticas() {
+    const { animes } = serieAtual;
+    
+    const notasValidas = animes.filter(a => a.NOTA_F && a.NOTA_F > 0);
+    
+    if (notasValidas.length === 0) return;
+
+    // Melhor Nota
+    const melhorNota = notasValidas.reduce((max, a) => a.NOTA_F > max.NOTA_F ? a : max);
+    document.getElementById('stat-melhor-nota').textContent = melhorNota.NOTA_F.toFixed(2);
+    document.getElementById('stat-melhor-nome').textContent = melhorNota.NOME;
+
+    // Pior Nota
+    const piorNota = notasValidas.reduce((min, a) => a.NOTA_F < min.NOTA_F ? a : min);
+    document.getElementById('stat-pior-nota').textContent = piorNota.NOTA_F.toFixed(2);
+    document.getElementById('stat-pior-nome').textContent = piorNota.NOME;
+
+    // MAL
+    const malsValidos = animes.filter(a => a.N_MAL && a.N_MAL > 0);
+    if (malsValidos.length > 0) {
+      const melhorMal = malsValidos.reduce((max, a) => parseFloat(a.N_MAL) > parseFloat(max.N_MAL) ? a : max);
+      document.getElementById('stat-melhor-mal').textContent = parseFloat(melhorMal.N_MAL).toFixed(2);
+      document.getElementById('stat-melhor-mal-nome').textContent = melhorMal.NOME;
+
+      const piorMal = malsValidos.reduce((min, a) => parseFloat(a.N_MAL) < parseFloat(min.N_MAL) ? a : min);
+      document.getElementById('stat-pior-mal').textContent = parseFloat(piorMal.N_MAL).toFixed(2);
+      document.getElementById('stat-pior-mal-nome').textContent = piorMal.NOME;
+    }
+  }
+
+  // ===================================
+  // STARS
+  // ===================================
+  function preencherStars() {
+    const { animes } = serieAtual;
+    
+    const starsValidos = animes.filter(a => a.STARS && a.STARS !== '');
+    
+    if (starsValidos.length === 0) {
+      document.getElementById('stars-media').textContent = '-';
+      document.getElementById('stars-melhor').textContent = '-';
+      document.getElementById('stars-pior').textContent = '-';
+      return;
+    }
+
+    // Converter star para nota
+    const obterNotaStar = (star) => {
+      const map = {
+        "0": 3, "1": 7, "2": 8, "3": 9, "4": 10, "5": 10.2,
+        "✶ ✶ ✶": 10.3, "✶ ✶": 10.4, "✶": 10.5
+      };
+      return map[String(star)] || 0;
+    };
+
+    // Formatar star para exibição
+    const formatarStar = (star) => {
+      if (star === "✶ ✶ ✶") return '★ ★ ★';
+      if (star === "✶ ✶") return '★ ★';
+      if (star === "✶") return '★';
+      if (star === "5") return '★ ★ ★ ★ ★';
+      if (star === "4") return '★ ★ ★ ★';
+      if (star === "3") return '★ ★ ★';
+      if (star === "2") return '★ ★';
+      if (star === "1") return '★';
+      if (star === "0") return '0';
+      return '-';
+    };
+
+    const getStarClass = (star) => {
+      if (star.includes('✶')) return 'star-red';
+      return 'star-gold';
+    };
+
+    // Média
+    const somaStars = starsValidos.reduce((sum, a) => sum + obterNotaStar(a.STARS), 0);
+    const mediaStar = somaStars / starsValidos.length;
+    
+    let mediaFormatada = '-';
+    if (mediaStar >= 10.5) mediaFormatada = '★';
+    else if (mediaStar >= 10.4) mediaFormatada = '★ ★';
+    else if (mediaStar >= 10.3) mediaFormatada = '★ ★ ★';
+    else if (mediaStar >= 10.2) mediaFormatada = '★ ★ ★ ★ ★';
+    else if (mediaStar >= 10) mediaFormatada = '★ ★ ★ ★';
+    else if (mediaStar >= 9) mediaFormatada = '★ ★ ★';
+    else if (mediaStar >= 8) mediaFormatada = '★ ★';
+    else if (mediaStar >= 7) mediaFormatada = '★';
+    else mediaFormatada = '0';
+
+    const mediaEl = document.getElementById('stars-media');
+    mediaEl.textContent = mediaFormatada;
+    mediaEl.className = mediaStar >= 10.3 ? 'text-2xl font-bold star-red' : 'text-2xl font-bold star-gold';
+
+    // Melhor
+    const melhorStar = starsValidos.reduce((max, a) => 
+      obterNotaStar(a.STARS) > obterNotaStar(max.STARS) ? a : max
+    );
+    const melhorEl = document.getElementById('stars-melhor');
+    melhorEl.textContent = formatarStar(melhorStar.STARS);
+    melhorEl.className = `text-2xl font-bold ${getStarClass(melhorStar.STARS)} mb-1`;
+    document.getElementById('stars-melhor-nome').textContent = melhorStar.NOME;
+
+    // Pior
+    const piorStar = starsValidos.reduce((min, a) => 
+      obterNotaStar(a.STARS) < obterNotaStar(min.STARS) ? a : min
+    );
+    const piorEl = document.getElementById('stars-pior');
+    piorEl.textContent = formatarStar(piorStar.STARS);
+    piorEl.className = `text-2xl font-bold ${getStarClass(piorStar.STARS)} mb-1`;
+    document.getElementById('stars-pior-nome').textContent = piorStar.NOME;
+  }
+
+  // ===================================
+  // GRÁFICO: EVOLUÇÃO DAS NOTAS
+  // ===================================
+  function criarGraficoEvolucao() {
+    const ctx = document.getElementById('chart-evolucao');
+    
+    if (chartEvolucao) {
+      chartEvolucao.destroy();
+    }
+
+    const { animes } = serieAtual;
+    
+    const labels = animes.map(a => a.NOME.substring(0, 20) + (a.NOME.length > 20 ? '...' : ''));
+    const notas = animes.map(a => a.NOTA_F || 0);
+    const mals = animes.map(a => parseFloat(a.N_MAL) || 0);
+
+    chartEvolucao = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Nota Final',
+            data: notas,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Nota MAL',
+            data: mals,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: '#e6e6e6' }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10,
+            ticks: { color: '#9ca3af' },
+            grid: { color: '#2a2a2a' }
+          },
+          x: {
+            ticks: { color: '#9ca3af' },
+            grid: { color: '#2a2a2a' }
+          }
+        }
+      }
+    });
+  }
+
+  // ===================================
+  // GRÁFICOS: DISTRIBUIÇÃO
+  // ===================================
+  function criarGraficosDistribuicao() {
+    const { animes } = serieAtual;
+
+    // Gráfico de Estados
+    const estados = {};
+    animes.forEach(a => {
+      const estado = a.ESTADO || 'Sem Estado';
+      estados[estado] = (estados[estado] || 0) + 1;
+    });
+
+    const ctxEstados = document.getElementById('chart-estados');
+    if (chartEstados) chartEstados.destroy();
+
+    chartEstados = new Chart(ctxEstados, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(estados),
+        datasets: [{
+          data: Object.values(estados),
+          backgroundColor: [
+            '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', 
+            '#ef4444', '#6b7280', '#ec4899'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#e6e6e6', padding: 10 }
+          }
+        }
+      }
+    });
+
+    // Gráfico de Faixas de Notas
+    const faixas = {
+      '9-10': 0,
+      '8-9': 0,
+      '7-8': 0,
+      '6-7': 0,
+      '0-6': 0
+    };
+
+    animes.forEach(a => {
+      const nota = a.NOTA_F || 0;
+      if (nota >= 9) faixas['9-10']++;
+      else if (nota >= 8) faixas['8-9']++;
+      else if (nota >= 7) faixas['7-8']++;
+      else if (nota >= 6) faixas['6-7']++;
+      else if (nota > 0) faixas['0-6']++;
+    });
+
+    const ctxNotas = document.getElementById('chart-notas-dist');
+    if (chartNotasDist) chartNotasDist.destroy();
+
+    chartNotasDist = new Chart(ctxNotas, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(faixas),
+        datasets: [{
+          label: 'Quantidade',
+          data: Object.values(faixas),
+          backgroundColor: [
+            '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { 
+              color: '#9ca3af',
+              stepSize: 1
+            },
+            grid: { color: '#2a2a2a' }
+          },
+          x: {
+            ticks: { color: '#9ca3af' },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // ===================================
+  // RANKING
+  // ===================================
+  function atualizarRanking() {
+    const { serieId, animes } = serieAtual;
+
+    const totalSeries = seriesClassificadas.length;
+    const posicaoSerie = seriesClassificadas.findIndex(s => s.serieId == serieId) + 1;
+
+    document.getElementById('ranking-total').textContent = `#${totalSeries}`;
+    document.getElementById('ranking-posicao-text').textContent = `#${posicaoSerie}`;
+    document.getElementById('ranking-serie-posicao').textContent = `#${posicaoSerie}`;
+
+    // Posição do marcador na linha (0% a 100%)
+    const percent = totalSeries > 1 
+      ? ((totalSeries - posicaoSerie) / (totalSeries - 1)) * 100 
+      : 50;
+    
+    document.getElementById('position-marker').style.left = `${percent}%`;
+
+    // Posições do melhor e pior anime
+    const melhorAnime = animes.reduce((max, a) => 
+      (a.NOTA_F || 0) > (max.NOTA_F || 0) ? a : max
+    );
+    const piorAnime = animes.reduce((min, a) => 
+      (a.NOTA_F || 0) < (min.NOTA_F || 0) ? a : min
+    );
+
+    const posMelhor = animesClassificados.findIndex(a => a.NOME === melhorAnime.NOME) + 1;
+    const posPior = animesClassificados.findIndex(a => a.NOME === piorAnime.NOME) + 1;
+
+    document.getElementById('ranking-melhor-posicao').textContent = `#${posMelhor}`;
+    document.getElementById('ranking-pior-posicao').textContent = `#${posPior}`;
+  }
+
+  // ===================================
+  // LISTAR ANIMES
+  // ===================================
+  function listarAnimes() {
+    const { animes } = serieAtual;
+    const container = document.getElementById('animes-lista');
+    container.innerHTML = '';
+
+    animes.forEach((anime, index) => {
+      const div = document.createElement('div');
+      div.className = 'anime-item';
+      div.onclick = () => mostrarDetalhesAnime(anime);
+      
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="text-[#B9314F] font-bold font-mono text-sm w-8">${anime.Num || '-'}</div>
+          <img src="${anime.IMAGEM || 'https://placehold.co/60x80/222/666?text=?'}" 
+               class="w-12 h-16 object-cover rounded border border-[#333]"
+               onerror="this.src='https://placehold.co/60x80/222/666?text=?'">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-white truncate">${anime.NOME}</h4>
+            <div class="flex gap-2 mt-1 text-xs">
+              <span class="text-gray-500">${anime.ESTADO || '-'}</span>
+              <span class="text-gray-600">•</span>
+              <span class="text-gray-500">${anime.ANO || '-'}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-lg font-bold ${anime.NOTA_F >= 8 ? 'text-green-400' : anime.NOTA_F >= 6 ? 'text-yellow-400' : 'text-gray-400'}">
+              ${anime.NOTA_F ? anime.NOTA_F.toFixed(2) : '-'}
+            </div>
+            <div class="text-xs text-gray-500">${anime.ASSIS || 0}/${anime.TOTAIS || '?'}</div>
+          </div>
+        </div>
+      `;
+      
+      container.appendChild(div);
+    });
+  }
+
+  // ===================================
+  // DETALHES DO ANIME
+  // ===================================
+  function mostrarDetalhesAnime(anime) {
+    const detalhes = document.getElementById('detalhes-anime');
+    detalhes.classList.remove('hidden');
+
+    document.getElementById('det-img').src = anime.IMAGEM || 'https://placehold.co/150x200/222/666?text=?';
+    document.getElementById('det-nome').textContent = anime.NOME;
+    document.getElementById('det-num').textContent = anime.Num || '-';
+    document.getElementById('det-estado').textContent = anime.ESTADO || '-';
+    document.getElementById('det-estilo').textContent = anime.ESTILO || '-';
+    document.getElementById('det-temporada').textContent = anime.TEMPORADA || '-';
+    document.getElementById('det-ano').textContent = anime.ANO || '-';
+    
+    document.getElementById('det-nota-final').textContent = anime.NOTA_F ? anime.NOTA_F.toFixed(2) : '0.00';
+    document.getElementById('det-mal').textContent = anime.N_MAL ? parseFloat(anime.N_MAL).toFixed(2) : '0.00';
+    
+    // Stars formatado
+    const formatarStar = (star) => {
+      if (star === "✶ ✶ ✶") return '★ ★ ★';
+      if (star === "✶ ✶") return '★ ★';
+      if (star === "✶") return '★';
+      if (star === "5") return '★ ★ ★ ★ ★';
+      if (star === "4") return '★ ★ ★ ★';
+      if (star === "3") return '★ ★ ★';
+      if (star === "2") return '★ ★';
+      if (star === "1") return '★';
+      if (star === "0") return '0';
+      return '-';
+    };
+    document.getElementById('det-stars').textContent = formatarStar(anime.STARS);
+
+    const epsAss = parseInt(anime.ASSIS) || 0;
+    const epsTot = parseInt(anime.TOTAIS) || 0;
+    document.getElementById('det-eps-ass').textContent = epsAss;
+    document.getElementById('det-eps-tot').textContent = epsTot;
+    
+    const progress = epsTot > 0 ? (epsAss / epsTot) * 100 : 0;
+    document.getElementById('det-progress-bar').style.width = `${progress}%`;
+
+    const classificacao = animesClassificados.findIndex(a => a.NOME === anime.NOME) + 1;
+    document.getElementById('det-classificacao').textContent = `#${classificacao}`;
+
+    // Gráfico de progresso
+    criarGraficoProgresso(epsAss, epsTot);
+
+    // Scroll suave
+    detalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ===================================
+  // GRÁFICO: PROGRESSO EPISÓDIOS
+  // ===================================
+  function criarGraficoProgresso(assistidos, totais) {
+    const ctx = document.getElementById('chart-eps-progress');
+    
+    if (chartEpsProgress) {
+      chartEpsProgress.destroy();
+    }
+
+    const restantes = Math.max(0, totais - assistidos);
+
+    chartEpsProgress = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Assistidos', 'Restantes'],
+        datasets: [{
+          data: [assistidos, restantes],
+          backgroundColor: ['#B9314F', '#2a2a2a']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#e6e6e6' }
+          }
+        }
+      }
+    });
+  }
+
+  // ===================================
+  // LIMPAR PESQUISA
+  // ===================================
+  window.limparPesquisa = function() {
+    document.getElementById('select-serie').value = '';
+    document.getElementById('select-anime').value = '';
+    document.getElementById('main-content').classList.add('hidden');
+    document.getElementById('initial-message').classList.remove('hidden');
+    
+    // Destruir gráficos
+    if (chartEvolucao) chartEvolucao.destroy();
+    if (chartEstados) chartEstados.destroy();
+    if (chartNotasDist) chartNotasDist.destroy();
+    if (chartEpsProgress) chartEpsProgress.destroy();
+    if (chartHistoricoDetalhado) chartHistoricoDetalhado.destroy(); // <--- ADICIONE ISSO
+  };
+
+  // ===================================
+  // MENU DROPDOWN
+  // ===================================
+  window.toggleMoreOptions = function(event) {
+    event.stopPropagation();
+    document.getElementById('more-options-dropdown').classList.toggle('hidden');
+  };
+
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('more-options-dropdown');
+    const btn = document.getElementById('more-options-btn');
+    if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // ===================================
+  // NOVO GRÁFICO: HISTÓRICO DETALHADO
+  // ===================================
+  function criarGraficoHistoricoDetalhado() {
+    const ctx = document.getElementById('chart-historico-detalhado');
+    
+    if (chartHistoricoDetalhado) {
+      chartHistoricoDetalhado.destroy();
+    }
+
+    const { animes } = serieAtual;
+    
+    let labels = [];
+    let dataPoints = [];
+    let backgroundColors = [];
+    let tooltipsInfo = []; // Para mostrar qual anime pertence o ponto
+
+    // Ordena por ordem de lançamento/numeração
+    const animesOrdenados = [...animes].sort((a, b) => (parseFloat(a.Num) || 0) - (parseFloat(b.Num) || 0));
+
+    animesOrdenados.forEach(anime => {
+      const estilo = anime.ESTILO || 'Anime';
+      const nomeCurto = anime.NOME.length > 15 ? anime.NOME.substring(0, 15) + '...' : anime.NOME;
+
+      // --- LÓGICA TIPO PYTHON ---
+      
+      if (estilo === 'Anime' || estilo === 'Anime Inf') { // Fallback para nomes antigos
+          // 1. Ep 1
+          if (anime.N_Ep_1 || anime.EP1) {
+              const nota = parseFloat(anime.N_Ep_1 || anime.EP1);
+              if (!isNaN(nota) && nota > 0) {
+                  labels.push('Ep 1');
+                  dataPoints.push(nota);
+                  backgroundColors.push('#B9314F'); // Cor padrão
+                  tooltipsInfo.push(`${anime.NOME} (Início)`);
+              }
+          }
+
+          // 2. Eps do Meio (String separada por vírgulas)
+          const epsString = anime.N_Eps || anime.EPS || "";
+          if (epsString) {
+              const notasMeio = epsString.split(',').map(n => parseFloat(n.trim()));
+              notasMeio.forEach((nota, index) => {
+                  if (!isNaN(nota) && nota > 0) {
+                      // Labels genéricas como no Python (2-3, 4-6, etc ou sequencial)
+                      // Aqui vamos usar um contador simples para o gráfico fluir
+                      let labelFaixa = `Faixa ${index + 1}`;
+                      // Tenta replicar a lógica visual de faixas se desejar, ou apenas '...'
+                      if(index === 0) labelFaixa = '2-3';
+                      else labelFaixa = `${4 + (index-1)*3}-${4 + (index-1)*3 + 2}`;
+
+                      labels.push(labelFaixa);
+                      dataPoints.push(nota);
+                      backgroundColors.push('#3b82f6'); // Azul para meio
+                      tooltipsInfo.push(`${anime.NOME} (${labelFaixa})`);
+                  }
+              });
+          }
+
+          // 3. Ep Final
+          if (anime.N_Ep_F || anime.EPF) {
+              const nota = parseFloat(anime.N_Ep_F || anime.EPF);
+              if (!isNaN(nota) && nota > 0) {
+                  labels.push('Final');
+                  dataPoints.push(nota);
+                  backgroundColors.push('#10b981'); // Verde para final
+                  tooltipsInfo.push(`${anime.NOME} (Final)`);
+              }
+          }
+      } 
+      
+      else if (estilo === 'Anime Inf.') {
+          // Lógica de Arcos (JSON)
+          const jsonArcos = anime['N. A+ e INFT.'];
+          if (jsonArcos) {
+              try {
+                  const arcosObj = JSON.parse(jsonArcos);
+                  // O formato salvo no seu sistema é Objeto {"Nome Arco": {i, m, f}}, não Lista
+                  Object.entries(arcosObj).forEach(([nomeArco, notas]) => {
+                      const i = parseFloat(notas.i) || 0;
+                      const m = parseFloat(notas.m) || 0;
+                      const f = parseFloat(notas.f) || 0;
+                      
+                      if (i > 0 && m > 0 && f > 0) {
+                          const media = (i + m + f) / 3;
+                          labels.push('Arco');
+                          dataPoints.push(media);
+                          backgroundColors.push('#8b5cf6'); // Roxo para Arcos
+                          tooltipsInfo.push(`${anime.NOME}: ${nomeArco}`);
+                      }
+                  });
+              } catch (e) { console.error("Erro parsing Anime Inf", e); }
+          }
+      }
+
+      else if (estilo === 'Filme' || estilo === 'Especial') {
+          // Nota Única
+          const nota = parseFloat(anime['N. FILME ESP.'] || anime['N. SPECIAL']);
+          if (!isNaN(nota) && nota > 0) {
+              labels.push(estilo);
+              dataPoints.push(nota);
+              backgroundColors.push('#f59e0b'); // Laranja para Filme/Especial
+              tooltipsInfo.push(`${anime.NOME}`);
+          }
+      }
+    });
+
+    chartHistoricoDetalhado = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels, // Eixo X (Ep1, 2-3, Final, Filme...)
+        datasets: [{
+          label: 'Nota',
+          data: dataPoints,
+          borderColor: '#B9314F',
+          backgroundColor: backgroundColors, // Bolinhas coloridas por tipo
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          tension: 0.3, // Linha curva suave
+          fill: true,
+          backgroundColor: (context) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(185, 49, 79, 0.4)');
+            gradient.addColorStop(1, 'rgba(185, 49, 79, 0.0)');
+            return gradient;
+          },
+          pointBackgroundColor: backgroundColors // Aplica as cores definidas na lógica
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              // Customiza o tooltip para mostrar o Nome do Anime + Contexto
+              title: (context) => {
+                return tooltipsInfo[context[0].dataIndex];
+              },
+              label: (context) => {
+                return `Nota: ${context.raw.toFixed(2)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            min: 0,
+            max: 10.5, // Um pouco acima de 10 para o ponto não cortar
+            ticks: { color: '#9ca3af' },
+            grid: { color: '#2a2a2a' }
+          },
+          x: {
+            ticks: { 
+                color: '#9ca3af',
+                maxRotation: 45,
+                minRotation: 45,
+                autoSkip: true,
+                maxTicksLimit: 20 // Evita poluição se a série for longa (ex: One Piece)
+            },
+            grid: { display: false } // Remove grade vertical para ficar mais limpo
+          }
+        }
+      }
+    });
+  }
+
+  // ===================================
+  // INIT
+  // ===================================
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+    
+    document.getElementById('user-email').textContent = user.email;
+    loadData();
+  });
+</script>
+
+</body>
+</html>
