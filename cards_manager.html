@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Manager - Gerenciador de Cards TCG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151933;
+            --bg-card: #1a1f3a;
+            --accent-gold: #d4af37;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3548;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        /* Tabs */
+        .tabs-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        .tab-btn.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards Grid */
+        .collection-controls {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--text-primary);
+        }
+        
+        .filter-btn.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+        
+        select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .card-item {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .card-item:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+        
+        .card-item.horizontal {
+            grid-column: span 2;
+        }
+        
+        .card-preview {
+            width: 100%;
+            aspect-ratio: 2.5 / 3.5;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1f3a, #2d3548);
+        }
+        
+        .card-item.horizontal .card-preview {
+            aspect-ratio: 3.5 / 2.5;
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-frame-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .card-info {
+            padding: 1.25rem;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-type {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Creation Form */
+        .creation-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .creation-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        input[type="text"],
+        input[type="url"],
+        textarea,
+        select {
+            padding: 0.875rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        input[type="color"] {
+            height: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.75rem;
+            background: var(--accent-gold);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:hover {
+            background: #f0c14b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border-color);
+            border-color: var(--accent-gold);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        /* Live Preview */
+        .live-preview {
+            position: sticky;
+            top: 2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .preview-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .preview-card {
+            width: 100%;
+            aspect-ratio: 2.5 / 3.5;
+            background: linear-gradient(135deg, #1a1f3a, #2d3548);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-card.horizontal {
+            aspect-ratio: 3.5 / 2.5;
+        }
+        
+        /* Orientation Toggle */
+        .orientation-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .orientation-btn {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        
+        .orientation-btn.active {
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+        
+        /* Tags */
+        .tag-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 50px;
+            align-items: center;
+        }
+        
+        .tag {
+            background: var(--accent-purple);
+            color: white;
+            padding: 0.375rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .tag-remove:hover {
+            opacity: 1;
+        }
+        
+        .tag-input {
+            flex: 1;
+            min-width: 150px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            padding: 0.5rem;
+        }
+        
+        .tag-input:focus {
+            outline: none;
+        }
+        
+        /* Frames */
+        .frames-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .frame-item {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .frame-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-4px);
+        }
+        
+        .frame-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .frame-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .frame-name {
+            font-family: 'Cinzel', serif;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .frame-type {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: var(--danger);
+            transform: rotate(90deg);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+        
+        .empty-state-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        /* Color Picker Group */
+        .color-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        
+        .color-picker-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .creation-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .live-preview {
+                position: relative;
+                top: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-item.horizontal {
+                grid-column: span 1;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0c14b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button onclick="window.location.href='home.html'" class="btn btn-secondary" style="position: absolute; top: 2rem; left: 2rem; z-index: 10;">
+            ⬅ Home
+        </button>
+
+        <header>
+            <h1>⚔️ Card Manager TCG</h1>
+            <p class="subtitle">Gerenciador Profissional de Cards Virtuais</p>
+        </header>
+        
+        <!-- Tabs Navigation -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="collection">📚 Coleção</button>
+            <button class="tab-btn" data-tab="creation">✨ Criação</button>
+            <button class="tab-btn" data-tab="frames">🖼️ Molduras</button>
+        </nav>
+        
+        <!-- Tab: Coleção -->
+        <div id="collection" class="tab-content active">
+            <div class="collection-controls">
+                <div class="search-box">
+                    <input type="text" id="searchCards" placeholder="🔍 Buscar cards...">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="vertical">Verticais</button>
+                    <button class="filter-btn" data-filter="horizontal">Horizontais</button>
+                </div>
+                <div class="filter-group">
+                    <select id="typeFilter">
+                        <option value="all">Todos os Tipos</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="cardsGrid" class="cards-grid"></div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">🎴</div>
+                <div class="empty-state-text">Sua coleção está vazia</div>
+                <p>Comece criando seu primeiro card na aba "Criação"</p>
+            </div>
+        </div>
+        
+        <!-- Tab: Criação -->
+        <div id="creation" class="tab-content">
+            <div class="creation-layout">
+                <div class="creation-form">
+                    <form id="cardForm">
+                        <!-- Informações Básicas -->
+                        <div class="form-section">
+                            <h2 class="form-section-title">📋 Informações Básicas</h2>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Nome do Card</label>
+                                    <input type="text" id="cardName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo</label>
+                                    <select id="cardType" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="champion">Champion</option>
+                                        <option value="spell">Spell</option>
+                                        <option value="artifact">Artifact</option>
+                                        <option value="legend">Legend</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Raridade</label>
+                                    <select id="cardRarity">
+                                        <option value="common">Common</option>
+                                        <option value="uncommon">Uncommon</option>
+                                        <option value="rare">Rare</option>
+                                        <option value="epic">Epic</option>
+                                        <option value="legendary">Legendary</option>
+                                        <option value="mythic">Mythic</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Orientação</label>
+                                    <div class="orientation-toggle">
+                                        <button type="button" class="orientation-btn active" data-orientation="vertical">📱 Vertical</button>
+                                        <button type="button" class="orientation-btn" data-orientation="horizontal">🖥️ Horizontal</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual & Arte -->
+                        <div class="form-section">
+                            <h2 class="form-section-title">🎨 Visual & Arte</h2>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Imagem Principal (URL)</label>
+                                    <input type="url" id="cardImage" placeholder="https://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Moldura</label>
+                                    <select id="cardFrame">
+                                        <option value="default">Padrão</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Estilo Visual</label>
+                                    <select id="cardStyle">
+                                        <option value="classic">Clássico</option>
+                                        <option value="modern">Moderno</option>
+                                        <option value="fantasy">Fantasia</option>
+                                        <option value="scifi">Sci-Fi</option>
+                                        <option value="minimal">Minimalista</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Cores da Moldura</label>
+                                    <div class="color-group">
+                                        <div class="color-picker-item">
+                                            <label>Primária</label>
+                                            <input type="color" id="framePrimaryColor" value="#d4af37">
+                                        </div>
+                                        <div class="color-picker-item">
+                                            <label>Secundária</label>
+                                            <input type="color" id="frameSecondaryColor" value="#8b5cf6">
+                                        </div>
+                                        <div class="color-picker-item">
+                                            <label>Fundo</label>
+                                            <input type="color" id="frameBgColor" value="#1a1f3a">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Descrição / Habilidade</label>
+                                    <textarea id="cardDescription" placeholder="Digite a descrição ou habilidade do card..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags e Extras -->
+                        <div class="form-section">
+                            <h2 class="form-section-title">🏷️ Tags & Extras</h2>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Tags (pressione Enter para adicionar)</label>
+                                    <div class="tag-input-container" id="tagsContainer">
+                                        <input type="text" class="tag-input" id="tagInput" placeholder="Digite uma tag...">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Série/Coleção</label>
+                                    <input type="text" id="cardSeries" placeholder="Ex: Season 1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Número da Edição</label>
+                                    <input type="text" id="cardEdition" placeholder="Ex: 001/100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="submit" class="btn">💾 Salvar Card</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Limpar</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Live Preview -->
+                <div class="live-preview">
+                    <h3 class="preview-title">👁️ Preview ao Vivo</h3>
+                    <div id="livePreview" class="preview-card">
+                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                            <p>Seu card aparecerá aqui</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Molduras -->
+        <div id="frames" class="tab-content">
+            <div class="btn-group" style="margin-bottom: 2rem;">
+                <button class="btn" onclick="showFrameModal('image')">➕ Nova Moldura por Imagem</button>
+                <button class="btn" onclick="showFrameModal('custom')">🎨 Nova Moldura Customizada</button>
+            </div>
+            
+            <div id="framesList" class="frames-list"></div>
+        </div>
+    </div>
+    
+    <!-- Modal: Card Detail -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <button class="modal-close" onclick="closeModal('cardModal')">×</button>
+            <div id="cardDetail"></div>
+        </div>
+    </div>
+    
+    <!-- Modal: Frame Creation -->
+    <div id="frameModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <button class="modal-close" onclick="closeModal('frameModal')">×</button>
+            <div id="frameCreationContent"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        // ADICIONEI: query, onSnapshot
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+            authDomain: "list-games-9bddd.firebaseapp.com",
+            projectId: "list-games-9bddd",
+            storageBucket: "list-games-9bddd.firebasestorage.app",
+            messagingSenderId: "756898313156",
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+            measurementId: "G-GLM50YVLXP"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // ========================================
+        // GLOBAL STATE
+        // ========================================
+        window.cards = [];
+        window.frames = [];
+        window.currentFilter = 'all';
+        window.currentTypeFilter = 'all';
+        window.searchQuery = '';
+        window.currentOrientation = 'vertical';
+        window.currentTags = [];
+        window.editingCardId = null;
+        window.db = db;
+        
+        // Variáveis de Controle de Usuário (Padrão Games)
+        let userId = null;
+        let authChecked = false;
+        
+        // ========================================
+        // AUTH & DATA LISTENER (SEU PADRÃO)
+        // ========================================
+        onAuthStateChanged(auth, (u) => {
+            if (u) {
+                console.log("Usuário conectado:", u.email);
+                userId = u.uid;
+                
+                // Iniciar Listeners em Tempo Real
+                iniciarListenersCards();
+                iniciarListenersFrames();
+                
+                // Configurações iniciais da UI
+                setupEventListeners();
+                
+            } else {
+                console.log("Usuário desconectado.");
+                userId = null;
+                // Se já checou auth e não tem usuário, manda pro login ou home
+                if (authChecked) window.location.href = 'home.html'; 
+            }
+            authChecked = true;
+        });
+
+        // LISTENER DE CARDS (Tempo Real)
+        function iniciarListenersCards() {
+            if (!userId) return;
+
+            // Caminho: users -> userId -> cards
+            const q = query(collection(db, 'users', userId, 'cards'));
+            
+            onSnapshot(q, (snap) => {
+                window.cards = [];
+                snap.forEach(d => window.cards.push({ id: d.id, ...d.data() }));
+                
+                // Atualiza a UI sempre que o banco mudar
+                console.log(`${window.cards.length} cards carregados.`);
+                updateTypeFilterOptions();
+                renderCards();
+            }, (error) => {
+                console.error("Erro ao ouvir cards:", error);
+            });
+        }
+
+        // LISTENER DE FRAMES (Tempo Real)
+        function iniciarListenersFrames() {
+            if (!userId) return;
+
+            // Caminho: users -> userId -> frames
+            const q = query(collection(db, 'users', userId, 'frames'));
+            
+            onSnapshot(q, (snap) => {
+                window.frames = [];
+                snap.forEach(d => window.frames.push({ id: d.id, ...d.data() }));
+                
+                // Atualiza selects de molduras
+                console.log(`${window.frames.length} molduras carregadas.`);
+                updateFrameOptions();
+                renderFrames();
+            }, (error) => {
+                console.error("Erro ao ouvir frames:", error);
+            });
+        }
+        
+        // ========================================
+        // FIREBASE OPERATIONS (CRUD)
+        // ========================================
+        
+        async function saveCardToFirebase(cardData) {
+            if (!userId) { alert("Você precisa estar logado!"); return; }
+
+            try {
+                // Se estiver editando
+                if (cardData.id && window.editingCardId) {
+                    const cardRef = doc(db, 'users', userId, 'cards', cardData.id);
+                    await updateDoc(cardRef, cardData);
+                } else {
+                    // Se for novo (remove ID temporário se houver)
+                    delete cardData.id;
+                    await addDoc(collection(db, 'users', userId, 'cards'), cardData);
+                }
+                // Não precisa chamar loadCards, o onSnapshot faz isso sozinho!
+            } catch (error) {
+                console.error('Erro ao salvar card:', error);
+                alert("Erro ao salvar: " + error.message);
+                throw error;
+            }
+        }
+        
+        async function deleteCardFromFirebase(cardId) {
+            if (!userId) return;
+            try {
+                await deleteDoc(doc(db, 'users', userId, 'cards', cardId));
+            } catch (error) {
+                console.error('Erro ao deletar card:', error);
+                throw error;
+            }
+        }
+        
+        async function saveFrameToFirebase(frameData) {
+            if (!userId) return;
+            try {
+                if (frameData.id) {
+                    const frameRef = doc(db, 'users', userId, 'frames', frameData.id);
+                    await updateDoc(frameRef, frameData);
+                } else {
+                    delete frameData.id;
+                    await addDoc(collection(db, 'users', userId, 'frames'), frameData);
+                }
+            } catch (error) {
+                console.error('Erro ao salvar moldura:', error);
+                throw error;
+            }
+        }
+        
+        async function deleteFrameFromFirebase(frameId) {
+            if (!userId) return;
+            try {
+                await deleteDoc(doc(db, 'users', userId, 'frames', frameId));
+            } catch (error) {
+                console.error('Erro ao deletar moldura:', error);
+                throw error;
+            }
+        }
+        
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        function setupEventListeners() {
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            
+            // Filtros
+            document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.currentFilter = btn.dataset.filter;
+                    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderCards();
+                });
+            });
+            
+            // Busca
+            const searchInput = document.getElementById('searchCards');
+            if(searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    window.searchQuery = e.target.value.toLowerCase();
+                    renderCards();
+                });
+            }
+            
+            // Filtro de tipo
+            const typeSelect = document.getElementById('typeFilter');
+            if(typeSelect) {
+                typeSelect.addEventListener('change', (e) => {
+                    window.currentTypeFilter = e.target.value;
+                    renderCards();
+                });
+            }
+            
+            // Orientação
+            document.querySelectorAll('.orientation-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.currentOrientation = btn.dataset.orientation;
+                    document.querySelectorAll('.orientation-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateLivePreview();
+                });
+            });
+            
+            // Form Submit
+            const form = document.getElementById('cardForm');
+            if(form) form.addEventListener('submit', handleCardSubmit);
+            
+            // Live Preview inputs
+            const previewInputs = [
+                'cardName', 'cardType', 'cardRarity', 'cardImage', 'cardFrame', 
+                'cardStyle', 'cardDescription', 'framePrimaryColor', 'frameSecondaryColor', 
+                'frameBgColor', 'cardSeries', 'cardEdition'
+            ];
+            
+            previewInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updateLivePreview);
+                    element.addEventListener('change', updateLivePreview);
+                }
+            });
+            
+            // Tags
+            const tagInput = document.getElementById('tagInput');
+            if(tagInput) {
+                tagInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag(e.target.value);
+                        e.target.value = '';
+                    }
+                });
+            }
+        }
+        
+        // ========================================
+        // TABS
+        // ========================================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+        
+        // ========================================
+        // TAGS
+        // ========================================
+        function addTag(value) {
+            const tag = value.trim();
+            if (tag && !window.currentTags.includes(tag)) {
+                window.currentTags.push(tag);
+                renderTags();
+                updateLivePreview();
+            }
+        }
+        
+        window.removeTag = function(tag) {
+            window.currentTags = window.currentTags.filter(t => t !== tag);
+            renderTags();
+            updateLivePreview();
+        }
+        
+        function renderTags() {
+            const container = document.getElementById('tagsContainer');
+            const input = document.getElementById('tagInput');
+            
+            container.innerHTML = '';
+            
+            window.currentTags.forEach(tag => {
+                const tagEl = document.createElement('div');
+                tagEl.className = 'tag';
+                tagEl.innerHTML = `
+                    ${tag}
+                    <button type="button" class="tag-remove" onclick="removeTag('${tag}')">×</button>
+                `;
+                container.appendChild(tagEl);
+            });
+            
+            container.appendChild(input);
+        }
+        
+        // ========================================
+        // LIVE PREVIEW
+        // ========================================
+        function updateLivePreview() {
+            const preview = document.getElementById('livePreview');
+            const name = document.getElementById('cardName').value || 'Card Name';
+            const type = document.getElementById('cardType').value;
+            const rarity = document.getElementById('cardRarity').value;
+            const imageUrl = document.getElementById('cardImage').value;
+            const description = document.getElementById('cardDescription').value;
+            const series = document.getElementById('cardSeries').value;
+            const edition = document.getElementById('cardEdition').value;
+            const frameId = document.getElementById('cardFrame').value;
+            
+            const primaryColor = document.getElementById('framePrimaryColor').value;
+            const secondaryColor = document.getElementById('frameSecondaryColor').value;
+            const bgColor = document.getElementById('frameBgColor').value;
+            
+            preview.className = `preview-card ${window.currentOrientation}`;
+            
+            // Buscar moldura se selecionada
+            const selectedFrame = window.frames.find(f => f.id === frameId);
+            let frameOverlay = '';
+            
+            if (selectedFrame) {
+                if (selectedFrame.type === 'image') {
+                    frameOverlay = `<img src="${selectedFrame.imageUrl}" class="card-frame-overlay" style="object-fit: cover;">`;
+                } else if (selectedFrame.type === 'custom') {
+                    frameOverlay = `<div class="card-frame-overlay" style="background: ${selectedFrame.preview};"></div>`;
+                }
+            }
+            
+            const rarityColors = {
+                common: '#94a3b8',
+                uncommon: '#10b981',
+                rare: '#3b82f6',
+                epic: '#8b5cf6',
+                legendary: '#d4af37',
+                mythic: '#ec4899'
+            };
+            
+            const rarityColor = rarityColors[rarity] || rarityColors.common;
+            
+            preview.innerHTML = `
+                <div style="width: 100%; height: 100%; position: relative; background: linear-gradient(135deg, ${bgColor}, ${secondaryColor});">
+                    ${imageUrl ? `<img src="${imageUrl}" class="card-image" onerror="this.style.display='none'">` : ''}
+                    
+                    ${frameOverlay}
+                    
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10;">
+                        <div style="font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: ${primaryColor}; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin-bottom: 0.5rem;">
+                            ${name}
+                        </div>
+                        ${type ? `<div style="font-size: 0.9rem; color: ${rarityColor}; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">
+                            ${type} • ${rarity}
+                        </div>` : ''}
+                        ${description ? `<div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; max-height: 60px; overflow: hidden;">
+                            ${description}
+                        </div>` : ''}
+                        ${window.currentTags.length > 0 ? `
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.5rem;">
+                                ${window.currentTags.map(tag => `<span style="background: ${secondaryColor}; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem;">${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${series || edition ? `
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary);">
+                                ${series ? `<span>📚 ${series}</span>` : '<span></span>'}
+                                ${edition ? `<span>#${edition}</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ========================================
+        // CARD FORM
+        // ========================================
+        async function handleCardSubmit(e) {
+            e.preventDefault();
+            
+            const cardData = {
+                id: window.editingCardId || null,
+                name: document.getElementById('cardName').value,
+                type: document.getElementById('cardType').value,
+                rarity: document.getElementById('cardRarity').value,
+                imageUrl: document.getElementById('cardImage').value,
+                frame: document.getElementById('cardFrame').value,
+                style: document.getElementById('cardStyle').value,
+                description: document.getElementById('cardDescription').value,
+                orientation: window.currentOrientation,
+                tags: [...window.currentTags],
+                series: document.getElementById('cardSeries').value,
+                edition: document.getElementById('cardEdition').value,
+                colors: {
+                    primary: document.getElementById('framePrimaryColor').value,
+                    secondary: document.getElementById('frameSecondaryColor').value,
+                    bg: document.getElementById('frameBgColor').value
+                },
+                createdAt: window.editingCardId ? 
+                    window.cards.find(c => c.id === window.editingCardId)?.createdAt : 
+                    new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            try {
+                await saveCardToFirebase(cardData);
+                resetForm();
+                switchTab('collection');
+                // renderCards(); -> REMOVIDO, O ONSNAPSHOT JÁ FAZ ISSO
+                alert(window.editingCardId ? '✅ Card atualizado!' : '✅ Card criado!');
+            } catch (error) {
+                alert('❌ Erro ao salvar card. Tente novamente.');
+            }
+        }
+        
+        window.resetForm = function() {
+            document.getElementById('cardForm').reset();
+            window.currentTags = [];
+            window.currentOrientation = 'vertical';
+            window.editingCardId = null;
+            document.querySelectorAll('.orientation-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-orientation="vertical"]').classList.add('active');
+            renderTags();
+            updateLivePreview();
+        }
+        
+        // ========================================
+        // RENDER CARDS
+        // ========================================
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            let filteredCards = window.cards.filter(card => {
+                const matchesSearch = card.name.toLowerCase().includes(window.searchQuery) ||
+                                    (card.description || '').toLowerCase().includes(window.searchQuery) ||
+                                    (card.tags || []).some(tag => tag.toLowerCase().includes(window.searchQuery));
+                
+                const matchesFilter = window.currentFilter === 'all' || card.orientation === window.currentFilter;
+                const matchesType = window.currentTypeFilter === 'all' || card.type === window.currentTypeFilter;
+                
+                return matchesSearch && matchesFilter && matchesType;
+            });
+            
+            if (filteredCards.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+            
+            grid.innerHTML = filteredCards.map(card => createCardHTML(card)).join('');
+        }
+        
+        function createCardHTML(card) {
+            const rarityColors = {
+                common: '#94a3b8',
+                uncommon: '#10b981',
+                rare: '#3b82f6',
+                epic: '#8b5cf6',
+                legendary: '#d4af37',
+                mythic: '#ec4899'
+            };
+            
+            const rarityColor = rarityColors[card.rarity] || rarityColors.common;
+            const selectedFrame = window.frames.find(f => f.id === card.frame);
+            let frameOverlay = '';
+            
+            if (selectedFrame) {
+                if (selectedFrame.type === 'image') {
+                    frameOverlay = `<img src="${selectedFrame.imageUrl}" class="card-frame-overlay" style="object-fit: cover;">`;
+                } else if (selectedFrame.type === 'custom') {
+                    frameOverlay = `<div class="card-frame-overlay" style="background: ${selectedFrame.preview};"></div>`;
+                }
+            }
+            
+            return `
+                <div class="card-item ${card.orientation}" onclick="showCardDetail('${card.id}')">
+                    <div class="card-preview" style="background: linear-gradient(135deg, ${card.colors.bg}, ${card.colors.secondary});">
+                        ${card.imageUrl ? `<img src="${card.imageUrl}" class="card-image" onerror="this.style.display='none'">` : ''}
+                        ${frameOverlay}
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10;">
+                            <div style="font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: ${card.colors.primary}; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">
+                                ${card.name}
+                            </div>
+                            <div style="font-size: 0.85rem; color: ${rarityColor}; font-weight: 600; text-transform: uppercase; margin-top: 0.25rem;">
+                                ${card.type} • ${card.rarity}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-name">${card.name}</div>
+                        <div class="card-type">${card.type} • ${card.rarity}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ========================================
+        // CARD DETAIL
+        // ========================================
+        window.showCardDetail = function(cardId) {
+            const card = window.cards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            const rarityColors = {
+                common: '#94a3b8',
+                uncommon: '#10b981',
+                rare: '#3b82f6',
+                epic: '#8b5cf6',
+                legendary: '#d4af37',
+                mythic: '#ec4899'
+            };
+            
+            const rarityColor = rarityColors[card.rarity] || rarityColors.common;
+            const selectedFrame = window.frames.find(f => f.id === card.frame);
+            let frameOverlay = '';
+            
+            if (selectedFrame) {
+                if (selectedFrame.type === 'image') {
+                    frameOverlay = `<img src="${selectedFrame.imageUrl}" class="card-frame-overlay" style="object-fit: cover;">`;
+                } else if (selectedFrame.type === 'custom') {
+                    frameOverlay = `<div class="card-frame-overlay" style="background: ${selectedFrame.preview};"></div>`;
+                }
+            }
+            
+            const modal = document.getElementById('cardModal');
+            const detail = document.getElementById('cardDetail');
+            
+            detail.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <div class="preview-card ${card.orientation}" style="width: 100%;">
+                            <div style="width: 100%; height: 100%; position: relative; background: linear-gradient(135deg, ${card.colors.bg}, ${card.colors.secondary});">
+                                ${card.imageUrl ? `<img src="${card.imageUrl}" class="card-image">` : ''}
+                                ${frameOverlay}
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10;">
+                                    <div style="font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 700; color: ${card.colors.primary}; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin-bottom: 0.5rem;">
+                                        ${card.name}
+                                    </div>
+                                    <div style="font-size: 1rem; color: ${rarityColor}; font-weight: 600; text-transform: uppercase; margin-bottom: 0.75rem;">
+                                        ${card.type} • ${card.rarity}
+                                    </div>
+                                    ${card.description ? `<div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.75rem;">
+                                        ${card.description}
+                                    </div>` : ''}
+                                    ${(card.tags || []).length > 0 ? `
+                                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                            ${card.tags.map(tag => `<span style="background: ${card.colors.secondary}; color: white; padding: 0.3rem 0.75rem; border-radius: 16px; font-size: 0.8rem;">${tag}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                    ${card.series || card.edition ? `
+                                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                                            ${card.series ? `<span>📚 ${card.series}</span>` : '<span></span>'}
+                                            ${card.edition ? `<span>#${card.edition}</span>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h2 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 1.5rem;">Detalhes do Card</h2>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Nome</div>
+                                <div style="font-size: 1.2rem; font-weight: bold;">${card.name}</div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Tipo</div>
+                                    <div>${card.type}</div>
+                                </div>
+                                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Raridade</div>
+                                    <div style="color: ${rarityColor};">${card.rarity.toUpperCase()}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Estilo</div>
+                                <div>${card.style || 'Clássico'}</div>
+                            </div>
+                            
+                            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Orientação</div>
+                                <div>${card.orientation === 'vertical' ? '📱 Vertical' : '🖥️ Horizontal'}</div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn" onclick="editCard('${card.id}')">✏️ Editar</button>
+                                <button class="btn btn-danger" onclick="deleteCard('${card.id}')">🗑️ Excluir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        window.editCard = function(cardId) {
+            const card = window.cards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            closeModal('cardModal');
+            switchTab('creation');
+            
+            window.editingCardId = cardId;
+            document.getElementById('cardName').value = card.name;
+            document.getElementById('cardType').value = card.type;
+            document.getElementById('cardRarity').value = card.rarity;
+            document.getElementById('cardImage').value = card.imageUrl || '';
+            document.getElementById('cardFrame').value = card.frame || 'default';
+            document.getElementById('cardStyle').value = card.style || 'classic';
+            document.getElementById('cardDescription').value = card.description || '';
+            document.getElementById('cardSeries').value = card.series || '';
+            document.getElementById('cardEdition').value = card.edition || '';
+            document.getElementById('framePrimaryColor').value = card.colors?.primary || '#d4af37';
+            document.getElementById('frameSecondaryColor').value = card.colors?.secondary || '#8b5cf6';
+            document.getElementById('frameBgColor').value = card.colors?.bg || '#1a1f3a';
+            
+            window.currentOrientation = card.orientation || 'vertical';
+            window.currentTags = card.tags || [];
+            
+            document.querySelectorAll('.orientation-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-orientation="${card.orientation}"]`).classList.add('active');
+            
+            renderTags();
+            updateLivePreview();
+        }
+        
+        window.deleteCard = async function(cardId) {
+            if (!confirm('Tem certeza que deseja excluir este card?')) return;
+            
+            try {
+                await deleteCardFromFirebase(cardId);
+                closeModal('cardModal');
+                // renderCards(); -> O SNAPSHOT JÁ FAZ ISSO
+                alert('✅ Card excluído!');
+            } catch (error) {
+                alert('❌ Erro ao excluir card.');
+            }
+        }
+        
+        // ========================================
+        // FRAMES
+        // ========================================
+        function renderFrames() {
+            const list = document.getElementById('framesList');
+            
+            if (window.frames.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">🖼️</div>
+                        <div class="empty-state-text">Nenhuma moldura criada</div>
+                        <p>Crie molduras personalizadas para seus cards</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = window.frames.map(frame => `
+                <div class="frame-item">
+                    <div class="frame-preview">
+                        ${frame.type === 'image' ? 
+                            `<img src="${frame.imageUrl}" onerror="this.style.display='none'">` : 
+                            `<div style="width: 100%; height: 100%; background: ${frame.preview};"></div>`
+                        }
+                    </div>
+                    <div class="frame-name">${frame.name}</div>
+                    <div class="frame-type">${frame.type === 'image' ? '🖼️ Imagem' : '🎨 Customizada'}</div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn btn-secondary" style="flex: 1; padding: 0.5rem;" onclick="deleteFrame('${frame.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        window.showFrameModal = function(type) {
+            const modal = document.getElementById('frameModal');
+            const content = document.getElementById('frameCreationContent');
+            
+            if (type === 'image') {
+                content.innerHTML = `
+                    <h2 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 1.5rem;">🖼️ Nova Moldura por Imagem</h2>
+                    <form id="frameImageForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Nome da Moldura</label>
+                            <input type="text" id="frameImageName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>URL da Imagem</label>
+                            <input type="url" id="frameImageUrl" required placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>Preview</label>
+                            <div id="frameImagePreview" style="width: 100%; aspect-ratio: 1; background: var(--bg-secondary); border-radius: 8px; background-size: cover; background-position: center; border: 2px solid var(--border-color);"></div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn">💾 Salvar Moldura</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('frameModal')">❌ Cancelar</button>
+                        </div>
+                    </form>
+                `;
+                
+                setTimeout(() => {
+                    document.getElementById('frameImageUrl').addEventListener('input', (e) => {
+                        document.getElementById('frameImagePreview').style.backgroundImage = `url(${e.target.value})`;
+                    });
+                    
+                    document.getElementById('frameImageForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const frameData = {
+                            name: document.getElementById('frameImageName').value,
+                            type: 'image',
+                            imageUrl: document.getElementById('frameImageUrl').value,
+                            preview: `url(${document.getElementById('frameImageUrl').value})`,
+                            createdAt: new Date().toISOString()
+                        };
+                        try {
+                            await saveFrameToFirebase(frameData);
+                            closeModal('frameModal');
+                            // renderFrames(); -> O SNAPSHOT JÁ FAZ
+                            alert('✅ Moldura criada!');
+                        } catch (error) {
+                            alert('❌ Erro ao criar moldura.');
+                        }
+                    });
+                }, 100);
+                
+            } else {
+                content.innerHTML = `
+                    <h2 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 1.5rem;">🎨 Nova Moldura Customizada</h2>
+                    <form id="frameCustomForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Nome da Moldura</label>
+                            <input type="text" id="frameCustomName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Estilo da Moldura</label>
+                            <select id="frameCustomStyle">
+                                <option value="gradient">Gradiente</option>
+                                <option value="border">Borda Decorativa</option>
+                                <option value="corners">Cantos Ornamentais</option>
+                                <option value="full">Moldura Completa</option>
+                            </select>
+                        </div>
+                        
+                        <div class="color-group">
+                            <div class="color-picker-item">
+                                <label>Cor Primária</label>
+                                <input type="color" id="frameColor1" value="#d4af37">
+                            </div>
+                            <div class="color-picker-item">
+                                <label>Cor Secundária</label>
+                                <input type="color" id="frameColor2" value="#8b5cf6">
+                            </div>
+                            <div class="color-picker-item">
+                                <label>Cor Terciária</label>
+                                <input type="color" id="frameColor3" value="#3b82f6">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Preview</label>
+                            <div id="frameCustomPreview" style="width: 100%; aspect-ratio: 1; border-radius: 8px; border: 2px solid var(--border-color);"></div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="submit" class="btn">💾 Salvar Moldura</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('frameModal')">❌ Cancelar</button>
+                        </div>
+                    </form>
+                `;
+                
+                setTimeout(() => {
+                    const updateCustomPreview = () => {
+                        const style = document.getElementById('frameCustomStyle').value;
+                        const color1 = document.getElementById('frameColor1').value;
+                        const color2 = document.getElementById('frameColor2').value;
+                        const color3 = document.getElementById('frameColor3').value;
+                        const preview = document.getElementById('frameCustomPreview');
+                        
+                        let previewStyle = '';
+                        
+                        switch(style) {
+                            case 'gradient':
+                                previewStyle = `linear-gradient(135deg, ${color1}, ${color2}, ${color3})`;
+                                break;
+                            case 'border':
+                                previewStyle = `linear-gradient(${color2}, ${color2}) padding-box,
+                                              linear-gradient(135deg, ${color1}, ${color3}) border-box`;
+                                preview.style.border = '8px solid transparent';
+                                break;
+                            case 'corners':
+                                previewStyle = `
+                                    linear-gradient(to right, ${color1} 20%, transparent 20%, transparent 80%, ${color1} 80%),
+                                    linear-gradient(to bottom, ${color2} 20%, transparent 20%, transparent 80%, ${color2} 80%)
+                                `;
+                                break;
+                            case 'full':
+                                previewStyle = `
+                                    radial-gradient(circle at 0% 0%, ${color1}, transparent 50%),
+                                    radial-gradient(circle at 100% 0%, ${color2}, transparent 50%),
+                                    radial-gradient(circle at 0% 100%, ${color2}, transparent 50%),
+                                    radial-gradient(circle at 100% 100%, ${color3}, transparent 50%)
+                                `;
+                                break;
+                        }
+                        
+                        preview.style.background = previewStyle;
+                    };
+                    
+                    document.getElementById('frameCustomStyle').addEventListener('change', updateCustomPreview);
+                    document.getElementById('frameColor1').addEventListener('input', updateCustomPreview);
+                    document.getElementById('frameColor2').addEventListener('input', updateCustomPreview);
+                    document.getElementById('frameColor3').addEventListener('input', updateCustomPreview);
+                    
+                    updateCustomPreview();
+                    
+                    document.getElementById('frameCustomForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const frameData = {
+                            name: document.getElementById('frameCustomName').value,
+                            type: 'custom',
+                            style: document.getElementById('frameCustomStyle').value,
+                            colors: {
+                                color1: document.getElementById('frameColor1').value,
+                                color2: document.getElementById('frameColor2').value,
+                                color3: document.getElementById('frameColor3').value
+                            },
+                            preview: document.getElementById('frameCustomPreview').style.background,
+                            createdAt: new Date().toISOString()
+                        };
+                        try {
+                            await saveFrameToFirebase(frameData);
+                            closeModal('frameModal');
+                            // renderFrames();
+                            alert('✅ Moldura customizada criada!');
+                        } catch (error) {
+                            alert('❌ Erro ao criar moldura.');
+                        }
+                    });
+                }, 100);
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        window.deleteFrame = async function(frameId) {
+            if (!confirm('Tem certeza que deseja excluir esta moldura?')) return;
+            
+            try {
+                await deleteFrameFromFirebase(frameId);
+                // renderFrames(); -> O SNAPSHOT JÁ FAZ
+                alert('✅ Moldura excluída!');
+            } catch (error) {
+                alert('❌ Erro ao excluir moldura.');
+            }
+        }
+        
+        // ========================================
+        // HELPERS
+        // ========================================
+        function updateTypeFilterOptions() {
+            const select = document.getElementById('typeFilter');
+            const currentTypes = [...new Set(window.cards.map(c => c.type))];
+            
+            select.innerHTML = '<option value="all">Todos os Tipos</option>';
+            currentTypes.forEach(type => {
+                if (type) {
+                    select.innerHTML += `<option value="${type}">${type}</option>`;
+                }
+            });
+        }
+        
+        function updateFrameOptions() {
+            const select = document.getElementById('cardFrame');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="default">Padrão</option>';
+            window.frames.forEach(frame => {
+                select.innerHTML += `<option value="${frame.id}">${frame.name}</option>`;
+            });
+            
+            if (currentValue && window.frames.find(f => f.id === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Fechar modal ao clicar fora
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+        
+        // Expor funções globais
+        window.switchTab = switchTab;
+        window.renderTags = renderTags;
+        window.updateLivePreview = updateLivePreview;
+        window.handleCardSubmit = handleCardSubmit;
+        window.renderCards = renderCards;
+        window.renderFrames = renderFrames;
+    </script>
+</body>
+</html>
