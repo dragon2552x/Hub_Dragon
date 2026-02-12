@@ -604,6 +604,12 @@
                 <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
                 <span>Serie</span>
             </button>
+            
+            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+                    onclick="window.location.href='animes_database.html'">
+                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
+                <span>DataBase</span>
+            </button>
         </div>
     </div>
 </nav>
@@ -2615,7 +2621,7 @@
             dadosNotas.notaEspecial = NOTA_ESPECIAL;
             payloadNotas = {
                 ...payloadNotas,
-                "N. SPECIAL": NOTA_ESPECIAL,
+                "N. FILME ESP.": NOTA_ESPECIAL,
             };
         } else if (ESTILO === "Anime Inf.") {
             const arcos = window._arcosAnime || {};
