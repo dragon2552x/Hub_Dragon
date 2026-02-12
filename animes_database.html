@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Class Animes - Database Viewer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e6e6e6;
+      padding-bottom: 100px;
+    }
+
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #151515;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 50;
+    }
+
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #b3b3b3;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      color: #B9314F;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 4px;
+    }
+
+    .data-table {
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #151515;
+    }
+
+    .data-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      background: #1f1f1f;
+      padding: 12px 8px;
+      text-align: left;
+      font-weight: bold;
+      font-size: 0.75rem;
+      color: #B9314F;
+      border-bottom: 2px solid #2a2a2a;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .data-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.8rem;
+    }
+
+    .data-table tr:hover {
+      background: #1a1a1a;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-track {
+      background: #1a1a1a;
+      border-radius: 4px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb {
+      background: #B9314F;
+      border-radius: 4px;
+    }
+
+    .json-viewer {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 600px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .json-key {
+      color: #31B94F;
+    }
+
+    .json-string {
+      color: #F59E0B;
+    }
+
+    .json-number {
+      color: #3B82F6;
+    }
+
+    .json-boolean {
+      color: #8B5CF6;
+    }
+
+    .json-null {
+      color: #6B7280;
+    }
+
+    .filter-chip {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active {
+      background: #B9314F !important;
+      color: white !important;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" class="container mx-auto max-w-7xl px-4 pt-4">
+
+  <!-- HEADER -->
+  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
+    <div class="flex justify-between items-center">
+      <button onclick="window.location.href='home.html'"
+              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
+        My Hub
+      </button>
+      <h1 class="text-2xl font-bold text-white">Database Viewer</h1>
+    </div>
+    <div class="text-sm text-gray-300 mt-1">
+      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
+    </div>
+  </header>
+
+  <!-- ESTATÍSTICAS -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+      <div class="text-gray-400 text-xs uppercase mb-1">Total</div>
+      <div id="stat-total" class="text-2xl font-bold text-white">0</div>
+    </div>
+    <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+      <div class="text-gray-400 text-xs uppercase mb-1">Cache Size</div>
+      <div id="stat-cache" class="text-2xl font-bold text-blue-400">0 KB</div>
+    </div>
+    <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+      <div class="text-gray-400 text-xs uppercase mb-1">Última Sync</div>
+      <div id="stat-sync" class="text-sm font-bold text-gray-300">Nunca</div>
+    </div>
+    <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+      <div class="text-gray-400 text-xs uppercase mb-1">Campos</div>
+      <div id="stat-fields" class="text-2xl font-bold text-green-400">0</div>
+    </div>
+  </div>
+
+  <!-- TABS DE VISUALIZAÇÃO -->
+  <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+    <button id="tab-table" onclick="switchView('table')" 
+            class="view-tab px-4 py-2 bg-[#B9314F] text-white rounded-lg font-semibold text-sm whitespace-nowrap">
+      <i data-lucide="table" class="w-4 h-4 inline mr-1"></i> Tabela
+    </button>
+    <button id="tab-cards" onclick="switchView('cards')"
+            class="view-tab px-4 py-2 bg-[#151515] text-gray-300 rounded-lg font-semibold text-sm whitespace-nowrap hover:bg-[#222]">
+      <i data-lucide="layout-grid" class="w-4 h-4 inline mr-1"></i> Cards
+    </button>
+    <button id="tab-json" onclick="switchView('json')"
+            class="view-tab px-4 py-2 bg-[#151515] text-gray-300 rounded-lg font-semibold text-sm whitespace-nowrap hover:bg-[#222]">
+      <i data-lucide="code" class="w-4 h-4 inline mr-1"></i> JSON
+    </button>
+    <button id="tab-stats" onclick="switchView('stats')"
+            class="view-tab px-4 py-2 bg-[#151515] text-gray-300 rounded-lg font-semibold text-sm whitespace-nowrap hover:bg-[#222]">
+      <i data-lucide="bar-chart-2" class="w-4 h-4 inline mr-1"></i> Análise
+    </button>
+  </div>
+
+  <!-- FILTROS E BUSCA -->
+  <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a] mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- Busca -->
+      <div class="md:col-span-2">
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Buscar</label>
+        <input type="text" id="search-input" placeholder="Nome, estilo, ano..."
+               class="w-full px-3 py-2 bg-[#0a0a0a] border border-[#333] text-white rounded-md focus:border-[#B9314F] outline-none">
+      </div>
+      
+      <!-- Ordenar por -->
+      <div>
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ordenar por</label>
+        <select id="sort-select" class="w-full px-3 py-2 bg-[#0a0a0a] border border-[#333] text-white rounded-md">
+          <option value="Num">Número</option>
+          <option value="NOME">Nome (A-Z)</option>
+          <option value="ANO">Ano</option>
+          <option value="NOTA_F">Nota Final</option>
+          <option value="ultima_atualizacao">Última Atualização</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filtros Rápidos -->
+    <div class="mt-3">
+      <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Filtros Rápidos</label>
+      <div class="flex flex-wrap gap-2">
+        <span onclick="toggleFilter('all')" class="filter-chip active px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Todos
+        </span>
+        <span onclick="toggleFilter('Anime')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Anime
+        </span>
+        <span onclick="toggleFilter('Anime Inf.')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Anime Inf.
+        </span>
+        <span onclick="toggleFilter('Filme')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Filme
+        </span>
+        <span onclick="toggleFilter('Especial')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Especial
+        </span>
+        <span onclick="toggleFilter('Completo')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Completo
+        </span>
+        <span onclick="toggleFilter('Andamento')" class="filter-chip px-3 py-1 bg-[#222] text-gray-300 rounded-full text-xs font-semibold">
+          Andamento
+        </span>
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="flex gap-2 mt-3">
+      <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-semibold flex items-center gap-2">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar
+      </button>
+      <button onclick="exportData('json')" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-md text-xs font-semibold flex items-center gap-2">
+        <i data-lucide="download" class="w-4 h-4"></i> Exportar JSON
+      </button>
+      <button onclick="exportData('csv')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-md text-xs font-semibold flex items-center gap-2">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar CSV
+      </button>
+      <button onclick="clearCache()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold flex items-center gap-2">
+        <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Cache
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <main>
+    <!-- VIEW: TABELA -->
+    <div id="view-table" class="view-content">
+      <div class="data-table scrollbar-custom" style="max-height: 70vh; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Imagem</th>
+              <th>Nome</th>
+              <th>Estilo</th>
+              <th>Estado</th>
+              <th>Ano</th>
+              <th>Temporada</th>
+              <th>Eps</th>
+              <th>Nota F.</th>
+              <th>Stars</th>
+              <th>MAL</th>
+              <th>Série</th>
+              <th>Data Ult. Atualização</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr>
+              <td colspan="11" class="text-center text-gray-500 py-8">Carregando dados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW: CARDS -->
+    <div id="view-cards" class="view-content hidden">
+      <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full text-center text-gray-500 py-8">Carregando dados...</div>
+      </div>
+    </div>
+
+    <!-- VIEW: JSON -->
+    <div id="view-json" class="view-content hidden">
+      <div class="json-viewer scrollbar-custom" id="json-viewer">
+        <pre id="json-content">Carregando dados...</pre>
+      </div>
+      <button onclick="copyJSON()" class="mt-3 px-4 py-2 bg-[#B9314F] hover:bg-[#992743] text-white rounded-md text-sm font-semibold">
+        <i data-lucide="copy" class="w-4 h-4 inline mr-1"></i> Copiar JSON
+      </button>
+    </div>
+
+    <!-- VIEW: ANÁLISE -->
+    <div id="view-stats" class="view-content hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Por Estilo -->
+        <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+          <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-5 h-5"></i> Por Estilo
+          </h3>
+          <div id="stats-estilo" class="space-y-2"></div>
+        </div>
+
+        <!-- Por Estado -->
+        <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+          <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+            <i data-lucide="activity" class="w-5 h-5"></i> Por Estado
+          </h3>
+          <div id="stats-estado" class="space-y-2"></div>
+        </div>
+
+        <!-- Por Ano -->
+        <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+          <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+            <i data-lucide="calendar" class="w-5 h-5"></i> Por Ano
+          </h3>
+          <div id="stats-ano" class="space-y-2 max-h-96 overflow-y-auto scrollbar-custom"></div>
+        </div>
+
+        <!-- Top 10 Notas -->
+        <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a]">
+          <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+            <i data-lucide="trophy" class="w-5 h-5"></i> Top 10 Melhores Notas
+          </h3>
+          <div id="stats-top" class="space-y-2"></div>
+        </div>
+
+        <!-- Séries -->
+        <div class="bg-[#151515] p-4 rounded-lg border border-[#2a2a2a] md:col-span-2">
+          <h3 class="text-lg font-bold text-[#B9314F] mb-3 flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5"></i> Séries (Com 2+ animes)
+          </h3>
+          <div id="stats-series" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- MENU INFERIOR -->
+<nav class="menu">
+  <button class="menu-btn" onclick="window.location.href='animes_manager.html'">
+    <i data-lucide="home" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Início</span>
+  </button>
+
+  <button class="menu-btn" onclick="window.location.href='animes_cadastro.html'">
+    <i data-lucide="file-edit" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Gestão</span>
+  </button>
+
+  <button class="menu-btn" onclick="window.location.href='anime_lista.html'">
+    <i data-lucide="list" class="w-6 h-6 mb-1"></i>
+    <span class="text-[10px]">Lista</span>
+  </button>
+
+  <div class="relative flex">
+    <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
+      <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
+      <span class="text-[10px]">Mais</span>
+    </button>
+
+    <div id="more-options-dropdown"
+         class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50">
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_classificacoes.html'">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Classificação</span>
+      </button>
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_estrelas.html'">
+        <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Estrelas</span>
+      </button>
+      
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_torneio.html'">
+        <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Torneio</span>
+      </button>
+
+      <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+              onclick="window.location.href='animes_serie.html'">
+        <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
+        <span>Serie</span>
+      </button>
+      
+      <button class="w-full text-left px-4 py-3 text-sm bg-[#2a2a2a] text-white rounded-lg transition-colors flex items-center gap-3 border border-[#333]" 
+                onclick="window.location.href='animes_classificacoes.html'">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F] fill-current"></i> 
+        <span class="font-bold">Database</span>
+        </button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  lucide.createIcons();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+    authDomain: "list-games-9bddd.firebaseapp.com",
+    projectId: "list-games-9bddd",
+    storageBucket: "list-games-9bddd.firebasestorage.app",
+    messagingSenderId: "756898313156",
+    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+    measurementId: "G-GLM50YVLXP"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+
+  let allAnimes = [];
+  let filteredAnimes = [];
+  let currentView = 'table';
+  let currentFilter = 'all';
+
+  // ===================================
+  // CARREGAR DADOS DO LOCALSTORAGE
+  // ===================================
+  async function loadData() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const cacheKey = `animes_${user.uid}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      allAnimes = JSON.parse(cachedData);
+      console.log("📦 Dados carregados do Cache Local");
+    } else {
+      console.log("🔥 Cache vazio, buscando no Firebase...");
+      const animesRef = collection(db, "users", user.uid, "animes");
+      const snapshot = await getDocs(animesRef);
+      
+      allAnimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+    }
+
+    filteredAnimes = [...allAnimes];
+    updateStats();
+    renderCurrentView();
+  }
+
+  // ===================================
+  // ATUALIZAR ESTATÍSTICAS
+  // ===================================
+  function updateStats() {
+    document.getElementById('stat-total').textContent = allAnimes.length;
+    
+    const cacheSize = new Blob([JSON.stringify(allAnimes)]).size;
+    document.getElementById('stat-cache').textContent = (cacheSize / 1024).toFixed(2) + ' KB';
+
+    const lastSync = localStorage.getItem(`animes_${auth.currentUser.uid}_lastSync`);
+    if (lastSync) {
+      const date = new Date(lastSync);
+      document.getElementById('stat-sync').textContent = date.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: 'short', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+
+    // Contar campos únicos
+    const allKeys = new Set();
+    allAnimes.forEach(anime => {
+      Object.keys(anime).forEach(key => allKeys.add(key));
+    });
+    document.getElementById('stat-fields').textContent = allKeys.size;
+  }
+
+  // ===================================
+  // TROCAR VISUALIZAÇÃO
+  // ===================================
+  window.switchView = function(view) {
+    currentView = view;
+    
+    // Atualizar tabs
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.classList.remove('bg-[#B9314F]', 'text-white');
+      tab.classList.add('bg-[#151515]', 'text-gray-300');
+    });
+    document.getElementById(`tab-${view}`).classList.add('bg-[#B9314F]', 'text-white');
+    document.getElementById(`tab-${view}`).classList.remove('bg-[#151515]', 'text-gray-300');
+
+    // Mostrar view correta
+    document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+    document.getElementById(`view-${view}`).classList.remove('hidden');
+
+    renderCurrentView();
+    lucide.createIcons();
+  };
+
+  // ===================================
+  // RENDERIZAR VIEW ATUAL
+  // ===================================
+  function renderCurrentView() {
+    switch(currentView) {
+      case 'table':
+        renderTable();
+        break;
+      case 'cards':
+        renderCards();
+        break;
+      case 'json':
+        renderJSON();
+        break;
+      case 'stats':
+        renderStats();
+        break;
+    }
+  }
+
+  // ===================================
+  // RENDER: TABELA
+  // ===================================
+  function renderTable() {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    if (filteredAnimes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center text-gray-500 py-8">Nenhum anime encontrado</td></tr>';
+      return;
+    }
+
+    filteredAnimes.forEach(anime => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-mono text-xs">${anime.Num || '-'}</td>
+        <td class="w-12"><img src="${anime.IMAGEM || "https://placehold.co/40x60/222/555?text=?"}" class="w-8 h-10 object-cover rounded border border-[#333]"></td>
+        <td class="font-semibold max-w-xs truncate" title="${anime.NOME}">${anime.NOME || '-'}</td>
+        <td><span class="badge bg-[#B9314F]/20 text-[#B9314F]">${anime.ESTILO || '-'}</span></td>
+        <td><span class="badge ${getEstadoColor(anime.ESTADO)}">${anime.ESTADO || '-'}</span></td>
+        <td class="text-center">${anime.ANO || '-'}</td>
+        <td class="text-xs">${anime.TEMPORADA || '-'}</td>
+        <td class="text-center font-mono text-xs">${anime.ASSIS || 0}/${anime.TOTAIS || '?'}</td>
+        <td class="text-center font-bold ${anime.NOTA_F >= 8 ? 'text-green-400' : anime.NOTA_F >= 6 ? 'text-yellow-400' : 'text-gray-400'}">
+          ${anime.NOTA_F ? anime.NOTA_F.toFixed(2) : '-'}
+        </td>
+        <td class="text-center text-xs">${anime.STARS || '-'}</td>
+        <td class="text-center font-mono text-xs">${anime.N_MAL || '-'}</td>
+        <td class="text-center font-mono text-xs">${anime.SERIE || '-'}</td>
+        <td class="text-center font-mono text-xs">${anime.ultima_atualizacao || '-'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ===================================
+  // RENDER: CARDS
+  // ===================================
+  function renderCards() {
+    const container = document.getElementById('cards-container');
+    container.innerHTML = '';
+
+    if (filteredAnimes.length === 0) {
+      container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Nenhum anime encontrado</div>';
+      return;
+    }
+
+    filteredAnimes.forEach(anime => {
+      const card = document.createElement('div');
+      card.className = 'bg-[#151515] rounded-lg border border-[#2a2a2a] p-4 hover:border-[#B9314F] transition-all';
+      card.innerHTML = `
+        <div class="flex gap-3">
+          <img src="${anime.IMAGEM || 'https://placehold.co/80x110/222/666?text=?'}" 
+               class="w-20 h-28 object-cover rounded-md border border-[#333]"
+               onerror="this.src='https://placehold.co/80x110/222/666?text=?'">
+          
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-white truncate mb-1" title="${anime.NOME}">${anime.NOME}</h3>
+            
+            <div class="flex flex-wrap gap-1 mb-2">
+              <span class="badge bg-[#B9314F]/20 text-[#B9314F]">${anime.ESTILO || '-'}</span>
+              <span class="badge ${getEstadoColor(anime.ESTADO)}">${anime.ESTADO || '-'}</span>
+            </div>
+
+            <div class="text-xs text-gray-400 space-y-1">
+              <div><span class="text-gray-500">N°:</span> ${anime.Num || '-'}</div>
+              <div><span class="text-gray-500">Ano:</span> ${anime.ANO || '-'}</div>
+              <div><span class="text-gray-500">Eps:</span> ${anime.ASSIS || 0}/${anime.TOTAIS || '?'}</div>
+              <div><span class="text-gray-500">Nota:</span> 
+                <span class="font-bold ${anime.NOTA_F >= 8 ? 'text-green-400' : anime.NOTA_F >= 6 ? 'text-yellow-400' : 'text-gray-300'}">
+                  ${anime.NOTA_F ? anime.NOTA_F.toFixed(2) : '-'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // ===================================
+  // RENDER: JSON
+  // ===================================
+  function renderJSON() {
+    const content = document.getElementById('json-content');
+    content.textContent = JSON.stringify(filteredAnimes, null, 2);
+  }
+
+  // ===================================
+  // RENDER: ANÁLISE
+  // ===================================
+  function renderStats() {
+    // Por Estilo
+    const estilos = {};
+    filteredAnimes.forEach(a => {
+      const e = a.ESTILO || 'Sem Estilo';
+      estilos[e] = (estilos[e] || 0) + 1;
+    });
+    renderStatBars('stats-estilo', estilos);
+
+    // Por Estado
+    const estados = {};
+    filteredAnimes.forEach(a => {
+      const e = a.ESTADO || 'Sem Estado';
+      estados[e] = (estados[e] || 0) + 1;
+    });
+    renderStatBars('stats-estado', estados);
+
+    // Por Ano
+    const anos = {};
+    filteredAnimes.forEach(a => {
+      const ano = a.ANO || 'Sem Ano';
+      anos[ano] = (anos[ano] || 0) + 1;
+    });
+    renderStatBars('stats-ano', anos);
+
+    // Top 10
+    const top = [...filteredAnimes]
+      .filter(a => a.NOTA_F && a.NOTA_F > 0)
+      .sort((a, b) => (b.NOTA_F || 0) - (a.NOTA_F || 0))
+      .slice(0, 10);
+    
+    const topContainer = document.getElementById('stats-top');
+    topContainer.innerHTML = '';
+    top.forEach((anime, i) => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2 text-sm';
+      div.innerHTML = `
+        <span class="text-[#B9314F] font-bold w-6">${i + 1}.</span>
+        <span class="flex-1 truncate" title="${anime.NOME}">${anime.NOME}</span>
+        <span class="font-bold text-green-400">${anime.NOTA_F.toFixed(2)}</span>
+      `;
+      topContainer.appendChild(div);
+    });
+
+    // Séries
+    const series = {};
+    filteredAnimes.forEach(a => {
+      const s = a.SERIE || Math.floor(a.Num);
+      if (!series[s]) series[s] = [];
+      series[s].push(a);
+    });
+
+    const seriesContainer = document.getElementById('stats-series');
+    seriesContainer.innerHTML = '';
+    
+    Object.entries(series)
+      .filter(([_, animes]) => animes.length >= 2)
+      .sort(([_, a], [__, b]) => b.length - a.length)
+      .forEach(([serieId, animes]) => {
+        const div = document.createElement('div');
+        div.className = 'bg-[#0a0a0a] p-3 rounded-lg border border-[#333]';
+        div.innerHTML = `
+          <div class="font-bold text-[#B9314F] mb-2">Série ${serieId} (${animes.length} animes)</div>
+          <div class="space-y-1">
+            ${animes.map(a => `
+              <div class="text-xs text-gray-300 truncate" title="${a.NOME}">• ${a.NOME}</div>
+            `).join('')}
+          </div>
+        `;
+        seriesContainer.appendChild(div);
+      });
+  }
+
+  function renderStatBars(containerId, data) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    
+    const total = Object.values(data).reduce((sum, val) => sum + val, 0);
+    const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+
+    sorted.forEach(([label, count]) => {
+      const percent = ((count / total) * 100).toFixed(1);
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-gray-300">${label}</span>
+          <span class="text-gray-400">${count} (${percent}%)</span>
+        </div>
+        <div class="w-full bg-[#0a0a0a] rounded-full h-2">
+          <div class="bg-[#B9314F] h-2 rounded-full transition-all" style="width: ${percent}%"></div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  // ===================================
+  // FILTROS E BUSCA
+  // ===================================
+  window.toggleFilter = function(filter) {
+    currentFilter = filter;
+    
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    applyFilters();
+  };
+
+  function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const sortBy = document.getElementById('sort-select').value;
+
+    filteredAnimes = allAnimes.filter(anime => {
+      // Filtro de tipo
+      if (currentFilter !== 'all') {
+        const matchEstilo = anime.ESTILO === currentFilter;
+        const matchEstado = anime.ESTADO === currentFilter;
+        if (!matchEstilo && !matchEstado) return false;
+      }
+
+      // Busca
+      if (searchTerm) {
+        const nome = (anime.NOME || '').toLowerCase();
+        const estilo = (anime.ESTILO || '').toLowerCase();
+        const ano = String(anime.ANO || '').toLowerCase();
+        const estado = (anime.ESTADO || '').toLowerCase();
+        
+        if (!nome.includes(searchTerm) && 
+            !estilo.includes(searchTerm) && 
+            !ano.includes(searchTerm) &&
+            !estado.includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Ordenação
+    filteredAnimes.sort((a, b) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
+      
+      if (sortBy === 'NOME') {
+        return (valA || '').localeCompare(valB || '');
+      }
+      
+      return (parseFloat(valB) || 0) - (parseFloat(valA) || 0);
+    });
+
+    renderCurrentView();
+  }
+
+  // ===================================
+  // EXPORTAÇÃO
+  // ===================================
+  window.exportData = function(format) {
+    if (format === 'json') {
+      const dataStr = JSON.stringify(filteredAnimes, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      downloadFile(blob, `animes_database_${new Date().getTime()}.json`);
+    } else if (format === 'csv') {
+      const csv = convertToCSV(filteredAnimes);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      downloadFile(blob, `animes_database_${new Date().getTime()}.csv`);
+    }
+  };
+
+  function convertToCSV(data) {
+    if (!data.length) return '';
+    
+    const headers = Object.keys(data[0]);
+    const rows = data.map(obj => 
+      headers.map(header => {
+        const val = obj[header];
+        return typeof val === 'string' ? `"${val}"` : val;
+      }).join(',')
+    );
+    
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  function downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  window.copyJSON = function() {
+    const text = document.getElementById('json-content').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('JSON copiado para a área de transferência!');
+    });
+  };
+
+  // ===================================
+  // REFRESH E CACHE
+  // ===================================
+  window.refreshData = async function() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const cacheKey = `animes_${user.uid}`;
+    
+    try {
+      const animesRef = collection(db, "users", user.uid, "animes");
+      const snapshot = await getDocs(animesRef);
+      
+      allAnimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+      localStorage.setItem(`${cacheKey}_lastSync`, new Date().toISOString());
+      
+      filteredAnimes = [...allAnimes];
+      updateStats();
+      renderCurrentView();
+      
+      alert('Dados atualizados do Firebase!');
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+      alert('Erro ao atualizar dados do Firebase');
+    }
+  };
+
+  window.clearCache = function() {
+    if (!confirm('Tem certeza que deseja limpar o cache local?')) return;
+    
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const cacheKey = `animes_${user.uid}`;
+    localStorage.removeItem(cacheKey);
+    localStorage.removeItem(`${cacheKey}_lastSync`);
+    
+    allAnimes = [];
+    filteredAnimes = [];
+    updateStats();
+    renderCurrentView();
+    
+    alert('Cache limpo! Recarregue a página para buscar dados do Firebase.');
+  };
+
+  // ===================================
+  // HELPERS
+  // ===================================
+  function getEstadoColor(estado) {
+    const colors = {
+      'Completo': 'bg-green-900/30 text-green-400',
+      'Andamento': 'bg-blue-900/30 text-blue-400',
+      'Incompleto': 'bg-yellow-900/30 text-yellow-400',
+      'Assistido': 'bg-purple-900/30 text-purple-400',
+      'Desistência': 'bg-red-900/30 text-red-400',
+      'N. Começado': 'bg-gray-900/30 text-gray-400'
+    };
+    return colors[estado] || 'bg-gray-900/30 text-gray-400';
+  }
+
+  window.toggleMoreOptions = function(event) {
+    event.stopPropagation();
+    document.getElementById('more-options-dropdown').classList.toggle('hidden');
+  };
+
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('more-options-dropdown');
+    const btn = document.getElementById('more-options-btn');
+    if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // ===================================
+  // EVENT LISTENERS
+  // ===================================
+  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('sort-select').addEventListener('change', applyFilters);
+
+  // ===================================
+  // INIT
+  // ===================================
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+    
+    document.getElementById('user-email').textContent = user.email;
+    loadData();
+  });
+</script>
+
+</body>
+</html>
