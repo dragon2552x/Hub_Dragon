@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Animes - Manager</title>
+  <title>Class Animes</title>
 
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -48,25 +50,18 @@
       height: 22px;
       margin-bottom: 4px;
     }
-    
-    /* Animação de Loading */
-    .spin {
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
 
 <div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
 
+  <!-- MENU SUPERIOR -->
   <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
     
+    <!-- Linha 1 -->
     <div class="flex justify-between items-center">
-      <button onclick="sairParaHub()"
+      <button onclick="window.location.href='home.html'"
               class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
         My Hub
       </button>
@@ -74,6 +69,7 @@
       <h1 class="text-2xl font-bold text-white">My Animes</h1>
     </div>
 
+    <!-- Linha 2 -->
     <div class="text-sm text-gray-300 mt-1">
       Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
     </div>
@@ -81,78 +77,33 @@
   </header>
 
 
-  <main class="flex flex-col items-center justify-center mt-10 space-y-6">
-
-    <div id="stats-container" class="hidden bg-[#151515] p-5 rounded-xl border border-[#2a2a2a] w-full max-w-md shadow-lg transition-all duration-500">
-        <h3 class="text-white font-bold mb-4 flex items-center">
-            <i data-lucide="bar-chart" class="w-5 h-5 mr-2 text-[#B9314F]"></i>
-            Resumo da Coleção
-        </h3>
-        
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Total na Lista</p>
-                <p id="stat-total" class="text-2xl font-bold text-white">0</p>
-            </div>
-            
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Completos</p>
-                <p id="stat-completo" class="text-2xl font-bold text-green-400">0</p>
-            </div>
-
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Vendo / Andamento</p>
-                <p id="stat-vendo" class="text-2xl font-bold text-blue-400">0</p>
-            </div>
-
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Outros</p>
-                <p id="stat-outros" class="text-2xl font-bold text-gray-500">0</p>
-            </div>
-        </div>
+  <!-- CONTEÚDO DA PÁGINA -->
+  <main class="mt-4">
+    <!-- Menu das Visualizações -->
+    <div id="view-menu" class="flex overflow-x-auto gap-3 p-2 bg-[#141414] border border-[#222] rounded-xl text-sm mb-4">
+      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="detalhada">
+        Detalhada
+      </button>
+      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="lista">
+        Lista
+      </button>
+      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="ano">
+        Temporada
+      </button>
     </div>
 
-    <div id="container-ultimo-anime" class="hidden mx-4 mt-6">
-        <h2 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Último Atualizado</h2>
-        <div id="card-ultimo" class="bg-[#151515] border border-[#2a2a2a] rounded-xl overflow-hidden flex items-center shadow-lg">
-            <img id="ultimo-img" src="" class="w-24 h-32 object-cover" alt="Capa">
-            <div class="p-4 flex-1">
-                <h3 id="ultimo-nome" class="font-bold text-white text-lg truncate w-40">Nome do Anime</h3>
-                <p id="ultimo-data" class="text-xs text-[#B9314F] font-semibold mt-1">Hoje às 14:00</p>
-                <div class="flex items-center mt-3">
-                    <span id="ultimo-episodios" class="bg-[#222] text-gray-300 text-[10px] px-2 py-1 rounded">Ep: 00/00</span>
-                </div>
-            </div>
-            <button onclick="window.location.href='anime_lista.html'" class="p-4 text-gray-500">
-                <i data-lucide="chevron-right"></i>
-            </button>
-        </div>
-    </div>
-    
-    <div class="bg-[#151515] p-6 rounded-xl border border-[#2a2a2a] w-full max-w-md text-center shadow-lg">
-        <h2 class="text-xl font-bold text-white mb-2">Status dos Dados</h2>
-        <p id="status-msg" class="text-gray-400 mb-4">Verificando...</p>
-        
-        <button id="btn-refresh" onclick="forcarAtualizacao()" 
-                class="flex items-center justify-center w-full bg-[#B9314F] hover:bg-[#992743] text-white font-bold py-3 px-4 rounded-lg transition-all">
-            <i data-lucide="refresh-cw" class="mr-2 w-5 h-5" id="icon-refresh"></i>
-            Forçar Atualização do Banco
-        </button>
-        <p class="text-xs text-gray-500 mt-2">Use isso se os dados estiverem desatualizados.</p>
-    </div>
-
-    <div class="opacity-70 text-center">
-        <p>Selecione uma das opções do menu abaixo 👇</p>
-    </div>
-
+    <section id="main-content" class="text-center text-gray-400 p-4">
+      <p>Carregando dados...</p>
+    </section>
   </main>
+
 
 </div>
 
 <!-- MENU INFERIOR -->
 <nav class="menu fixed bottom-0 left-0 w-full bg-[#151515] border-t border-[#2a2a2a] flex justify-around py-2 z-40">
     
-    <button class="menu-btn active" onclick="window.location.href='animes_manager.html'">
+    <button class="menu-btn" onclick="window.location.href='animes_manager.html'">
         <i data-lucide="home" class="w-6 h-6 mb-1"></i>
         <span class="text-[10px]">Início</span>
     </button>
@@ -168,7 +119,7 @@
     </button>
 
     <div class="relative flex">
-        <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
+        <button id="more-options-btn" class="menu-btn active" onclick="toggleMoreOptions(event)">
             <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
             <span class="text-[10px]">Mais</span>
         </button>
@@ -176,19 +127,19 @@
         <div id="more-options-dropdown"
              class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50 flex flex-col">
 
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+            <button class="w-full text-left px-4 py-3 text-sm bg-[#2a2a2a] text-white rounded-lg transition-colors flex items-center gap-3 border border-[#333]" 
                     onclick="window.location.href='animes_classificacoes.html'">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Classificação</span>
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F] fill-current"></i> 
+                <span class="font-bold">Classificação</span>
             </button>
             
             <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
                     onclick="window.location.href='animes_estrelas.html'">
-                <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
+                <i data-lucide="star" class="w-4 h-4 text-[#B9314F]"></i> 
                 <span>Estrelas</span>
             </button>
             
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
+           <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
                     onclick="window.location.href='animes_torneio.html'">
                 <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
                 <span>Torneio</span>
@@ -199,6 +150,7 @@
                 <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
                 <span>Serie</span>
             </button>
+
             <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
                     onclick="window.location.href='animes_database.html'">
                 <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
@@ -208,7 +160,6 @@
     </div>
 </nav>
 
-
 <script>
   lucide.createIcons();
   function abrirPagina(pagina) {
@@ -216,10 +167,11 @@
   }
 </script>
 
+<!-- FIRESTORE + CLASSIFICAÇÃO -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
@@ -231,168 +183,356 @@
     measurementId: "G-GLM50YVLXP"
   };
 
-  const firebaseApp = initializeApp(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const db = getFirestore(firebaseApp);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  const userEmailEl = document.getElementById("user-email");
-  const statusMsgEl = document.getElementById("status-msg");
-  const iconRefresh = document.getElementById("icon-refresh");
+  const mainContent = document.getElementById("main-content");
+  const viewButtons = document.querySelectorAll(".view-btn");
+  let allAnimes = [];
+  let currentView = "detalhada";
+  let lastOpenedSeason = null;
 
-  // --- FUNÇÃO PARA CARREGAR DADOS ---
-  // --- FUNÇÃO AUXILIAR PARA CALCULAR E EXIBIR STATS ---
-  function atualizarEstatisticas(listaAnimes) {
-      if (!listaAnimes) return;
+  const views = {
+    detalhada() {
+      const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
 
-      const total = listaAnimes.length;
-      // Filtra contando os estados (ajuste as strings conforme você salva no banco)
-      const completos = listaAnimes.filter(a => a.ESTADO === "Completo" || a.ESTADO === "Assistido").length;
-      const vendo = listaAnimes.filter(a => a.ESTADO === "Andamento" || a.ESTADO === "Vendo").length;
-      const outros = total - (completos + vendo);
+      const html = sorted.map((anime, index) => `
+        <div 
+          class="flex items-center gap-3 mb-3 bg-[#181818] p-3 rounded-lg shadow cursor-pointer hover:bg-[#222] transition-all"
+          onclick="showAnime(${index})"
+        >
+          <!-- Imagem quadrada -->
+          <div class="w-20 h-20 flex-shrink-0">
+            <img src="${anime.IMAGEM}" 
+                class="w-full h-full object-cover rounded-lg"
+                alt="${anime.NOME}">
+          </div>
 
-      // Atualiza HTML
-      document.getElementById("stat-total").textContent = total;
-      document.getElementById("stat-completo").textContent = completos;
-      document.getElementById("stat-vendo").textContent = vendo;
-      document.getElementById("stat-outros").textContent = outros;
+          <!-- Informações -->
+          <div class="flex-1 text-left overflow-hidden">
 
-      // Mostra o card com animação suave
-      const statsContainer = document.getElementById("stats-container");
-      statsContainer.classList.remove("hidden");
-      
-      // Recarrega ícones (caso o lucide não tenha pego o novo ícone do card)
-      lucide.createIcons();
-  }
+            <!-- Numeração + Nome -->
+            <div class="flex items-center gap-2">
+              <span class="bg-[#B9314F] text-white text-xs font-bold px-2 py-1 rounded-md">${index + 1}</span>
 
-  // --- FUNÇÃO PARA CARREGAR DADOS (ATUALIZADA) ---
-  async function carregarDados(force = false) {
-      if (!auth.currentUser) return;
-      
-      const uid = auth.currentUser.uid;
-      const cacheKey = `animes_${uid}`;
-      
-      // 1. Tentar ler do Cache Local
-      if (!force) {
-          const cachedData = localStorage.getItem(cacheKey);
-          if (cachedData) {
-              const animes = JSON.parse(cachedData);
-              statusMsgEl.innerHTML = `<span class="text-green-400">✅ ${animes.length} animes carregados do Cache.</span>`;
-              
-              // CHAMA A ATUALIZAÇÃO DO CARD AQUI
-              atualizarEstatisticas(animes);
-              
-              console.log("📦 Dados do Cache + Stats atualizados.");
-              return; 
-          }
-      }
+              <!-- Nome com limite maior antes de truncar -->
+              <h3 class="font-bold text-lg truncate max-w-[350px]">
+                ${anime.NOME}
+              </h3>
+            </div>
 
-      // 2. Busca no Firebase se necessário
-      try {
-          statusMsgEl.textContent = "Baixando dados do servidor...";
-          iconRefresh.classList.add("spin");
-          
-          const animesRef = collection(db, "users", uid, "animes");
-          const snapshot = await getDocs(animesRef);
-          
-          const listaAnimes = [];
-          snapshot.forEach(doc => {
-              listaAnimes.push(doc.data());
-          });
+            <!-- Nota -->
+            <p class="text-gray-300 text-sm mt-1">
+              Nota: <span class="text-white font-semibold">${Number(anime.NOTA_F).toFixed(2)}</span>
+            </p>
 
-          // 3. Salva no Cache
-          localStorage.setItem(cacheKey, JSON.stringify(listaAnimes));
-          
-          statusMsgEl.innerHTML = `<span class="text-blue-400">🔥 ${listaAnimes.length} animes baixados e salvos!</span>`;
-          
-          // CHAMA A ATUALIZAÇÃO DO CARD AQUI TAMBÉM
-          atualizarEstatisticas(listaAnimes);
-          
-          console.log("🔥 Dados baixados + Stats atualizados.");
+          </div>
+        </div>
+      `).join("");
 
-      } catch (error) {
-          console.error("Erro ao baixar dados:", error);
-          statusMsgEl.innerHTML = `<span class="text-red-500">Erro ao baixar dados.</span>`;
-      } finally {
-          iconRefresh.classList.remove("spin");
-      }
-  }
+      mainContent.innerHTML = html;
+    },
+    lista() {
+      const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
 
-  // --- EXPOR FUNÇÃO DE REFRESH PARA O HTML ---
-  window.forcarAtualizacao = () => {
-      carregarDados(true); // true = Força a ida ao Firebase
-  };
+      const html = sorted.map((anime, index) => `
+        <div class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] p-2 rounded-md"
+            onclick="showAnime(${index})">
+          <span class="text-[#B9314F] font-bold">${index + 1}.</span>
+          <strong class="ml-2">${anime.NOME}</strong>
+          <span class="opacity-70 ml-3">(${Number(anime.NOTA_F).toFixed(2)})</span>
+        </div>
+      `).join("");
 
-    function carregarUltimoAnimeAcessado(uid) {
-        const cacheKey = `animes_${uid}`;
-        const cachedData = localStorage.getItem(cacheKey);
+      mainContent.innerHTML = html;
+    },
+    ano() {
+      if (!allAnimes.length) return;
 
-        if (cachedData) {
-            const animes = JSON.parse(cachedData);
-            
-            // 1. Ordenar por data de atualização (do mais novo para o mais antigo)
-            const listaOrdenada = animes
-                .filter(a => a.ultima_atualizacao) // Garante que tem data
-                .sort((a, b) => new Date(b.ultima_atualizacao) - new Date(a.ultima_atualizacao));
+      let searchHTML = `
+        <div class="w-full mb-4 mt-2">
+          <input
+            id="search-season-input"
+            type="text"
+            placeholder="Pesquisar temporada..."
+            class="w-full px-3 py-2 bg-[#151515] border border-[#333] rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-[#B9314F]"
+          />
+        </div>
+      `;
 
-            if (listaOrdenada.length > 0) {
-                const ultimo = listaOrdenada[0];
+      const grouped = {};
 
-                // 2. Preencher o Card
-                document.getElementById("container-ultimo-anime").classList.remove("hidden");
-                document.getElementById("ultimo-nome").textContent = ultimo.NOME;
-                document.getElementById("ultimo-img").src = ultimo.IMAGEM;
-                document.getElementById("ultimo-episodios").textContent = `Ep: ${ultimo.ASSIS}/${ultimo.TOTAIS}`;
-                
-                // 3. Formatar a Data (Ex: "24 de dez.")
-                const dataObj = new Date(ultimo.ultima_atualizacao);
-                const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                
-                document.getElementById("ultimo-data").textContent = `Atualizado em ${dataFormatada} às ${horaFormatada}`;
-                
-                // Re-inicializa ícones do Lucide se necessário
-                if (window.lucide) lucide.createIcons();
-            }
+      allAnimes.forEach(anime => {
+        const ano = anime.ANO;
+        const tempStr = anime.TEMPORADA || "";
+        let seasonName = "Outro";
+
+        if (tempStr.includes("Inverno")) seasonName = "Inverno";
+        else if (tempStr.includes("Primavera")) seasonName = "Primavera";
+        else if (tempStr.includes("Verão")) seasonName = "Verão";
+        else if (tempStr.includes("Outono")) seasonName = "Outono";
+
+        const groupKey = (seasonName !== "Outro" && ano) ?
+          `${seasonName} ${ano}` : "Outro";
+
+        if (!grouped[groupKey]) {
+          grouped[groupKey] = { total: 0, count: 0 };
         }
-    }
 
-  // --- FUNÇÃO SAIR (MY HUB) ---
-  window.sairParaHub = () => {
-      if (auth.currentUser) {
-          // Limpa o cache específico desse usuário
-          localStorage.removeItem(`animes_${auth.currentUser.uid}`);
-          console.log("🗑️ Cache limpo no logout.");
-      }
-      // Redireciona
-      window.location.href = 'home.html';
+        grouped[groupKey].total += anime.NOTA_F;
+        grouped[groupKey].count++;
+      });
+
+      const ranked = Object.entries(grouped)
+        .map(([nome, info]) => ({
+          nome,
+          media: info.total / info.count,
+          qtd: info.count
+        }))
+        .sort((a, b) => b.media - a.media);
+
+      const html = ranked.map((t, index) => `
+        <div 
+          onclick="showSeason('${t.nome}')"
+          class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] transition-all"
+        >
+          <span class="text-[#B9314F] font-bold">${index + 1}.</span>
+          <strong class="ml-2">${t.nome}</strong>
+          <span class="opacity-70 ml-3">(${t.media.toFixed(2)})</span>
+          <span class="opacity-50 ml-2 text-xs">${t.qtd} animes</span>
+        </div>
+      `).join("");
+
+      mainContent.innerHTML = `
+        ${searchHTML}
+        <div id="season-list">${html}</div>
+      `;
+
+      mainContent.innerHTML = `
+        ${searchHTML}
+        <div id="season-list">${html}</div>
+      `;
+
+      const searchInput = document.getElementById("search-season-input");
+      const listContainer = document.getElementById("season-list");
+
+      searchInput.addEventListener("input", () => {
+        const text = searchInput.value.toLowerCase().trim();
+
+        const filtered = ranked.filter(s =>
+          s.nome.toLowerCase().includes(text)
+        );
+
+        const filteredHTML = filtered.map((t, index) => `
+          <div 
+            onclick="showSeason('${t.nome}')"
+            class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] transition-all"
+          >
+            <span class="text-[#B9314F] font-bold">${index + 1}.</span>
+            <strong class="ml-2">${t.nome}</strong>
+            <span class="opacity-70 ml-3">(${t.media.toFixed(2)})</span>
+            <span class="opacity-50 ml-2 text-xs">${t.qtd} animes</span>
+          </div>
+        `).join("");
+
+        listContainer.innerHTML = filteredHTML || `<p class="text-gray-400 mt-4">Nenhuma temporada encontrada.</p>`;
+      });
+    },
   };
 
-  // --- DROPDOWN MENU ---
-  window.toggleMoreOptions = (event) => {
-      event.stopPropagation();
-      document.getElementById('more-options-dropdown').classList.toggle('hidden');
+  function toggleMoreOptions(event) {
+      event.stopPropagation(); // Previne que o clique feche imediatamente
+      const dropdown = document.getElementById('more-options-dropdown');
+      dropdown.classList.toggle('hidden');
   }
 
+  // Função para fechar o dropdown se o usuário clicar fora dele
   document.addEventListener('click', (e) => {
       const dropdown = document.getElementById('more-options-dropdown');
-      const btn = document.getElementById('more-options-btn');
-      if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      const button = document.getElementById('more-options-btn');
+      if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
           dropdown.classList.add('hidden');
       }
   });
+  
+  window.toggleMoreOptions = toggleMoreOptions;
+  function switchView(view) {
+    currentView = view;
+    window.currentView = view;
+    
+    // NOVO: Se mudar de aba principal, esquece a temporada anterior
+    if (view !== 'ano') {
+        lastOpenedSeason = null;
+    }
+    
+    viewButtons.forEach(btn => btn.classList.remove("bg-[#B9314F]", "font-bold"));
+    document.querySelector(`[data-view="${view}"]`)
+      .classList.add("bg-[#B9314F]", "font-bold");
+    views[view]();
+  }
 
-  // --- AUTH STATE ---
-  onAuthStateChanged(auth, user => {
-    if (user) {
-        userEmailEl.textContent = user.email;
-        // Assim que loga, tenta carregar (do cache ou do banco)
-        carregarDados(false);
-        carregarUltimoAnimeAcessado(user.uid);
+  function showAnime(index) {
+    const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
+    const anime = sorted[index];
+
+    // LÓGICA INTELIGENTE DO BOTÃO VOLTAR
+    // Se estivermos na aba 'ano' e tivermos uma temporada salva, volta para ela.
+    // Caso contrário, volta para a visualização padrão.
+    let backAction = `window.switchView('${currentView}')`;
+    if (currentView === 'ano' && lastOpenedSeason) {
+        backAction = `window.showSeason('${lastOpenedSeason}')`;
+    }
+
+    mainContent.innerHTML = `
+      <div class="bg-[#181818] p-4 rounded-lg shadow-lg max-w-md mx-auto text-center">
+
+        <img src="${anime.IMAGEM}"
+          alt="${anime.NOME}"
+          class="mx-auto object-cover rounded-md mb-3"
+          style="width: 60%; aspect-ratio: 2/3;"
+        >
+
+        <h2 class="text-xl text-white font-bold mb-3">${anime.NOME}</h2>
+
+        <div class="text-left text-sm text-gray-300 space-y-1">
+          <p><span class="font-semibold text-white">Nota:</span> ${Number(anime.NOTA_F).toFixed(2)}</p>
+          <p><span class="font-semibold text-white">Nota MAL:</span> ${anime.N_MAL || "-"}</p>
+          <p><span class="font-semibold text-white">Stars:</span> ${anime.STARS || "-"}</p>
+          <p><span class="font-semibold text-white">Temporada:</span> ${anime.TEMPORADA || "-"}</p>
+          <p><span class="font-semibold text-white">Ano:</span> ${anime.ANO || "-"}</p>
+        </div>
+
+        <button onclick="${backAction}"
+          class="mt-4 px-4 py-1 bg-[#B9314F] rounded-md font-bold text-sm text-white hover:bg-[#992743]">
+          Voltar
+        </button>
+
+      </div>
+    `;
+  }
+
+  // Torna acessível no HTML:
+  window.showAnime = showAnime;
+  window.currentView = currentView;
+  window.switchView = switchView;
+
+  window.showSeason = function(seasonName) {
+      lastOpenedSeason = seasonName;
+
+      // 1. Filtra os animes da temporada
+      const animesDaTemporada = allAnimes.filter(a => {
+          const year = a.ANO;
+          const temp = a.TEMPORADA || "";
+          if (seasonName === "Outro") {
+              return (!year || !temp ||
+                  (!temp.includes("Inverno") &&
+                  !temp.includes("Primavera") &&
+                  !temp.includes("Verão") &&
+                  !temp.includes("Outono")));
+          }
+          const tempGroup = `${temp.split(" (")[0]} ${year}`;
+          return tempGroup === seasonName;
+      });
+
+      // 2. Ordena a lista da temporada para exibição
+      animesDaTemporada.sort((a, b) => b.NOTA_F - a.NOTA_F);
+
+      // 3. NOVA FUNÇÃO DE BUSCA: Garante que o showAnime receba o index da lista GLOBAL ORDENADA
+      window.showAnimeByNum = function(num) {
+          // Criamos a lista global exatamente como o showAnime(index) espera receber
+          const globalSorted = [...allAnimes].sort((a, b) => b.NOTA_F - a.NOTA_F);
+          
+          // Procuramos o index baseado no NUM (que é único)
+          const targetIndex = globalSorted.findIndex(a => Number(a.Num) === Number(num));
+          
+          if (targetIndex !== -1) {
+              showAnime(targetIndex);
+          } else {
+              console.error("Anime não encontrado no cache global:", um);
+          }
+      };
+
+      const html = `
+        <div class="text-left mb-3">
+          <h2 class="text-xl font-bold text-white">${seasonName}</h2>
+        </div>
+
+        ${animesDaTemporada.map((anime, index) => {
+          return `
+          <div 
+            class="flex justify-between items-center border-b border-[#222] py-2 cursor-pointer hover:bg-[#222]"
+            onclick="showAnimeByNum(${anime.Num})"
+          >
+            <span class="font-bold text-[#B9314F]">${index + 1}.</span>
+            <span class="flex-1 ml-3 truncate text-left">${anime.NOME}</span>
+            <span class="opacity-70 ml-3 font-semibold">${Number(anime.NOTA_F).toFixed(2)}</span>
+          </div>
+        `}).join("")}
+
+        <button onclick="window.switchView('ano')"
+          class="mt-4 px-4 py-1 bg-[#B9314F] rounded-md font-bold text-sm text-white hover:bg-[#992743]">
+          Voltar
+        </button>
+      `;
+
+      mainContent.innerHTML = html;
+  };
+
+  // --- FUNÇÃO CARREGAR TUDO (OTIMIZADA COM CACHE) ---
+  async function loadAll() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const cacheKey = `animes_${user.uid}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      // 📦 Carrega do Cache Local (Economiza leituras no Firebase)
+      console.log("📦 Classificações: Carregando dados do Cache.");
+      allAnimes = JSON.parse(cachedData);
     } else {
-        window.location.href = "login.html"; // Opcional: proteção de rota
+      // 🔥 Fallback: Busca no Firebase se o cache estiver vazio
+      console.log("🔥 Classificações: Cache vazio, buscando no Firebase...");
+      try {
+        const ref = collection(db, "users", user.uid, "animes");
+        const docs = await getDocs(ref);
+        allAnimes = docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Salva para as próximas páginas não precisarem ler do banco
+        localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    }
+
+    // Inicia a visualização após carregar os dados (seja do cache ou banco)
+    switchView("detalhada");
+  }
+
+  window.switchView = switchView;
+
+  // --- ESCUTADOR DE AUTENTICAÇÃO ---
+  onAuthStateChanged(auth, (user) => {
+    const userEmailEl = document.getElementById("user-email");
+
+    if (user) {
+      if (userEmailEl) userEmailEl.textContent = user.email;
+      // Só chama o loadAll se o usuário estiver logado
+      loadAll();
+    } else {
+      // Se não estiver autenticado volta para Login
+      window.location.href = "index.html";
     }
   });
+
+  window.switchView = switchView;
+
+  viewButtons.forEach(btn => {
+    btn.addEventListener("click", () => switchView(btn.dataset.view));
+  });
 </script>
+
 
 </body>
 </html>
