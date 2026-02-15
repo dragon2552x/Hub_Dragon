@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Backgrounds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body { 
+            background: #0b0b0b; 
+            color: #e6e6e6; 
+            font-family: 'Inter', sans-serif; 
+            padding-bottom: 100px; 
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        /* Navegação */
+        .page-nav { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; border-bottom: 1px solid #333; padding-bottom: 1rem; }
+        .page-link { padding: 0.5rem 1.5rem; color: #888; text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        .page-link:hover { color: #fff; background: #222; }
+        .page-link.active { color: #0b0b0b; background: #d4af37; }
+        
+        /* Layout de Criação */
+        .creation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .creation-grid { grid-template-columns: 1fr; } }
+
+        /* Inputs */
+        input, select { width: 100%; background: #222; border: 1px solid #444; color: white; padding: 0.8rem; border-radius: 6px; margin-bottom: 1rem; outline: none; }
+        input:focus, select:focus { border-color: #d4af37; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #aaa; }
+        
+        /* Grid de Lista */
+        .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .item { background: #151515; border: 1px solid #333; padding: 1rem; border-radius: 12px; transition: transform 0.2s; }
+        .item:hover { transform: translateY(-5px); border-color: #d4af37; }
+
+        /* Botões */
+        .btn-action { width: 100%; padding: 0.6rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 0.5rem; }
+        .btn-edit { background: #d4af37; color: #000; }
+        .btn-delete { background: #333; color: #ff5555; }
+        .btn-cancel { background: #444; color: #fff; margin-top: 1rem; display: none; }
+
+        /* Container de transição para o menu */
+        #creationArea {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 2000px; /* Valor alto para permitir expansão */
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        #creationArea.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-width: 0;
+            pointer-events: none;
+        }
+
+        /* Estilo do botão da seta */
+        .toggle-btn {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-btn.rotated {
+            transform: rotate(-180deg);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button onclick="window.location.href='home.html'" style="position: absolute; top: 1rem; left: 1rem; color: #888;">⬅ Voltar</button>
+    
+    <header style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-family: 'Cinzel'; font-size: 2.5rem; color: #d4af37;">Backgrounds</h1>
+    </header>
+
+    <nav class="page-nav">
+        <a href="cards_manager.html" class="page-link">🃏 Cards</a>
+        <a href="frames.html" class="page-link">🖼️ Molduras</a>
+        <a href="backgrounds.html" class="page-link active">🌄 Backgrounds</a>
+    </nav>
+
+    <div class="creation-grid" style="background: #151515; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #333;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1.5rem;">
+            <h2 style="font-family: 'Cinzel'; font-size: 1.8rem; color: #d4af37; margin: 0;">Editor de Background</h2>
+            <button onclick="toggleCreationMenu()" class="toggle-btn" id="arrowBtn" style="background: #222; border: 1px solid #d4af37; color: #d4af37; border-radius: 50%; width: 35px; height: 35px;">
+                <i data-lucide="chevron-up"></i>
+            </button>
+        </div>
+
+        <div id="creationArea" class="creation-grid" style="background: #151515; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #333;">
+        
+            <div>
+                <h3 id="formTitle" style="color: #d4af37; margin-bottom: 1rem; font-size: 1.2rem; font-weight: bold;">Criar Novo Background</h3>
+                
+                <form id="bgForm">
+                    <input type="hidden" id="bgId"> <label>Nome do Background</label>
+                    <input type="text" id="bgName" required placeholder="Ex: Floresta Mística">
+                    
+                    <label>Tipo</label>
+                    <select id="bgType" onchange="toggleType()">
+                        <option value="image">Imagem</option>
+                        <option value="gradient">Gradiente</option>
+                    </select>
+
+                    <div id="controlsImg">
+                        <label>URL da Imagem</label>
+                        <input type="url" id="bgUrl" placeholder="https://..." oninput="updatePreview()">
+                        
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="flex:1">
+                                <label>Zoom (<span id="lblZoom">1.0</span>x)</label>
+                                <input type="range" id="bgZoom" min="1" max="4" step="0.1" value="1" oninput="updatePreview()">
+                            </div>
+                            <div style="flex:1">
+                                <label>Rotação (<span id="lblRot">0</span>°)</label>
+                                <input type="range" id="bgRotate" min="0" max="360" step="1" value="0" oninput="updatePreview()">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="flex:1">
+                                <label>Posição X (<span id="lblX">50</span>%)</label>
+                                <input type="range" id="bgPosX" min="0" max="100" step="1" value="50" oninput="updatePreview()">
+                            </div>
+                            <div style="flex:1">
+                                <label>Posição Y (<span id="lblY">50</span>%)</label>
+                                <input type="range" id="bgPosY" min="0" max="100" step="1" value="50" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="controlsGrad" style="display: none;">
+                        <label>Direção</label>
+                        <select id="bgGradDir" onchange="updatePreview()">
+                            <option value="135deg">Diagonal (135°)</option>
+                            <option value="180deg">Vertical (Top-Down)</option>
+                            <option value="90deg">Horizontal</option>
+                            <option value="45deg">Diagonal Inversa</option>
+                            <option value="radial">Radial (Centro)</option>
+                        </select>
+
+                        <label>Cor 1 (Início)</label>
+                        <input type="color" id="col1" value="#0a0e27" oninput="updatePreview()" style="height: 45px;">
+                        
+                        <label>Cor 2 (Meio - Opcional)</label>
+                        <input type="color" id="col2" value="#1a1f3a" oninput="updatePreview()" style="height: 45px;">
+                        
+                        <label>Cor 3 (Fim)</label>
+                        <input type="color" id="col3" value="#8b5cf6" oninput="updatePreview()" style="height: 45px;">
+                    </div>
+
+                    <button type="submit" id="btnSubmit" style="background: #d4af37; color: #000; font-weight: bold; width: 100%; padding: 1rem; margin-top: 1rem; border-radius: 6px; cursor: pointer;">Salvar Background</button>
+                    <button type="button" id="btnCancel" onclick="resetForm()" class="btn-action btn-cancel">Cancelar Edição</button>
+                </form>
+            </div>
+            <div>
+                <h3 style="text-align: center; color: #888; margin-bottom: 1rem;">Preview em Tempo Real</h3>
+                <div style="border: 2px solid #d4af37; width: 280px; aspect-ratio: 2.5/3.5; margin: 0 auto; position: relative; overflow: hidden; border-radius: 16px; background: #000;">
+                    
+                    <div id="previewBox" style="width: 100%; height: 100%; transition: transform 0.1s;"></div>
+                    
+                    <div style="position: absolute; bottom: 0; left:0; width: 100%; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); pointer-events: none;">
+                        <div style="height: 10px; width: 60%; background: #444; border-radius: 4px; margin-bottom: 5px;"></div>
+                        <div style="height: 8px; width: 40%; background: #d4af37; border-radius: 4px;"></div>
+                    </div>
+                </div>
+                <p style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 1rem;">O resultado final pode variar levemente dependendo do tamanho do card.</p>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: #fff; margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem;">Meus Backgrounds</h3>
+    <div id="bgGrid" class="grid-list">
+        <div style="color: #888; grid-column: 1/-1;">Carregando backgrounds...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // CONFIGURAÇÃO DO FIREBASE (Igual aos outros arquivos)
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", 
+        authDomain: "list-games-9bddd.firebaseapp.com", 
+        projectId: "list-games-9bddd", 
+        storageBucket: "list-games-9bddd.firebasestorage.app", 
+        messagingSenderId: "756898313156", 
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91", 
+        measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let userId = null;
+    let backgroundsCache = []; // Cache local para edição fácil
+
+    // --- AUTH & LISTENER ---
+    onAuthStateChanged(auth, u => {
+        if(u) {
+            userId = u.uid;
+            // Carrega os dados em tempo real
+            onSnapshot(query(collection(db, 'users', userId, 'backgrounds')), snap => {
+                const list = document.getElementById('bgGrid');
+                backgroundsCache = []; // Limpa cache
+                list.innerHTML = '';
+                
+                if (snap.empty) {
+                    list.innerHTML = '<div style="color:#666;">Nenhum background encontrado. Crie o primeiro acima!</div>';
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const bg = { id: d.id, ...d.data() };
+                    backgroundsCache.push(bg); // Salva no cache
+                    
+                    // Gera CSS para o mini-preview na lista
+                    let cssStyle = '';
+                    if(bg.type === 'image') {
+                        // Aplica transformações salvas
+                        const zoom = bg.image.zoom || 1;
+                        const rot = bg.image.rotate || 0;
+                        const posX = bg.image.posX || 50;
+                        const posY = bg.image.posY || 50;
+                        
+                        cssStyle = `
+                            background-image: url('${bg.image.url}'); 
+                            background-size: cover; 
+                            background-position: ${posX}% ${posY}%;
+                            transform: scale(${zoom}) rotate(${rot}deg);
+                        `;
+                    } else {
+                        // Gradiente
+                        const g = bg.gradient;
+                        const colors = g.colors || ['#000', '#fff'];
+                        if(g.dir === 'radial') {
+                            cssStyle = `background: radial-gradient(circle, ${colors.join(', ')});`;
+                        } else {
+                            cssStyle = `background: linear-gradient(${g.dir || '180deg'}, ${colors.join(', ')});`;
+                        }
+                    }
+
+                    // Renderiza o item
+                    list.innerHTML += `
+                        <div class="item">
+                            <div style="width:100%; height:180px; overflow: hidden; border-radius:8px; margin-bottom:0.5rem; background: #000; position: relative;">
+                                <div style="width:100%; height:100%; ${cssStyle}"></div>
+                            </div>
+                            <div style="font-weight: bold; margin-bottom: 5px;">${bg.name}</div>
+                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">${bg.type === 'image' ? '🖼️ Imagem' : '🎨 Gradiente'}</div>
+                            
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="editBg('${bg.id}')" class="btn-action btn-edit">✏️ Editar</button>
+                                <button onclick="delBg('${bg.id}')" class="btn-action btn-delete">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        } else {
+            window.location.href = 'home.html';
+        }
+    });
+
+    // --- FUNÇÕES DE UI ---
+
+    window.toggleType = () => {
+        const t = document.getElementById('bgType').value;
+        document.getElementById('controlsImg').style.display = t === 'image' ? 'block' : 'none';
+        document.getElementById('controlsGrad').style.display = t === 'gradient' ? 'block' : 'none';
+        updatePreview();
+    };
+
+    window.updatePreview = () => {
+        const t = document.getElementById('bgType').value;
+        const box = document.getElementById('previewBox');
+        
+        if(t === 'image') {
+            const url = document.getElementById('bgUrl').value;
+            const zoom = document.getElementById('bgZoom').value;
+            const rot = document.getElementById('bgRotate').value;
+            const posX = document.getElementById('bgPosX').value;
+            const posY = document.getElementById('bgPosY').value;
+
+            // Atualiza labels numéricos
+            document.getElementById('lblZoom').textContent = zoom;
+            document.getElementById('lblRot').textContent = rot;
+            document.getElementById('lblX').textContent = posX;
+            document.getElementById('lblY').textContent = posY;
+
+            // Limpa estilo de gradiente
+            box.style.background = 'none';
+            box.style.backgroundImage = url ? `url('${url}')` : 'none';
+            box.style.backgroundColor = '#1a1a1a'; // Fundo padrão se imagem falhar
+            box.style.backgroundSize = 'cover';
+            
+            // Aplica posição
+            box.style.backgroundPosition = `${posX}% ${posY}%`;
+            
+            // Aplica Transformações
+            box.style.transform = `scale(${zoom}) rotate(${rot}deg)`;
+
+        } else {
+            const dir = document.getElementById('bgGradDir').value;
+            const c1 = document.getElementById('col1').value;
+            const c2 = document.getElementById('col2').value;
+            const c3 = document.getElementById('col3').value;
+            
+            // Reseta imagem
+            box.style.backgroundImage = 'none';
+            box.style.transform = 'none';
+
+            // Monta gradiente
+            let css = '';
+            if (dir === 'radial') {
+                css = `radial-gradient(circle at center, ${c1}, ${c2}, ${c3})`;
+            } else {
+                css = `linear-gradient(${dir}, ${c1}, ${c2}, ${c3})`;
+            }
+            box.style.background = css;
+        }
+    };
+
+    // --- CRUD ---
+
+    // EDITAR: Preenche o formulário
+    window.editBg = (id) => {
+        const bg = backgroundsCache.find(b => b.id === id);
+        if(!bg) return;
+
+        // Preenche campos básicos
+        document.getElementById('bgId').value = bg.id;
+        document.getElementById('bgName').value = bg.name;
+        document.getElementById('bgType').value = bg.type;
+
+        // Preenche específicos
+        if(bg.type === 'image') {
+            document.getElementById('bgUrl').value = bg.image.url || '';
+            document.getElementById('bgZoom').value = bg.image.zoom || 1;
+            document.getElementById('bgRotate').value = bg.image.rotate || 0;
+            document.getElementById('bgPosX').value = bg.image.posX || 50;
+            document.getElementById('bgPosY').value = bg.image.posY || 50;
+        } else {
+            document.getElementById('bgGradDir').value = bg.gradient.dir || '180deg';
+            const colors = bg.gradient.colors || ['#000', '#fff', '#fff'];
+            document.getElementById('col1').value = colors[0] || '#000000';
+            document.getElementById('col2').value = colors[1] || '#ffffff';
+            document.getElementById('col3').value = colors[2] || '#ffffff';
+        }
+
+        // Ajusta UI para modo edição
+        window.toggleType(); // Atualiza visibilidade dos controles
+        window.updatePreview(); // Atualiza preview visual
+        
+        document.getElementById('formTitle').textContent = `Editando: ${bg.name}`;
+        document.getElementById('btnSubmit').textContent = "Atualizar Background";
+        document.getElementById('btnSubmit').style.background = "#8b5cf6"; // Roxo para indicar update
+        document.getElementById('btnSubmit').style.color = "#fff";
+        document.getElementById('btnCancel').style.display = "block";
+        
+        // Scroll suave para o topo
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // RESETAR FORMULÁRIO (Cancelar edição ou após salvar)
+    window.resetForm = () => {
+        document.getElementById('bgForm').reset();
+        document.getElementById('bgId').value = ""; // Limpa ID
+        
+        // Volta UI para Criar
+        document.getElementById('formTitle').textContent = "Criar Novo Background";
+        document.getElementById('btnSubmit').textContent = "Salvar Background";
+        document.getElementById('btnSubmit').style.background = "#d4af37";
+        document.getElementById('btnSubmit').style.color = "#000";
+        document.getElementById('btnCancel').style.display = "none";
+        
+        window.toggleType();
+        window.updatePreview();
+    };
+
+    // SALVAR (Criar ou Atualizar)
+    document.getElementById('bgForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id = document.getElementById('bgId').value;
+        const t = document.getElementById('bgType').value;
+        const name = document.getElementById('bgName').value;
+        
+        const data = {
+            name: name,
+            type: t,
+            updatedAt: new Date().toISOString()
+        };
+
+        if(t === 'image') {
+            data.image = {
+                url: document.getElementById('bgUrl').value,
+                zoom: document.getElementById('bgZoom').value,
+                rotate: document.getElementById('bgRotate').value,
+                posX: document.getElementById('bgPosX').value,
+                posY: document.getElementById('bgPosY').value
+            };
+        } else {
+            data.gradient = {
+                dir: document.getElementById('bgGradDir').value,
+                colors: [
+                    document.getElementById('col1').value, 
+                    document.getElementById('col2').value,
+                    document.getElementById('col3').value
+                ]
+            };
+        }
+
+        try {
+            if (id) {
+                // Atualizar existente
+                await updateDoc(doc(db, 'users', userId, 'backgrounds', id), data);
+                alert("Background Atualizado!");
+            } else {
+                // Criar novo
+                data.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'users', userId, 'backgrounds'), data);
+                alert("Background Criado!");
+            }
+            window.resetForm();
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao salvar: " + err.message);
+        }
+    });
+
+    // DELETAR
+    window.delBg = async (id) => {
+        if(confirm("Tem certeza que deseja excluir este background?")) {
+            await deleteDoc(doc(db, 'users', userId, 'backgrounds', id));
+        }
+    };
+    
+    window.toggleCreationMenu = () => {
+        const area = document.getElementById('creationArea');
+        const btn = document.getElementById('arrowBtn');
+        
+        area.classList.toggle('collapsed');
+        btn.classList.toggle('rotated');
+    };
+
+    // Inicia valores padrões
+    window.resetForm();
+
+</script>
+</body>
+</html>

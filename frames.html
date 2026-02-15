@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Molduras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body { background: #0b0b0b; color: #e6e6e6; font-family: 'Inter', sans-serif; padding-bottom: 100px; user-select: none; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+        
+        /* Navegação */
+        .page-nav { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; border-bottom: 1px solid #333; padding-bottom: 1rem; }
+        .page-link { padding: 0.5rem 1.5rem; color: #888; text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        .page-link:hover { color: #fff; background: #222; }
+        .page-link.active { color: #0b0b0b; background: #d4af37; }
+
+        /* Menu Retrátil */
+        #creationArea { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 3000px; overflow: hidden; opacity: 1; }
+        #creationArea.collapsed { max-height: 0; opacity: 0; margin: 0; padding: 0; border: none; pointer-events: none; }
+        .toggle-btn { cursor: pointer; transition: transform 0.3s; }
+        .toggle-btn.rotated { transform: rotate(-180deg); }
+
+        /* Inputs e UI */
+        input, select { width: 100%; background: #222; border: 1px solid #444; color: white; padding: 0.6rem; border-radius: 6px; outline: none; font-size: 0.9rem; }
+        input:focus { border-color: #d4af37; }
+        label { display: block; margin-bottom: 0.2rem; font-size: 0.75rem; color: #aaa; font-weight: bold; text-transform: uppercase; }
+        
+        /* Preview Container */
+        .preview-wrapper { background: #000; border-radius: 12px; padding: 20px; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
+        .frame-preview-container { 
+            position: relative; 
+            overflow: hidden; 
+            background: rgba(255,255,255,0.02);
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .frame-preview-container.vertical { width: 300px; height: 420px; border-radius: 16px; } /* Proporção ~ 2.5/3.5 */
+        .frame-preview-container.horizontal { width: 420px; height: 300px; border-radius: 12px; }
+
+        /* Elementos Gráficos */
+        .canvas-element { 
+            position: absolute; 
+            cursor: grab; 
+            transition: box-shadow 0.2s;
+        }
+        .canvas-element:active { cursor: grabbing; }
+        .canvas-element.selected { outline: 2px dashed #fff; z-index: 100 !important; }
+
+        /* Estilos Visuais (Themes) */
+        .style-neon .canvas-element { box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .style-classic .canvas-element { border: 2px solid rgba(255,255,255,0.3); background-image: linear-gradient(45deg, rgba(255,255,255,0.1), transparent); }
+        .style-pastel .canvas-element { opacity: 0.8; mix-blend-mode: screen; border: 1px solid rgba(255,255,255,0.5); }
+
+        /* Formas com ClipPath */
+        .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .shape-star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+        /* Lista de Itens */
+        .element-item { 
+            background: #1a1a1a; 
+            border-left: 3px solid #666; 
+            padding: 10px; 
+            margin-bottom: 8px; 
+            border-radius: 0 6px 6px 0;
+            transition: all 0.2s;
+        }
+        .element-item.active { border-left-color: #d4af37; background: #252525; }
+        .element-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer; }
+        
+        /* Grid de Molduras Salvas */
+        .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .frame-card { background: #151515; border: 1px solid #333; border-radius: 12px; overflow: hidden; transition: transform 0.2s; }
+        .frame-card:hover { transform: translateY(-5px); border-color: #d4af37; }
+        .mini-preview { width: 100%; height: 200px; position: relative; overflow: hidden; background: #000; }
+        .mini-element { position: absolute; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button onclick="window.location.href='home.html'" style="position: absolute; top: 1rem; left: 1rem; color: #888;">⬅ Voltar</button>
+
+    <header style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-family: 'Cinzel'; font-size: 2.5rem; color: #d4af37;">Editor de Molduras</h1>
+    </header>
+
+    <nav class="page-nav">
+        <a href="cards_manager.html" class="page-link">🃏 Cards</a>
+        <a href="frames.html" class="page-link active">🖼️ Molduras</a>
+        <a href="backgrounds.html" class="page-link">🌄 Backgrounds</a>
+    </nav>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1rem;">
+        <h2 id="editorTitle" style="font-family: 'Cinzel'; font-size: 1.5rem; color: #d4af37; margin: 0;">Criar Nova Moldura</h2>
+        <button onclick="toggleMenu()" id="arrowBtn" class="toggle-btn" style="background: #222; border: 1px solid #d4af37; color: #d4af37; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="chevron-up" style="width: 16px;"></i>
+        </button>
+    </div>
+
+    <div id="creationArea" style="background: #151515; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #333;">
+        <div style="display: grid; grid-template-columns: 350px 1fr; gap: 2rem;">
+            
+            <div style="display: flex; flex-direction: column; height: 600px;">
+                <form id="frameForm" onsubmit="event.preventDefault();" style="flex-shrink: 0;">
+                    <input type="hidden" id="frameId">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label>Nome</label>
+                            <input type="text" id="frameName" required placeholder="Nome...">
+                        </div>
+                        <div>
+                            <label>Orientação</label>
+                            <select id="frameOrient" onchange="updatePreview()">
+                                <option value="vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label>Tipo de Moldura</label>
+                    <select id="frameType" onchange="toggleType()">
+                        <option value="graphic">🎨 Gráficos (Formas)</option>
+                        <option value="image">🖼️ Imagem (PNG)</option>
+                    </select>
+
+                    <div id="globalStyleControls" style="margin-bottom: 10px;">
+                        <label>Estilo Visual (Efeito)</label>
+                        <select id="frameStyle" onchange="updatePreview()">
+                            <option value="solid">Sólido (Padrão)</option>
+                            <option value="neon">Neon (Brilho)</option>
+                            <option value="classic">Clássico (Borda Dupla)</option>
+                            <option value="pastel">Pastel (Suave)</option>
+                        </select>
+                    </div>
+                </form>
+
+                <div id="panelGraphic" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px; border-top: 1px solid #333; padding-top: 10px;">
+                        <button onclick="addElement('rect')" style="flex:1; background:#222; color:#fff; font-size:0.7rem; padding:5px; border-radius:4px;">+ Retângulo</button>
+                        <button onclick="addElement('circle')" style="flex:1; background:#222; color:#fff; font-size:0.7rem; padding:5px; border-radius:4px;">+ Círculo</button>
+                        <button onclick="addElement('star')" style="flex:1; background:#222; color:#fff; font-size:0.7rem; padding:5px; border-radius:4px;">+ Estrela</button>
+                        <button onclick="addElement('triangle')" style="flex:1; background:#222; color:#fff; font-size:0.7rem; padding:5px; border-radius:4px;">+ Triângulo</button>
+                    </div>
+
+                    <div id="elementsList" style="flex: 1; overflow-y: auto; padding-right: 5px; border: 1px solid #2a2a2a; border-radius: 6px; padding: 5px; background: #111;">
+                        </div>
+                </div>
+
+                <div id="panelImage" style="display: none;">
+                    <label>URL da Imagem</label>
+                    <input type="url" id="frameUrl" placeholder="https://..." oninput="updatePreview()">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>Zoom</label><input type="number" id="frameZoom" step="0.1" value="1" oninput="updatePreview()"></div>
+                        <div><label>Rotação</label><input type="number" id="frameRot" value="0" oninput="updatePreview()"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>X (%)</label><input type="number" id="frameX" value="0" oninput="updatePreview()"></div>
+                        <div><label>Y (%)</label><input type="number" id="frameY" value="0" oninput="updatePreview()"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                    <button onclick="saveFrame()" class="btn-main">Salvar Moldura</button>
+                    <button onclick="resetForm()" id="btnCancel" style="display:none; background:#333; color:#fff; padding:1rem; border-radius:6px; font-weight:bold;">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="preview-wrapper">
+                <div id="previewContainer" class="frame-preview-container vertical" onmousedown="startDrag(event)">
+                    <div id="previewContent" style="width: 100%; height: 100%; position: relative;"></div>
+                    
+                    <div style="position: absolute; inset: 15px; border: 1px dashed rgba(255,255,255,0.1); pointer-events: none; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.1);">
+                        ÁREA SEGURA
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; color: #aaa;">Galeria</h3>
+    <div id="framesGrid" class="grid-list">
+        <p style="color: #666;">Carregando...</p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // CONFIGURAÇÃO (Use a mesma dos outros arquivos)
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91", measurementId: "G-GLM50YVLXP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let userId = null;
+    let framesCache = [];
+    
+    // ESTADO DO EDITOR
+    let currentElements = [];
+    let selectedElementId = null;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let elementStart = { x: 0, y: 0 };
+
+    onAuthStateChanged(auth, u => {
+        if(u) {
+            userId = u.uid;
+            lucide.createIcons();
+            loadFrames();
+        } else window.location.href = 'home.html';
+    });
+
+    // --- CARREGAMENTO ---
+    function loadFrames() {
+        onSnapshot(query(collection(db, 'users', userId, 'frames')), snap => {
+            const grid = document.getElementById('framesGrid');
+            grid.innerHTML = '';
+            framesCache = [];
+            
+            if (snap.empty) {
+                grid.innerHTML = '<p style="color:#666;">Nenhuma moldura encontrada.</p>';
+                return;
+            }
+
+            snap.forEach(d => {
+                const f = {id: d.id, ...d.data()};
+                framesCache.push(f);
+                
+                // Gera o Mini Preview
+                let previewHTML = '';
+                const isVertical = f.orientation === 'vertical';
+                const scaleX = isVertical ? 200 / 300 : 200 / 420; // Aproximação de escala
+                
+                if (f.type === 'image') {
+                    previewHTML = `<img src="${f.imageUrl}" style="width:100%; height:100%; object-fit:contain; transform: scale(${f.config?.zoom||1}) rotate(${f.config?.rot||0}deg) translate(${f.config?.x||0}%, ${f.config?.y||0}%);">`;
+                } else {
+                    // Renderizar elementos gráficos miniaturizados
+                    const elsHTML = (f.elements || []).map(el => {
+                        const styleClass = f.styleTheme ? `style-${f.styleTheme}` : 'style-solid';
+                        let shapeClass = '';
+                        if(el.type === 'star') shapeClass = 'shape-star';
+                        if(el.type === 'triangle') shapeClass = 'shape-triangle';
+                        
+                        // Escalar posições para o mini preview
+                        // Como o preview tem width:100%, usamos porcentagem
+                        return `<div class="${styleClass} ${shapeClass}" style="
+                            position:absolute; 
+                            left:${el.x}px; top:${el.y}px; 
+                            width:${el.w}px; height:${el.h}px; 
+                            background:${el.color}; 
+                            border-radius:${el.type==='circle'?'50%':el.radius+'px'};
+                            transform: scale(0.6); transform-origin: top left;
+                        "></div>`;
+                    }).join('');
+                    previewHTML = `<div style="position:relative; width:100%; height:100%; overflow:hidden;">${elsHTML}</div>`;
+                }
+
+                grid.innerHTML += `
+                    <div class="frame-card">
+                        <div class="mini-preview">${previewHTML}</div>
+                        <div style="padding: 10px;">
+                            <div style="font-weight:bold; color:#d4af37; margin-bottom:5px;">${f.name}</div>
+                            <div style="font-size:0.7rem; color:#888; display:flex; justify-content:space-between;">
+                                <span>${f.type === 'image' ? 'IMG' : 'GFX'}</span>
+                                <span>${f.orientation === 'vertical' ? 'Vert' : 'Horiz'}</span>
+                            </div>
+                            <div style="display:flex; gap:5px; margin-top:10px;">
+                                <button onclick="editFrame('${f.id}')" style="flex:1; background:#d4af37; color:#000; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer;">Editar</button>
+                                <button onclick="deleteFrame('${f.id}')" style="background:#333; color:#ff5555; padding:5px 10px; border-radius:4px; cursor:pointer;">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    // --- LÓGICA DO EDITOR (CANVAS) ---
+
+    window.addElement = (type) => {
+        const id = Date.now();
+        // Cores padrão vibrantes
+        const colors = ['#d4af37', '#ff0055', '#00ccff', '#ffffff'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        currentElements.push({
+            id, type,
+            name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${currentElements.length + 1}`,
+            x: 20, y: 20,
+            w: 60, h: 60,
+            color: randomColor,
+            radius: 0
+        });
+        
+        selectElement(id);
+        renderElementsList();
+        updatePreview();
+    };
+
+    window.removeElement = (id, event) => {
+        if(event) event.stopPropagation();
+        currentElements = currentElements.filter(el => el.id !== id);
+        if(selectedElementId === id) selectedElementId = null;
+        renderElementsList();
+        updatePreview();
+    };
+
+    window.selectElement = (id) => {
+        selectedElementId = id;
+        renderElementsList(); // Atualiza classes visuais na lista
+        updatePreview();      // Atualiza borda de seleção no canvas
+    };
+
+    window.updateEl = (id, field, val) => {
+        const el = currentElements.find(e => e.id === id);
+        if(el) {
+            // Se for número, converte. Se for cor ou texto, mantem string.
+            if (field === 'color' || field === 'name') {
+                el[field] = val;
+            } else {
+                el[field] = parseInt(val) || 0;
+            }
+            updatePreview();
+            
+            // Se mudou o nome, atualiza o header na lista sem recriar tudo (opcional, mas aqui recriamos por simplicidade)
+            if(field === 'name') renderElementsList();
+        }
+    };
+
+    function renderElementsList() {
+        const list = document.getElementById('elementsList');
+        list.innerHTML = '';
+        
+        currentElements.forEach(el => {
+            const isActive = el.id === selectedElementId ? 'active' : '';
+            
+            // Controles Específicos baseados no tipo
+            let extraControls = '';
+            if(el.type === 'rect') {
+                extraControls = `
+                    <div><label>Radius</label><input type="number" value="${el.radius}" oninput="updateEl(${el.id}, 'radius', this.value)"></div>
+                `;
+            }
+
+            list.innerHTML += `
+                <div class="element-item ${isActive}" onclick="selectElement(${el.id})">
+                    <div class="element-header">
+                        <input type="text" value="${el.name}" oninput="updateEl(${el.id}, 'name', this.value)" onclick="event.stopPropagation()" style="background:transparent; border:none; border-bottom:1px dashed #666; width:70%; padding:0; margin:0;">
+                        <button onclick="removeElement(${el.id}, event)" style="color:#ff5555;">&times;</button>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                        <div><label>Cor</label><input type="color" value="${el.color}" oninput="updateEl(${el.id}, 'color', this.value)" style="height:30px; padding:0;"></div>
+                        ${extraControls}
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-top:5px;">
+                        <div><label>Largura</label><input type="number" value="${el.w}" oninput="updateEl(${el.id}, 'w', this.value)"></div>
+                        <div><label>Altura</label><input type="number" value="${el.h}" oninput="updateEl(${el.id}, 'h', this.value)"></div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                        <div><label>X</label><input type="number" value="${el.x}" oninput="updateEl(${el.id}, 'x', this.value)"></div>
+                        <div><label>Y</label><input type="number" value="${el.y}" oninput="updateEl(${el.id}, 'y', this.value)"></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // --- PREVIEW E DRAG & DROP ---
+
+    window.updatePreview = () => {
+        const type = document.getElementById('frameType').value;
+        const orient = document.getElementById('frameOrient').value;
+        const styleTheme = document.getElementById('frameStyle').value;
+        
+        const container = document.getElementById('previewContainer');
+        const content = document.getElementById('previewContent');
+        
+        // Ajusta container
+        container.className = `frame-preview-container ${orient} style-${styleTheme}`;
+        content.innerHTML = '';
+
+        // TIPO IMAGEM
+        if(type === 'image') {
+            const url = document.getElementById('frameUrl').value;
+            if(url) {
+                const zoom = document.getElementById('frameZoom').value;
+                const rot = document.getElementById('frameRot').value;
+                const x = document.getElementById('frameX').value;
+                const y = document.getElementById('frameY').value;
+                
+                content.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain; transform: scale(${zoom}) rotate(${rot}deg) translate(${x}%, ${y}%); pointer-events:none;">`;
+            }
+        } 
+        // TIPO GRÁFICO
+        else {
+            currentElements.forEach(el => {
+                const div = document.createElement('div');
+                div.className = `canvas-element ${el.id === selectedElementId ? 'selected' : ''}`;
+                div.dataset.id = el.id; // Para identificar no click
+                
+                // Estilos Base
+                div.style.left = `${el.x}px`;
+                div.style.top = `${el.y}px`;
+                div.style.width = `${el.w}px`;
+                div.style.height = `${el.h}px`;
+                div.style.backgroundColor = el.color;
+                div.style.color = el.color; // Para boxShadow usar currentColor
+
+                // Formas
+                if(el.type === 'circle') div.style.borderRadius = '50%';
+                else if(el.type === 'rect') div.style.borderRadius = `${el.radius}px`;
+                else if(el.type === 'triangle') div.classList.add('shape-triangle');
+                else if(el.type === 'star') div.classList.add('shape-star');
+
+                content.appendChild(div);
+            });
+        }
+    };
+
+    // --- DRAG AND DROP LOGIC ---
+    window.startDrag = (e) => {
+        if(document.getElementById('frameType').value !== 'graphic') return;
+        
+        const target = e.target.closest('.canvas-element');
+        if(!target) return;
+
+        e.preventDefault(); // Evita selecionar texto
+        isDragging = true;
+        selectedElementId = parseInt(target.dataset.id);
+        
+        // Seleciona na UI
+        selectElement(selectedElementId);
+
+        const elObj = currentElements.find(el => el.id === selectedElementId);
+        
+        dragStart = { x: e.clientX, y: e.clientY };
+        elementStart = { x: elObj.x, y: elObj.y };
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', stopDrag);
+    };
+
+    function onDrag(e) {
+        if(!isDragging) return;
+        
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        
+        const elObj = currentElements.find(el => el.id === selectedElementId);
+        if(elObj) {
+            elObj.x = elementStart.x + dx;
+            elObj.y = elementStart.y + dy;
+            updatePreview();
+        }
+    }
+
+    function stopDrag() {
+        if(isDragging) {
+            isDragging = false;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            renderElementsList(); // Atualiza os inputs numéricos na lista
+        }
+    }
+
+    // --- SALVAR / EDITAR / DELETAR ---
+
+    window.saveFrame = async () => {
+        const id = document.getElementById('frameId').value;
+        const type = document.getElementById('frameType').value;
+        
+        const data = {
+            name: document.getElementById('frameName').value,
+            orientation: document.getElementById('frameOrient').value,
+            type: type,
+            updatedAt: new Date().toISOString()
+        };
+
+        if(type === 'image') {
+            data.imageUrl = document.getElementById('frameUrl').value;
+            data.config = {
+                zoom: document.getElementById('frameZoom').value,
+                rot: document.getElementById('frameRot').value,
+                x: document.getElementById('frameX').value,
+                y: document.getElementById('frameY').value
+            };
+        } else {
+            data.styleTheme = document.getElementById('frameStyle').value;
+            data.elements = currentElements;
+        }
+
+        try {
+            if(id) {
+                await updateDoc(doc(db, 'users', userId, 'frames', id), data);
+                alert("Moldura Atualizada!");
+            } else {
+                data.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'users', userId, 'frames'), data);
+                alert("Moldura Criada!");
+            }
+            resetForm();
+        } catch(e) {
+            alert("Erro: " + e.message);
+        }
+    };
+
+    window.editFrame = (id) => {
+        const f = framesCache.find(x => x.id === id);
+        if(!f) return;
+
+        document.getElementById('frameId').value = f.id;
+        document.getElementById('frameName').value = f.name;
+        document.getElementById('frameOrient').value = f.orientation;
+        document.getElementById('frameType').value = f.type;
+
+        if(f.type === 'image') {
+            document.getElementById('frameUrl').value = f.imageUrl || '';
+            document.getElementById('frameZoom').value = f.config?.zoom || 1;
+            document.getElementById('frameRot').value = f.config?.rot || 0;
+            document.getElementById('frameX').value = f.config?.x || 0;
+            document.getElementById('frameY').value = f.config?.y || 0;
+        } else {
+            document.getElementById('frameStyle').value = f.styleTheme || 'solid';
+            currentElements = f.elements || [];
+            renderElementsList();
+        }
+
+        document.getElementById('editorTitle').innerText = "Editando Moldura";
+        document.getElementById('btnCancel').style.display = "block";
+        document.getElementById('creationArea').classList.remove('collapsed');
+        document.getElementById('arrowBtn').classList.remove('rotated');
+        
+        toggleType();
+    };
+
+    window.deleteFrame = async (id) => {
+        if(confirm("Eliminar moldura?")) await deleteDoc(doc(db, 'users', userId, 'frames', id));
+    };
+
+    window.resetForm = () => {
+        document.getElementById('frameForm').reset();
+        document.getElementById('frameId').value = '';
+        currentElements = [];
+        renderElementsList();
+        updatePreview();
+        
+        document.getElementById('editorTitle').innerText = "Criar Nova Moldura";
+        document.getElementById('btnCancel').style.display = "none";
+        toggleType();
+    };
+
+    // UI Helpers
+    window.toggleMenu = () => {
+        document.getElementById('creationArea').classList.toggle('collapsed');
+        document.getElementById('arrowBtn').classList.toggle('rotated');
+    };
+
+    window.toggleType = () => {
+        const t = document.getElementById('frameType').value;
+        document.getElementById('panelImage').style.display = t === 'image' ? 'block' : 'none';
+        document.getElementById('panelGraphic').style.display = t === 'graphic' ? 'flex' : 'none'; // Flex para o layout funcionar
+        document.getElementById('globalStyleControls').style.display = t === 'graphic' ? 'block' : 'none';
+        updatePreview();
+    };
+
+    // Init
+    toggleType();
+
+</script>
+</body>
+</html>
