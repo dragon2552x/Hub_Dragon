@@ -3,16 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Hub Pessoal</title>
+    <title>Meu Hub - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #0b0b0b; color: #e6e6e6; font-family: 'Inter', sans-serif; }
-        .bg-panel { background: #151515; border: 1px solid #2a2a2a; }
-        .accent { color: #B9314F; }
-        .btn-red { background: #B9314F; }
-        .btn-red:hover { background: #a12745; }
-        .hover-panel:hover { background: #1f1f1f; }
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', sans-serif;
+            /* Gradiente de fundo sutil estilo Xbox */
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+        }
+
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Efeito de "Glow" e foco estilo Xbox nos Tiles */
+        .xbox-tile {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .xbox-tile:hover {
+            transform: scale(1.05);
+            border-color: rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
     </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <aside class="hidden md:flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 z-20 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="gamepad-2" class="w-10 h-10"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-6 items-center flex-1">
+            <a href="#" class="text-accent p-2 bg-white/5 rounded-xl" title="Home">
+                <i data-lucide="home" class="w-7 h-7"></i>
+            </a>
+            <a href="#" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Configurações">
+                <i data-lucide="settings" class="w-7 h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn-desktop" class="mt-auto text-red-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-7 h-7"></i>
+        </button>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+            <div>
+                 <h1 class="md:hidden text-2xl font-bold text-accent flex items-center gap-2">
+                    <i data-lucide="sparkle" class="w-6 h-6"></i> My Hub
+                </h1>
+                <h2 class="hidden md:block text-xl text-gray-300">Bem-vindo de volta,</h2>
+            </div>
+
+            <div class="flex items-center gap-4 glass-panel px-4 py-2 rounded-full">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+                        <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span id="user-info" class="text-sm font-medium truncate max-w-[150px] md:max-w-none">Carregando...</span>
+                </div>
+                <button id="logout-btn-mobile" class="md:hidden text-red-500 p-1 hover:bg-white/10 rounded-full">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 md:px-8 pb-24 md:pb-8">
+            
+            <section>
+                <h3 class="text-lg font-semibold mb-4 text-gray-100 flex items-center gap-2">
+                    <i data-lucide="grid" class="w-5 h-5 text-accent"></i> Seu Painel
+                </h3>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    
+                    <a href="games_manager.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-shadow">
+                             <i data-lucide="gamepad-2" class="w-8 h-8 mb-2 text-green-500"></i>
+                            <h4 class="font-bold">Games</h4>
+                        </div>
+                    </a>
+
+                    <a href="cards.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-shadow">
+                             <i data-lucide="layers" class="w-8 h-8 mb-2 text-yellow-500"></i>
+                            <h4 class="font-bold">Cards</h4>
+                        </div>
+                    </a>
+
+                    <a href="animes_manager.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-shadow">
+                             <i data-lucide="tv" class="w-8 h-8 mb-2 text-red-500"></i>
+                            <h4 class="font-bold">Animes</h4>
+                        </div>
+                    </a>
+
+                    <a href="hqs_manager.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-shadow">
+                             <i data-lucide="book" class="w-8 h-8 mb-2 text-purple-500"></i>
+                            <h4 class="font-bold">HQs</h4>
+                        </div>
+                    </a>
+
+                    <a href="manga_manager.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                         <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-shadow">
+                             <i data-lucide="book-marked" class="w-8 h-8 mb-2 text-orange-500"></i>
+                            <h4 class="font-bold">Mangá</h4>
+                        </div>
+                    </a>
+
+                     <a href="manhwa_manager.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                        <div class="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                         <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-shadow">
+                             <i data-lucide="scroll-text" class="w-8 h-8 mb-2 text-cyan-400"></i>
+                            <h4 class="font-bold">Manhwa</h4>
+                        </div>
+                    </a>
+
+                    <a href="to_do.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                         <div class="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-shadow">
+                             <i data-lucide="check-square" class="w-8 h-8 mb-2 text-blue-500"></i>
+                            <h4 class="font-bold">To Do</h4>
+                        </div>
+                    </a>
+
+                    <a href="academia_exercicios.html" class="xbox-tile relative aspect-square bg-[#2a2a2a] rounded-xl overflow-hidden group block">
+                         <div class="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-transparent opacity-50 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 p-4 flex flex-col justify-end hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition-shadow">
+                             <i data-lucide="dumbbell" class="w-8 h-8 mb-2 text-emerald-400"></i>
+                            <h4 class="font-bold">Academia</h4>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 w-full glass-panel border-t border-white/10 p-2 flex justify-around items-center z-30">
+        <a href="#" class="flex flex-col items-center text-accent p-2">
+            <i data-lucide="home" class="w-6 h-6"></i>
+            <span class="text-xs mt-1 font-medium">Início</span>
+        </a>
+        <button class="flex flex-col items-center text-gray-500 hover:text-gray-200 p-2">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Config</span>
+        </button>
+    </nav>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -31,14 +209,12 @@
         const auth = getAuth(app);
 
         const userInfo = document.getElementById('user-info');
-        const logoutBtn = document.getElementById('logout-btn');
+        const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
         const logoutBtnMobile = document.getElementById('logout-btn-mobile');
-        const menuBtn = document.getElementById('menu-btn');
-        const menuList = document.getElementById('menu-list');
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                userInfo.textContent = `Conectado como: ${user.email}`;
+                userInfo.textContent = user.email;
             } else {
                 window.location.href = 'index.html';
             }
@@ -50,65 +226,8 @@
             });
         }
 
-        if (logoutBtn) logoutBtn.addEventListener('click', logoutAction);
+        if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', logoutAction);
         if (logoutBtnMobile) logoutBtnMobile.addEventListener('click', logoutAction);
-
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                menuList.classList.toggle('hidden');
-            });
-        }
     </script>
-</head>
-<body class="bg-[#0b0b0b] text-[#e6e6e6] min-h-screen flex flex-col md:flex-row">
-
-    <!-- Sidebar (Desktop) -->
-    <aside class="hidden md:flex md:flex-col bg-panel w-64 h-screen p-6 border-r border-gray-800 fixed">
-        <h1 class="text-2xl font-bold mb-8 text-center accent">Meu Hub</h1>
-        <nav class="space-y-4">
-            <a href="home.html" class="block px-3 py-2 rounded hover-panel">Início</a>
-            <a href="games_manager.html" class="block px-3 py-2 rounded hover-panel">Games</a>
-            <a href="animes_manager.html" class="block px-3 py-2 rounded hover-panel">Animes</a>
-            <a href="hqs_manager.html" class="block px-3 py-2 rounded hover-panel">HQs</a>
-            <a href="manga_manager.html" class="block px-3 py-2 rounded hover-panel">Manga</a>
-            <a href="manhwa_manager.html" class="block px-3 py-2 rounded hover-panel">Manhwa</a>
-            <a href="to_do.html" class="block px-3 py-2 rounded hover-panel">To Do</a>
-            <a href="academia_exercicios.html" class="block px-3 py-2 rounded hover-panel">Academia</a>
-            <a href="cards_manager.html" class="block px-3 py-2 rounded hover-panel">Cards</a>
-        </nav>
-        <button id="logout-btn" class="mt-auto btn-red text-white w-full py-2 rounded-lg transition">Sair</button>
-    </aside>
-
-    <!-- Conteúdo Principal -->
-    <div class="flex-1 md:ml-64 flex flex-col justify-between">
-        <header class="bg-panel p-4 flex justify-between items-center shadow-lg md:hidden">
-            <button 
-            onclick="window.location.href='home.html'"class="text-2xl font-bold accent hover:text-[#B9314F] transition-colors duration-200">My Hub</button>
-            <button id="logout-btn-mobile"class="btn-red text-white px-4 py-2 rounded-lg transition">Sair</button>
-        </header>
-
-        <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
-            <h2 class="text-3xl font-bold mb-4 accent">Bem-vindo(a)!</h2>
-            <p id="user-info" class="text-lg text-gray-300"></p>
-        </main>
-
-        <!-- Menu inferior (modo celular) -->
-        <nav class="bg-panel p-4 md:hidden fixed bottom-0 w-full border-t border-gray-800">
-            <div class="flex justify-between items-center">
-                <span class="text-gray-300">Menu</span>
-                <button id="menu-btn" class="btn-red text-white px-3 py-1 rounded">Mostrar</button>
-            </div>
-            <ul id="menu-list" class="hidden mt-3 space-y-2 text-gray-300">
-                <li><a href="games_manager.html" class="block hover:text-white">Games</a></li>
-                <li><a href="animes_manager.html" class="block hover:text-white">Animes</a></li>
-                <li><a href="hqs_manager.html" class="block hover:text-white">HQs</a></li>
-                <li><a href="manga_manager.html" class="block hover:text-white">Manga</a></li>
-                <li><a href="manhwa_manager.html" class="block hover:text-white">Manhwa</a></li>
-                <li><a href="to_do.html" class="block hover:text-white">To Do</a></li>
-                <li><a href="academia_exercicios.html" class="block hover:text-white">Academia</a></li>
-                <li><a href="cards_manager.html" class="block hover:text-white">Cards</a></li>
-            </ul>
-        </nav>
-    </div>
 </body>
 </html>
