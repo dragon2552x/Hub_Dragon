@@ -3,158 +3,333 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gerenciador de HQs</title>
+  <title>Gerenciador de HQs — My Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Estilos e Fonte do academia_diario.html -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
-    .card:hover { border-color:#B9314F; transform:translateY(-4px); }
-    .btn-primary { background:#B9314F; color: white; }
-    .btn-primary:hover { background:#99233b; }
-    /* Ajuste para inputs do modal */
-    .modal-input {
-      background-color: #1f2937; /* bg-gray-800 */
-      border: 1px solid #374151; /* border-gray-700 */
-    }
-    .modal-input:focus {
-      outline: none;
-      border-color: #B9314F;
-    }
+      /* Configurações Base */
+      :root {
+          --accent-color: #B9314F;
+          --bg-dark: #0b0b0b;
+          --bg-panel: #151515;
+      }
+      body {
+          background-color: var(--bg-dark);
+          color: #e6e6e6;
+          font-family: 'Inter', system-ui, sans-serif;
+          /* Gradiente de fundo sutil estilo Xbox */
+          background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+          min-height: 100vh;
+      }
+
+      /* Utilitários de Estilo */
+      .text-accent { color: var(--accent-color); }
+      .bg-accent { background-color: var(--accent-color); }
+      
+      /* Painéis translúcidos */
+      .glass-panel {
+          background: rgba(21, 21, 21, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      /* Cards com efeito Xbox (Janela Fosca / Vidro) */
+      .task-card {
+          background: rgba(30, 30, 30, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+      }
+      .task-card:hover {
+          transform: translateY(-4px);
+          background: rgba(40, 40, 40, 0.6);
+          border-color: rgba(185, 49, 79, 0.3);
+          box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+      }
+
+      /* Inputs estilo Xbox */
+      input, select, textarea {
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s;
+          color: white;
+          color-scheme: dark;
+      }
+      input:focus, select:focus, textarea:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+          outline: none;
+      }
+
+      /* Conserta a cor da lista que abre no Select */
+      option {
+          background-color: var(--bg-panel);
+          color: #e6e6e6;
+          padding: 10px;
+      }
+
+      /* Botões com efeito Xbox */
+      .xbox-button {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s;
+      }
+      .xbox-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.6s;
+      }
+      .xbox-button:hover::before {
+          transform: translateX(100%);
+      }
+      .xbox-button:hover {
+          transform: scale(1.02);
+          box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+      }
+
+      /* Scrollbar customizada */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg-dark); }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+      /* Sidebar retrátil */
+      .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          transform: translateX(0);
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: 50;
+      }
+      .sidebar.hidden {
+          transform: translateX(-100%);
+      }
+      
+      /* Ajustar conteúdo quando sidebar está visível */
+      .main-content {
+          margin-left: 80px;
+          transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .main-content.sidebar-hidden {
+          margin-left: 0;
+      }
+
+      /* Botão toggle */
+      .toggle-sidebar-btn {
+          transition: all 0.3s;
+      }
+      .toggle-sidebar-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(185, 49, 79, 0.4);
+      }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="flex h-screen overflow-hidden">
 
-  <!-- LOADING SPINNER -->
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
+  <!-- OVERLAY DE CARREGAMENTO -->
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
   </div>
 
-  <!-- APP (Container principal) -->
-  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
-    <!-- MENU SUPERIOR FIXO -->
-    <header class="bg-[#1f1f1f] p-2 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg rounded-lg">
-      <div class="flex flex-col">
-        <!-- Linha superior: My Hub e Minhas HQs -->
-        <div class="flex justify-between items-center">
-          <button 
-            onclick="window.location.href='home.html'"
-            class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200"
-          >
-            My Hub
-          </button>
-          <h1 class="text-2xl font-bold text-white">Minhas HQs</h1>
-        </div>
-
-        <!-- Linha inferior: Usuário -->
-        <div class="text-sm text-gray-300 mt-1">
-          Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
-        </div>
+  <!-- SIDEBAR RETRÁTIL -->
+  <aside id="sidebar" class="sidebar flex flex-col w-20 bg-panel border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+      <div class="text-accent mb-8">
+          <i data-lucide="sparkle" class="w-10 h-10"></i>
       </div>
-    </header>
+      
+      <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+          <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+              <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
 
-    <!-- BOTÕES DE AÇÃO -->
-    <div class="mt-6 mb-6 flex justify-between items-center gap-4 flex-wrap">
-      <!-- Botão Adicionar HQ -->
-      <button 
-        id="add-btn"
-        class="bg-[#B9314F] hover:bg-[#992743] px-4 py-2 rounded-md text-white transition-colors duration-200"
-      >
-        + Adicionar HQ
+          <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+              <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+              <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards">
+              <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <!-- Ativo: HQs -->
+          <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="HQs">
+              <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+              <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+              <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+              <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+              <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+      </nav>
+
+      <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+          <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
       </button>
+  </aside>
 
-      <!-- Botão Mostrar Filtros -->
-      <button 
-        id="toggle-filter-btn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md text-white transition-colors duration-200">Mostrar Filtros
-      </button>
-    </div>
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+      
+      <!-- HEADER -->
+      <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+          <div class="flex items-center gap-3">
+              <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                  <i data-lucide="menu" class="w-5 h-5"></i>
+              </button>
+              
+              <div>
+                  <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                      <i data-lucide="book-open-text" class="text-accent"></i> Minhas HQs
+                  </h2>
+              </div>
+          </div>
+          
+          <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+          </div>
+      </header>
 
-    <header class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 border-b border-gray-800 pb-4">
-      <!-- Botões do Header -->
-      <div class="flex items-center gap-0">
-        <button id="add-btn" class="px-0 py-0 rounded btn-primary"></button>
-        <button id="logout-btn" class="px-0 py-0 rounded bg-red-600 hover:bg-red-700"></button>
+      <!-- ÁREA DE CONTEÚDO (Oculta até carregar os dados) -->
+      <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 hidden">
+          <div class="max-w-6xl mx-auto">
+              
+              <!-- AÇÕES TOPO -->
+              <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                  <button id="add-btn" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                      <i data-lucide="plus-circle" class="w-5 h-5"></i> Nova HQ
+                  </button>
+
+                  <button id="toggle-filter-btn" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-2.5 rounded-xl border border-white/10 transition-all font-bold text-sm flex items-center justify-center gap-2">
+                      <i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros
+                  </button>
+              </div>
+
+              <!-- PAINEL DE FILTROS -->
+              <div id="filter-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+                  <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div>
+                          <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Pesquisa</label>
+                          <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="w-full rounded-xl px-4 py-2.5">
+                      </div>
+                      <div>
+                          <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Protagonista</label>
+                          <select id="filter-protagonist" class="w-full rounded-xl px-4 py-2.5"></select>
+                      </div>
+                      <div>
+                          <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Status</label>
+                          <select id="filter-status" class="w-full rounded-xl px-4 py-2.5">
+                              <option value="">Todos os status</option>
+                              <option value="Lido">Lido</option>
+                              <option value="Lendo">Lendo</option>
+                              <option value="Quero Ler">Quero Ler</option>
+                              <option value="Dropei">Dropei</option>
+                          </select>
+                      </div>
+                      <div>
+                          <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Avaliação</label>
+                          <select id="filter-stars" class="w-full rounded-xl px-4 py-2.5">
+                              <option value="">Todas as estrelas</option>
+                              <option value="1">1 Estrela</option>
+                              <option value="2">2 Estrelas</option>
+                              <option value="3">3 Estrelas</option>
+                              <option value="4">4 Estrelas</option>
+                              <option value="5">5 Estrelas</option>
+                          </select>
+                      </div>
+                  </section>
+
+                  <div class="flex justify-end items-center gap-3 pt-4 border-t border-white/5">
+                      <label class="text-sm font-semibold text-gray-400">Ordenar por:</label>
+                      <select id="sort-select" class="w-48 rounded-xl px-4 py-2.5 text-sm">
+                          <option value="name">Nome</option>
+                          <option value="stars">Estrelas</option>
+                          <option value="chapters">Capítulos</option>
+                          <option value="status">Status</option>
+                      </select>
+                  </div>
+              </div>
+
+              <!-- LISTA DE CARDS -->
+              <div id="cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+              
+              <div id="empty" class="text-center py-16 hidden">
+                  <i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i>
+                  <p class="text-lg text-gray-500 font-semibold">Nenhuma HQ encontrada.</p>
+              </div>
+
+          </div>
       </div>
-    </header>
+  </main>
 
-    <!-- Contêiner Colapsável de Filtros e Ordenação (Estilizado como card) -->
-    <div id="filter-container" class="hidden bg-[#151515] border border-[#2a2a2a] p-4 rounded-lg mb-6">
-      <!-- Seção de Filtros -->
-      <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <input id="search-input" type="text" placeholder="Pesquisar por nome..." class="p-2 rounded bg-gray-800 border border-gray-700">
-        <select id="filter-protagonist" class="p-2 rounded bg-gray-800 border border-gray-700"></select>
-        <select id="filter-status" class="p-2 rounded bg-gray-800 border border-gray-700">
-          <option value="">Todos os status</option>
-          <option value="Lido">Lido</option>
-          <option value="Lendo">Lendo</option>
-          <option value="Quero Ler">Quero Ler</option>
-          <option value="Dropei">Dropei</option>
-        </select>
-        <select id="filter-stars" class="p-2 rounded bg-gray-800 border border-gray-700">
-          <option value="">Todas as estrelas</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
-      </section>
-
-      <!-- Seção de Ordenação -->
-      <div class="flex justify-end space-x-3">
-        <label class="my-auto">Ordenar por:</label>
-        <select id="sort-select" class="p-2 rounded bg-gray-800 border border-gray-700">
-          <option value="name">Nome</option>
-          <option value="stars">Estrelas</option>
-          <option value="chapters">Capítulos</option>
-          <option value="status">Status</option>
-        </select>
+  <!-- MODAL ADICIONAR/EDITAR -->
+  <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 overflow-auto p-4 transition-all">
+    <div class="glass-panel rounded-2xl w-full max-w-xl p-6 shadow-2xl relative border border-white/10">
+      
+      <div class="flex justify-between items-center mb-6">
+        <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="book-open-text" class="w-5 h-5 text-accent"></i> Nova HQ
+        </h2>
+        <button id="close-modal" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-    </div>
-    <!-- Fim do Contêiner Colapsável -->
 
-    <!-- Contêiner dos Cards -->
-    <div id="cards" class="flex flex-col gap-4"></div>
-    <p id="empty" class="text-center text-gray-500 hidden">Nenhuma HQ encontrada.</p>
-  </div>
-  <!-- Fim do #app -->
-
-
-  <!-- Modal de Edição/Cadastro (Movido para fora do #app) -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 overflow-auto">
-    <!-- Estilo do Modal do academia_diario.html -->
-    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-6 m-4">
-      <h2 id="modal-title" class="text-xl font-bold mb-4">Nova HQ</h2>
-      <form id="hq-form" class="space-y-3">
+      <form id="hq-form" class="space-y-4">
         <input type="hidden" id="hq-id">
+        
         <div>
-          <label class="block text-sm">Título</label>
-          <input id="hq-title" type="text" class="w-full p-2 rounded modal-input" required>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Título</label>
+          <input id="hq-title" type="text" class="w-full rounded-xl px-4 py-3 text-sm" required placeholder="Nome da HQ">
         </div>
+        
         <div>
-          <label class="block text-sm">Imagem (URL)</label>
-          <input id="hq-img" type="url" class="w-full p-2 rounded modal-input">
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">URL da Imagem</label>
+          <input id="hq-img" type="url" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="https://...">
         </div>
+        
         <div>
-          <label class="block text-sm">Protagonista</label>
-          <input id="hq-protagonist" type="text" class="w-full p-2 rounded modal-input">
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Protagonista</label>
+          <input id="hq-protagonist" type="text" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="Batman, Homem-Aranha, etc...">
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm">Estrelas</label>
-            <select id="hq-stars" class="w-full p-2 rounded modal-input">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Estrelas</label>
+            <select id="hq-stars" class="w-full rounded-xl px-4 py-3 text-sm">
+              <option value="0">Sem Avaliação</option>
+              <option value="1">1 Estrela</option>
+              <option value="2">2 Estrelas</option>
+              <option value="3">3 Estrelas</option>
+              <option value="4">4 Estrelas</option>
+              <option value="5">5 Estrelas</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm">Status</label>
-            <select id="hq-status" class="w-full p-2 rounded modal-input">
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Status</label>
+            <select id="hq-status" class="w-full rounded-xl px-4 py-3 text-sm">
               <option value="Lendo">Lendo</option>
               <option value="Lido">Lido</option>
               <option value="Quero Ler">Quero Ler</option>
@@ -162,38 +337,56 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm">Capítulos Totais</label>
-            <input id="hq-total" type="number" min="0" class="w-full p-2 rounded modal-input">
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Capítulos Totais</label>
+            <input id="hq-total" type="number" min="0" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="Ex: 50">
           </div>
           <div>
-            <label class="block text-sm">Capítulos Lidos</label>
-            <input id="hq-read" type="number" min="0" class="w-full p-2 rounded modal-input">
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Capítulos Lidos</label>
+            <input id="hq-read" type="number" min="0" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="Ex: 12">
           </div>
         </div>
+        
         <div>
-          <label class="block text-sm">Observações</label>
-          <textarea id="hq-notes" rows="3" class="w-full p-2 rounded modal-input"></textarea>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Observações</label>
+          <textarea id="hq-notes" rows="3" class="w-full rounded-xl px-4 py-3 text-sm resize-none" placeholder="Detalhes, resenhas..."></textarea>
         </div>
-        <div class="flex justify-end space-x-3 pt-3">
-          <!-- Botões com estilo atualizado -->
-          <button type="submit" class="px-4 py-2 rounded btn-primary">Salvar</button>
-          <button id="delete-btn" type="button" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
-          <button type="button" id="close-modal" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+        
+        <div class="flex items-center gap-3 pt-4 mt-2 border-t border-white/5">
+            <button id="delete-btn" type="button" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+            <button type="submit" class="xbox-button flex-1 bg-accent text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-5 h-5"></i> Salvar
+            </button>
         </div>
       </form>
     </div>
   </div>
-  <!-- Fim do Modal -->
 
+  <!-- SCRIPT PARA UI DA SIDEBAR -->
+  <script>
+      lucide.createIcons();
+      
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      
+      toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('hidden');
+          mainContent.classList.toggle('sidebar-hidden');
+      });
+  </script>
 
+  <!-- FIREBASE E LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Configuração do Firebase (mantida)
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
       authDomain: "list-games-9bddd.firebaseapp.com",
@@ -208,12 +401,11 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- Novos Seletores de UI ---
+    // --- Seletores de UI ---
     const loading = document.getElementById('loading');
-    const appEl = document.getElementById('app'); // Renomeado de 'app' para 'appEl' para evitar conflito com 'app' do Firebase
+    const appEl = document.getElementById('app');
     const userEmailEl = document.getElementById('user-email');
 
-    // Seletores de Elementos (mantidos)
     const cards = document.getElementById('cards');
     const empty = document.getElementById('empty');
     const modal = document.getElementById('modal');
@@ -229,80 +421,79 @@
     const filterStars = document.getElementById('filter-stars');
     const sortSelect = document.getElementById('sort-select');
 
-    // Novos seletores para o filtro
     const toggleFilterBtn = document.getElementById('toggle-filter-btn');
     const filterContainer = document.getElementById('filter-container');
 
-    let allHqs = [];
+    let allHqs =[];
     let currentUser = null;
     let editingId = null;
-    let isFirstLoad = true; // Flag para controlar o loading
+    let isFirstLoad = true;
 
-    // Autenticação (Atualizada com Loading e User Email)
+    // Autenticação
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = 'index.html';
         return;
       }
       currentUser = user;
-      userEmailEl.textContent = user.email || user.uid; // Define o email
+      userEmailEl.textContent = user.email || user.uid;
 
       const q = query(collection(db, 'users', user.uid, 'hqs'));
+      
       onSnapshot(q, (snap) => {
-        allHqs = [];
+        allHqs =[];
         snap.forEach(doc => allHqs.push({ id: doc.id, ...doc.data() }));
         updateFilters();
         render();
 
-        // Esconde o loading e mostra o app apenas na primeira carga
         if (isFirstLoad) {
           loading.classList.add('hidden');
           appEl.classList.remove('hidden');
           isFirstLoad = false;
         }
       }, (error) => {
-        // Trata erro do listener
         console.error("Erro ao buscar HQs: ", error);
         if (isFirstLoad) {
           loading.classList.add('hidden');
           appEl.classList.remove('hidden');
           isFirstLoad = false;
         }
-        // Você pode querer mostrar uma mensagem de erro na UI
-        cards.innerHTML = "<p class='text-center text-red-400'>Erro ao carregar dados.</p>";
+        cards.innerHTML = "<p class='text-center text-red-400 font-semibold'>Erro ao carregar dados.</p>";
       });
     });
 
-    // Logout (mantido)
+    // Logout
     logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = 'index.html';
     });
 
-    // Event Listener para Togglar Filtros (mantido)
+    // Filtros UI
     toggleFilterBtn.addEventListener('click', () => {
       const isHidden = filterContainer.classList.toggle('hidden');
       if (isHidden) {
-        toggleFilterBtn.textContent = 'Mostrar Filtros';
+        toggleFilterBtn.innerHTML = '<i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros';
       } else {
-        toggleFilterBtn.textContent = 'Esconder Filtros';
+        toggleFilterBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Esconder Filtros';
       }
+      lucide.createIcons();
     });
 
-    // Abrir Modal para Adicionar (mantido)
+    // Abrir Modal Adicionar
     addBtn.addEventListener('click', () => {
       editingId = null;
       form.reset();
       deleteBtn.classList.add('hidden');
-      document.getElementById('modal-title').textContent = 'Nova HQ';
+      document.getElementById('modal-title').innerHTML = '<i data-lucide="book-open-text" class="w-5 h-5 text-accent"></i> Nova HQ';
+      lucide.createIcons();
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     });
 
-    // Fechar Modal (mantido)
+    // Fechar Modal
     closeModal.addEventListener('click', () => modal.classList.add('hidden'));
 
-    // Submit do Formulário (Add/Edit) (mantido)
+    // Submit Formulário
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {
@@ -328,9 +519,9 @@
       }
     });
 
-    // Abrir Modal para Editar (lógica de clique mantida)
+    // Abrir Modal Editar
     cards.addEventListener('click', async (e) => {
-      const card = e.target.closest('.card');
+      const card = e.target.closest('.task-card');
       if (!card) return;
       
       const id = card.dataset.id;
@@ -355,7 +546,8 @@
         document.getElementById('hq-notes').value = data.notes || '';
         
         deleteBtn.classList.remove('hidden');
-        document.getElementById('modal-title').textContent = 'Editar HQ';
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> Editar HQ';
+        lucide.createIcons();
         modal.classList.remove('hidden');
         modal.classList.add('flex');
       } catch (error) {
@@ -363,25 +555,26 @@
       }
     });
 
-    // Deletar HQ (mantido)
+    // Deletar
     deleteBtn.addEventListener('click', async () => {
       if (!editingId) return;
-      // Adicionar uma confirmação visual seria uma boa prática
-      try {
-        await deleteDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId));
-        modal.classList.add('hidden');
-      } catch (error) {
-        console.error("Erro ao deletar HQ: ", error);
+      if (confirm('Deseja realmente excluir esta HQ?')) {
+        try {
+          await deleteDoc(doc(db, 'users', currentUser.uid, 'hqs', editingId));
+          modal.classList.add('hidden');
+        } catch (error) {
+          console.error("Erro ao deletar HQ: ", error);
+        }
       }
     });
 
-    // Atualizar Filtros (mantido)
+    // Atualizar Filtros de Protagonista
     function updateFilters() {
       const protagonists = [...new Set(allHqs.map(hq => hq.protagonist).filter(Boolean))];
-      filterProtagonist.innerHTML = '<option value="">Todos os protagonistas</option>' + protagonists.map(p => `<option value="${p}">${p}</option>`).join('');
+      filterProtagonist.innerHTML = '<option value="">Todos os Protagonistas</option>' + protagonists.map(p => `<option value="${p}">${p}</option>`).join('');
     }
 
-    // Função de Renderização (Estilo do Card ATUALIZADO)
+    // Renderizar
     function render() {
       let filtered = allHqs.filter(hq => {
         return (
@@ -406,31 +599,39 @@
       }
       empty.classList.add('hidden');
 
-      // Template HTML ATUALIZADO
       filtered.forEach(hq => {
         cards.innerHTML += `
-          <div class='card flex rounded-lg overflow-hidden cursor-pointer p-3' data-id='${hq.id}'>
+          <div class='task-card rounded-2xl overflow-hidden cursor-pointer p-4 flex gap-4' data-id='${hq.id}'>
             <img src='${hq.image || 'https://placehold.co/200x300/151515/e0e0e0?text=Capa'}' 
-                 class='w-32 h-48 object-cover rounded-md border border-gray-700' 
+                 class='w-24 h-36 object-cover rounded-xl border border-white/10 shadow-md flex-shrink-0' 
                  onerror="this.src='https://placehold.co/200x300/151515/e0e0e0?text=Capa'; this.onerror=null;">
-            <div class='ml-4 flex flex-col justify-between flex-1 py-1'>
+            
+            <div class='flex flex-col justify-between flex-1 py-1 min-w-0'>
               <div>
-                <h3 class='text-xl font-semibold mb-1 text-[#B9314F]'>${hq.name}</h3>
-                <!-- ESTRELAS ATUALIZADAS AQUI -->
-                <div class="text-xl text-yellow-400">${'★'.repeat(hq.stars)}${'☆'.repeat(5 - hq.stars)}</div>
-                <span class='text-sm px-2 py-1 rounded-full bg-gray-700 mt-2 mb-2 inline-block'>${hq.status}</span>
+                <h3 class='text-lg font-bold mb-1 text-white truncate' title="${hq.name}">${hq.name}</h3>
+                <div class="text-sm text-yellow-500 mb-2 tracking-widest">${'★'.repeat(hq.stars)}${'☆'.repeat(5 - hq.stars)}</div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <span class='text- uppercase font-bold px-2 py-1 rounded-md bg-white/5 border border-white/10 text-gray-300 inline-block truncate'>
+                        ${hq.status}
+                    </span>
+                    ${hq.protagonist ? `<span class='text- uppercase font-bold px-2 py-1 rounded-md bg-accent/20 border border-white/10 text-accent inline-block truncate'>
+                        ${hq.protagonist}
+                    </span>` : ''}
+                </div>
               </div>
-              <p class='text-sm text-gray-400'>Capítulos: ${hq.read || 0} / ${hq.total || 0}</p>
+              
+              <p class='text-xs text-gray-500 font-semibold mt-3'>
+                  Capítulos: <span class="text-accent text-sm font-bold">${hq.read || 0}</span> <span class="opacity-50">/ ${hq.total || 0}</span>
+              </p>
             </div>
           </div>`;
       });
     }
 
-    // Event Listeners para filtros (mantidos)
+    // Event Listeners Render (Filtros e Ordenação seguros contra falhas).forEach(el => {
     [searchInput, filterProtagonist, filterStatus, filterStars, sortSelect].forEach(el => el.addEventListener('input', render));
-  
+
   </script>
 </body>
 </html>
-
-
