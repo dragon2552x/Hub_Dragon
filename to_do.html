@@ -1,188 +1,655 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>To-Do — Lembretes e Tarefas</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-      font-family: Inter, system-ui, sans-serif;
-      background: #0b0b0b;
-      color: #e6e6e6;
-    }
-    .card {
-      background: #151515;
-      border: 1px solid #2a2a2a;
-      transition: all .2s;
-    }
-    .card:hover {
-      border-color: #B9314F;
-      transform: translateY(-2px);
-    }
-  </style>
-</head>
-<body class="min-h-screen">
-  <!-- Loading -->
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
-  </div>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>To-Do — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', sans-serif;
+            /* Gradiente de fundo sutil estilo Xbox */
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+        }
 
-  <!-- App -->
-  <div id="app" class="container mx-auto p-6 max-w-5xl hidden">
-    <!-- Header -->
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold">Lista de Tarefas</h1>
-        <p class="text-sm text-gray-400 mt-1">
-          Usuário: <span id="user-email" class="text-[#B9314F] font-mono"></span>
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button onclick="window.location.href='home.html'"
-                class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700">Home</button>
-        <button id="logout-btn"
-                class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
-      </div>
-    </header>
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-    <!-- Formulário de nova tarefa -->
-    <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 mb-6">
-      <h2 class="text-xl font-semibold mb-3">Nova Tarefa</h2>
-      <form id="form-tarefa" class="flex flex-col gap-3">
-        <input id="tarefa-titulo" type="text" placeholder="Título da tarefa"
-               class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white" required>
-        <textarea id="tarefa-observacao" placeholder="Observação (opcional)"
-                  class="w-full p-2 h-24 rounded bg-gray-800 border border-gray-700 text-white resize-none"></textarea>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input id="tarefa-data" type="date"
-                 class="p-2 rounded bg-gray-800 border border-gray-700 text-white flex-1 sm:flex-none">
-          <button class="px-4 py-2 rounded bg-[#B9314F] hover:bg-[#992743] flex-1 sm:flex-none">Adicionar</button>
-        </div>
-      </form>
-    </div>
+        /* Cards de Tarefas com efeito Xbox */
+        .task-card {
+            background: rgba(42, 42, 42, 0.6);
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.4);
+        }
+        .task-card.completed {
+            opacity: 0.5;
+            background: rgba(42, 42, 42, 0.3);
+        }
 
-    <!-- Lista de tarefas -->
-    <div id="tarefas-lista" class="space-y-3"></div>
-  </div>
+        /* Checkbox customizado estilo Xbox */
+        input[type="checkbox"] {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.4);
+        }
+        input[type="checkbox"]:hover {
+            border-color: var(--accent-color);
+            background: rgba(185, 49, 79, 0.1);
+        }
+        input[type="checkbox"]:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        /* Inputs estilo Xbox */
+        input[type="text"], input[type="date"], select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        input[type="text"]:focus, input[type="date"]:focus, select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-      authDomain: "list-games-9bddd.firebaseapp.com",
-      projectId: "list-games-9bddd",
-      storageBucket: "list-games-9bddd.appspot.com",
-      messagingSenderId: "756898313156",
-      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-      measurementId: "G-GLM50YVLXP"
-    };
+        /* Botões com efeito Xbox */
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .xbox-button:hover::before {
+            transform: translateX(100%);
+        }
+        .xbox-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const loading = document.getElementById('loading');
-    const appEl = document.getElementById('app');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userEmailEl = document.getElementById('user-email');
-    const formTarefa = document.getElementById('form-tarefa');
-    const tituloInput = document.getElementById('tarefa-titulo');
-    const dataInput = document.getElementById('tarefa-data');
-    const observacaoInput = document.getElementById('tarefa-observacao');
-    const tarefasLista = document.getElementById('tarefas-lista');
-
-    let uid = null;
-
-    // Adicionar nova tarefa
-    formTarefa.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const titulo = tituloInput.value.trim();
-      if (!titulo) return;
-      const data = dataInput.value || null;
-      const observacao = observacaoInput.value.trim() || '';
-
-      await addDoc(collection(db, 'users', uid, 'todo_tasks'), {
-        titulo,
-        data,
-        observacao,
-        feito: false,
-        criadoEm: new Date()
-      });
-
-      tituloInput.value = '';
-      dataInput.value = '';
-      observacaoInput.value = '';
-    });
-
-    // Renderizar tarefa
-    function renderTarefa(tarefa) {
-      const feito = tarefa.feito ? 'line-through text-gray-500' : '';
-      const temObs = tarefa.observacao && tarefa.observacao.trim() !== '';
-      return `
-        <div class="card p-3 flex flex-col gap-2 rounded-xl">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-              <input type="checkbox" data-check="${tarefa.id}" ${tarefa.feito ? 'checked' : ''} class="w-5 h-5 accent-[#B9314F]">
-              <div>
-                <h3 class="text-lg font-semibold ${feito}">${tarefa.titulo}</h3>
-                ${tarefa.data ? `<span class="text-sm text-gray-400">Prazo: ${tarefa.data}</span>` : ''}
-              </div>
-            </div>
-            <button data-del="${tarefa.id}" class="px-3 py-1 text-sm rounded bg-red-600 hover:bg-red-700">Excluir</button>
-          </div>
-          ${temObs ? `<p class="text-sm text-gray-300 border-t border-gray-700 pt-2">${tarefa.observacao}</p>` : ''}
-        </div>
-      `;
-    }
-
-    // Carregar tarefas
-    function carregarTarefas() {
-      const tarefasRef = collection(db, 'users', uid, 'todo_tasks');
-      onSnapshot(tarefasRef, (snap) => {
-        const tarefas = [];
-        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
-        tarefas.sort((a,b) => new Date(a.data || 0) - new Date(b.data || 0));
-        tarefasLista.innerHTML = tarefas.map(renderTarefa).join('');
-
-        document.querySelectorAll('[data-check]').forEach(cb => {
-          cb.onchange = async () => {
-            const ref = doc(db, 'users', uid, 'todo_tasks', cb.dataset.check);
-            await updateDoc(ref, { feito: cb.checked });
-          };
-        });
-
-        document.querySelectorAll('[data-del]').forEach(btn => {
-          btn.onclick = async () => {
-            if (confirm('Excluir tarefa?')) {
-              await deleteDoc(doc(db, 'users', uid, 'todo_tasks', btn.dataset.del));
+        /* Animação de entrada para tarefas */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
             }
-          };
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .task-card {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* Stats cards */
+        .stat-card {
+            background: rgba(42, 42, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            border-color: rgba(185, 49, 79, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            transform: translateX(0);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 50;
+        }
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        
+        /* Ajustar conteúdo quando sidebar está visível */
+        .main-content {
+            margin-left: 80px;
+            transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+
+        /* Botão toggle */
+        .toggle-sidebar-btn {
+            transition: all 0.3s;
+        }
+        .toggle-sidebar-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(185, 49, 79, 0.4);
+        }
+
+        /* Textarea customizado */
+        textarea {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            resize: vertical;
+            min-height: 80px;
+        }
+        textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-7 h-7"></i>
+            </a>
+
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="gamepad-2" class="w-7 h-7"></i>
+            </a>
+
+            <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="tv" class="w-7 h-7"></i>
+            </a>
+
+            <a href="cards.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="layers" class="w-7 h-7"></i>
+            </a>
+
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="book-open-text" class="w-7 h-7"></i>
+            </a>
+
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="notebook-text" class="w-7 h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="smartphone" class="w-7 h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="dumbbell" class="w-7 h-7"></i>
+            </a>
+
+            <a href="#" class="text-accent p-2 bg-white/5 rounded-xl" title="To Do">
+                <i data-lucide="check-square" class="w-7 h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-7 h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+            <div class="flex items-center gap-3">
+                <!-- Botão Toggle Sidebar -->
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="check-square" class="text-accent"></i> Lista de Tarefas
+                    </h2>
+                </div>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO -->
+        <div class="flex-1 overflow-y-auto p-6 md:px-8 pb-8">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- ESTATÍSTICAS -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="stat-card p-4 rounded-xl">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i data-lucide="list" class="w-4 h-4 text-accent"></i>
+                            <span class="text-xs text-gray-400 uppercase font-semibold">Total</span>
+                        </div>
+                        <p id="stat-total" class="text-3xl font-bold text-white">0</p>
+                    </div>
+
+                    <div class="stat-card p-4 rounded-xl">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i data-lucide="circle-dot" class="w-4 h-4 text-blue-400"></i>
+                            <span class="text-xs text-gray-400 uppercase font-semibold">Ativas</span>
+                        </div>
+                        <p id="stat-ativas" class="text-3xl font-bold text-blue-400">0</p>
+                    </div>
+
+                    <div class="stat-card p-4 rounded-xl">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i>
+                            <span class="text-xs text-gray-400 uppercase font-semibold">Concluídas</span>
+                        </div>
+                        <p id="stat-concluidas" class="text-3xl font-bold text-green-400">0</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mb-4">
+                    <button id="toggle-form-btn" class="flex items-center gap-2 bg-white/5 hover:bg-accent hover:text-white text-gray-400 px-4 py-2 rounded-xl border border-white/10 transition-all font-bold text-sm">
+                        <i data-lucide="plus-circle" id="toggle-icon" class="w-4 h-4"></i>
+                        <span id="toggle-text">Nova Tarefa</span>
+                    </button>
+                </div>
+
+                <div id="add-task-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-accent"></i> Nova Tarefa
+                    </h3>
+                    <form id="todo-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Título da Tarefa</label>
+                            <input type="text" id="task-titulo" placeholder="O que precisa ser feito?" 
+                                   class="w-full bg-black/40 border-2 border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Data (Opcional)</label>
+                            <input type="date" id="task-data" 
+                                   class="w-full bg-black/40 border-2 border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Observação (Opcional)</label>
+                            <textarea id="task-observacao" placeholder="Adicione detalhes ou observações sobre esta tarefa..." 
+                                      class="w-full bg-black/40 border-2 border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent transition"></textarea>
+                        </div>
+
+                        <button type="submit" class="xbox-button w-full bg-accent text-white px-8 py-3 rounded-xl font-bold hover:bg-[#a12745] transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Tarefa
+                        </button>
+                    </form>
+                </div>
+
+                <!-- FILTROS -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="filtrarTarefas('all')" id="filter-all" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold bg-accent text-white transition">
+                        Todas
+                    </button>
+                    <button onclick="filtrarTarefas('active')" id="filter-active" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition">
+                        Ativas
+                    </button>
+                    <button onclick="filtrarTarefas('completed')" id="filter-completed" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition">
+                        Concluídas
+                    </button>
+                </div>
+
+                <!-- LISTA DE TAREFAS -->
+                <div id="tarefas-lista" class="space-y-3">
+                    <div class="text-center py-12 text-gray-600">
+                        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                        <p class="text-sm">Nenhuma tarefa ainda. Adicione uma acima!</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        
+        // Toggle Sidebar
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('sidebar-hidden');
         });
-      });
-    }
+    </script>
 
-    // Inicialização
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      uid = user.uid;
-      userEmailEl.textContent = user.email || user.uid;
-      loading.classList.add('hidden');
-      appEl.classList.remove('hidden');
-      carregarTarefas();
-    });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    logoutBtn.onclick = async () => {
-      await signOut(auth);
-      window.location.href = 'index.html';
-    };
-  </script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+            authDomain: "list-games-9bddd.firebaseapp.com",
+            projectId: "list-games-9bddd",
+            storageBucket: "list-games-9bddd.firebasestorage.app",
+            messagingSenderId: "756898313156",
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let uid = null;
+        let todasTarefas = [];
+        let filtroAtual = 'all';
+
+        const form = document.getElementById('todo-form');
+        const inputTitulo = document.getElementById('task-titulo');
+        const inputData = document.getElementById('task-data');
+        const inputObservacao = document.getElementById('task-observacao');
+        const list = document.getElementById('tarefas-lista');
+        const userEmailEl = document.getElementById('user-email');
+        const userInfoEl = document.getElementById('user-info');
+
+        // ===================================
+        // AUTENTICAÇÃO
+        // ===================================
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { 
+                window.location.href = 'index.html'; 
+                return; 
+            }
+            uid = user.uid;
+            carregarTarefas();
+        });
+
+        const toggleBtn_form = document.getElementById('toggle-form-btn');
+        const taskContainer = document.getElementById('add-task-container');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const toggleText = document.getElementById('toggle-text');
+
+        toggleBtn_form.addEventListener('click', () => {
+            // Alterna a visibilidade do painel
+            const isHidden = taskContainer.classList.toggle('hidden');
+            
+            // Atualiza o botão (ícone e texto)
+            if (isHidden) {
+                toggleText.innerText = "Nova Tarefa";
+                toggleBtn_form.classList.remove('bg-accent', 'text-white');
+                toggleBtn_form.classList.add('bg-white/5', 'text-gray-400');
+                // Volta para o ícone de Plus
+                toggleIcon.innerHTML = lucide.icons['plus-circle'].toSvg();
+            } else {
+                toggleText.innerText = "Fechar Menu";
+                toggleBtn_form.classList.add('bg-accent', 'text-white');
+                toggleBtn_form.classList.remove('bg-white/5', 'text-gray-400');
+                // Muda para o ícone de X
+                toggleIcon.innerHTML = lucide.icons['x-circle'].toSvg();
+            }
+            
+            // Recarrega os ícones do Lucide para o novo ícone aparecer
+            lucide.createIcons();
+        });
+
+        // Opcional: Fechar o menu automaticamente após adicionar uma tarefa
+        document.getElementById('todo-form').addEventListener('submit', () => {
+            taskContainer.classList.add('hidden');
+            toggleText.innerText = "Nova Tarefa";
+            toggleBtn.classList.remove('bg-accent', 'text-white');
+            toggleIcon.innerHTML = lucide.icons['plus-circle'].toSvg();
+            lucide.createIcons();
+        });
+
+        // ===================================
+        // ADICIONAR TAREFA
+        // ===================================
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const titulo = inputTitulo.value.trim();
+            const data = inputData.value || null;
+            const observacao = inputObservacao.value.trim() || null;
+            
+            if (!titulo) {
+                alert('Digite um título para a tarefa!');
+                return;
+            }
+            
+            try {
+                await addDoc(collection(db, 'users', uid, 'todo_tasks'), {
+                    titulo,
+                    data,
+                    observacao,
+                    feito: false,
+                    criadoEm: new Date()
+                });
+                
+                inputTitulo.value = '';
+                inputData.value = '';
+                inputObservacao.value = '';
+            } catch (error) {
+                console.error('Erro ao adicionar tarefa:', error);
+                alert('Erro ao adicionar tarefa!');
+            }
+        };
+
+        // ===================================
+        // CARREGAR TAREFAS
+        // ===================================
+        function carregarTarefas() {
+            const q = query(
+                collection(db, 'users', uid, 'todo_tasks'),
+                orderBy('criadoEm', 'desc')
+            );
+
+            onSnapshot(q, (snap) => {
+                todasTarefas = [];
+                snap.forEach(d => todasTarefas.push({ id: d.id, ...d.data() }));
+                atualizarEstatisticas();
+                renderizarTarefas();
+            });
+        }
+
+        // ===================================
+        // ATUALIZAR ESTATÍSTICAS
+        // ===================================
+        function atualizarEstatisticas() {
+            const total = todasTarefas.length;
+            const ativas = todasTarefas.filter(t => !t.feito).length;
+            const concluidas = todasTarefas.filter(t => t.feito).length;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-ativas').textContent = ativas;
+            document.getElementById('stat-concluidas').textContent = concluidas;
+        }
+
+        // ===================================
+        // RENDERIZAR TAREFAS
+        // ===================================
+        function renderizarTarefas() {
+            let tarefasFiltradas = [...todasTarefas];
+
+            // Aplicar filtro
+            if (filtroAtual === 'active') {
+                tarefasFiltradas = tarefasFiltradas.filter(t => !t.feito);
+            } else if (filtroAtual === 'completed') {
+                tarefasFiltradas = tarefasFiltradas.filter(t => t.feito);
+            }
+
+            // Ordenar: não concluídas primeiro
+            tarefasFiltradas.sort((a, b) => {
+                if (a.feito !== b.feito) return a.feito ? 1 : -1;
+                // Se ambas não concluídas ou ambas concluídas, ordenar por data de criação (mais recentes primeiro)
+                return new Date(b.criadoEm) - new Date(a.criadoEm);
+            });
+
+            if (tarefasFiltradas.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-gray-600">
+                        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                        <p class="text-sm">Nenhuma tarefa encontrada neste filtro.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            list.innerHTML = tarefasFiltradas.map(t => {
+                const dataFormatada = t.data ? new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: 'short',
+                    year: 'numeric'
+                }) : null;
+
+                return `
+                    <div class="task-card ${t.feito ? 'opacity-50' : ''} p-3 rounded-xl mb-2 transition-all hover:bg-white/5 border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${t.feito ? 'checked' : ''} data-id="${t.id}" 
+                                class="w-5 h-5 rounded border-gray-600 bg-transparent text-accent focus:ring-accent flex-shrink-0 cursor-pointer">
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-medium truncate ${t.feito ? 'line-through text-gray-500' : 'text-gray-200'}">
+                                        ${t.titulo}
+                                    </h4>
+                                    ${dataFormatada ? `
+                                        <span class="text-[10px] text-gray-500 flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-full">
+                                            <i data-lucide="calendar" class="w-2.5 h-2.5"></i> ${dataFormatada}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                
+                                ${t.observacao ? `
+                                    <p class="text-xs text-gray-500 truncate mt-0.5">
+                                        ${t.observacao}
+                                    </p>
+                                ` : ''}
+                            </div>
+
+                            <button class="text-gray-600 hover:text-red-500 p-1.5 rounded-md transition hover:bg-red-500/10 flex-shrink-0" 
+                                    data-del="${t.id}">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+            adicionarEventos();
+        }
+
+        // ===================================
+        // EVENTOS DOS CARDS
+        // ===================================
+        function adicionarEventos() {
+            // Checkboxes
+            document.querySelectorAll('[data-id]').forEach(cb => {
+                cb.onchange = async () => {
+                    try {
+                        await updateDoc(doc(db, 'users', uid, 'todo_tasks', cb.dataset.id), { 
+                            feito: cb.checked 
+                        });
+                    } catch (error) {
+                        console.error('Erro ao atualizar tarefa:', error);
+                    }
+                };
+            });
+
+            // Botões de deletar
+            document.querySelectorAll('[data-del]').forEach(btn => {
+                btn.onclick = async () => { 
+                    if(confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                        try {
+                            await deleteDoc(doc(db, 'users', uid, 'todo_tasks', btn.dataset.del));
+                        } catch (error) {
+                            console.error('Erro ao deletar tarefa:', error);
+                        }
+                    }
+                };
+            });
+        }
+
+        // ===================================
+        // FILTROS
+        // ===================================
+        window.filtrarTarefas = function(filtro) {
+            filtroAtual = filtro;
+            
+            // Atualizar botões
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-accent', 'text-white');
+                btn.classList.add('bg-white/5', 'text-gray-400');
+            });
+            
+            const btnAtivo = document.getElementById(`filter-${filtro}`);
+            btnAtivo.classList.remove('bg-white/5', 'text-gray-400');
+            btnAtivo.classList.add('bg-accent', 'text-white');
+            
+            renderizarTarefas();
+        };
+
+        // ===================================
+        // LOGOUT
+        // ===================================
+        const logout = () => {
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            }).catch(error => {
+                console.error('Erro ao sair:', error);
+            });
+        };
+
+        document.getElementById('logout-btn').onclick = logout;
+    </script>
 </body>
 </html>
