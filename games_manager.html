@@ -3,227 +3,422 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gerenciador de Games</title>
+  <title>Gerenciador de Games — My Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    
-    /* Card estilo "Antigo" mas com cores Novas */
-    .card { 
-        background:#151515; 
-        border:1px solid #2a2a2a; 
-        transition:all .2s; 
-        display: flex;
-        flex-direction: column; /* Garante imagem em cima, texto em baixo */
-    }
-    .card:hover { 
-        border-color:#B9314F; 
-        transform:translateY(-4px); 
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    }
-    
-    .btn-primary { background:#B9314F; color: white; }
-    .btn-primary:hover { background:#99233b; }
-    
-    .modal-input, .filter-input {
-      background-color: #1f2937; 
-      border: 1px solid #374151; 
-      color: white;
-    }
-    .modal-input:focus, .filter-input:focus {
-      outline: none;
-      border-color: #B9314F;
-    }
+      /* Configurações Base */
+      :root {
+          --accent-color: #B9314F;
+          --bg-dark: #0b0b0b;
+          --bg-panel: #151515;
+      }
+      body {
+          background-color: var(--bg-dark);
+          color: #e6e6e6;
+          font-family: 'Inter', system-ui, sans-serif;
+          /* Gradiente de fundo sutil estilo Xbox */
+          background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+          min-height: 100vh;
+      }
+
+      /* Utilitários de Estilo */
+      .text-accent { color: var(--accent-color); }
+      .bg-accent { background-color: var(--accent-color); }
+      
+      /* Painéis translúcidos */
+      .glass-panel {
+          background: rgba(21, 21, 21, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      /* Cards com efeito Xbox */
+      .task-card {
+          background: rgba(30, 30, 30, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+      }
+      .task-card:hover {
+          transform: translateY(-4px);
+          background: rgba(40, 40, 40, 0.6);
+          border-color: rgba(185, 49, 79, 0.3);
+          box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+      }
+
+      /* Inputs estilo Xbox */
+      input, select, textarea {
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s;
+          color: white;
+          color-scheme: dark;
+      }
+      input:focus, select:focus, textarea:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+          outline: none;
+      }
+
+      option {
+          background-color: var(--bg-panel);
+          color: #e6e6e6;
+          padding: 10px;
+      }
+
+      /* Botões com efeito Xbox */
+      .xbox-button {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s;
+      }
+      .xbox-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.6s;
+      }
+      .xbox-button:hover::before {
+          transform: translateX(100%);
+      }
+      .xbox-button:hover {
+          transform: scale(1.02);
+          box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+      }
+
+      /* Scrollbar customizada */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg-dark); }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+      /* Sidebar retrátil */
+      .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          transform: translateX(0);
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: 50;
+      }
+      .sidebar.hidden {
+          transform: translateX(-100%);
+      }
+      
+      .main-content {
+          margin-left: 80px;
+          transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .main-content.sidebar-hidden {
+          margin-left: 0;
+      }
+
+      .toggle-sidebar-btn {
+          transition: all 0.3s;
+      }
+      .toggle-sidebar-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(185, 49, 79, 0.4);
+      }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="flex h-screen overflow-hidden">
 
-  <div id="loading-spinner" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+  <!-- OVERLAY DE CARREGAMENTO -->
+  <div id="loading-spinner" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
     <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
   </div>
 
-  <div id="main-app" class="container mx-auto p-6 max-w-7xl hidden">
+  <!-- SIDEBAR RETRÁTIL -->
+  <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+      <div class="text-accent mb-8">
+          <i data-lucide="sparkle" class="w-10 h-10"></i>
+      </div>
+      
+      <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+          <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+              <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl transition" title="Games">
+              <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+              <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards">
+              <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+              <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+              <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+              <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+              <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+              <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+      </nav>
+
+      <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+          <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+      </button>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
     
-    <header class="bg-[#1f1f1f] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg rounded-lg border border-[#2a2a2a]">
-      <div class="flex flex-col w-full">
-        <div class="flex justify-between items-center">
-          <button 
-            onclick="window.location.href='home.html'"
-            class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors"
-          >
-            My Hub
+    <!-- HEADER -->
+    <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 border-b border-white/5">
+      <div class="flex items-center gap-3">
+          <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+              <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
-          <h1 class="text-2xl font-bold text-white">My Games</h1>
-        </div>
-        <div class="flex justify-between items-center mt-2 border-t border-gray-700 pt-2">
-          <div class="text-sm text-gray-400">
-            Usuário: <span id="user-id-display" class="text-[#B9314F] font-mono">...</span>
+          <div>
+              <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                  <i data-lucide="gamepad-2" class="text-accent"></i> My Games
+              </h2>
           </div>
-          <button id="auth-btn" class="text-xs text-red-400 hover:text-red-300 underline">Sair</button>
-        </div>
+      </div>
+      <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+          Usuário: <span id="user-id-display" class="text-accent font-mono font-bold">...</span>
       </div>
     </header>
 
-    <div class="mt-6 mb-6 flex justify-between items-center gap-4 flex-wrap">
-      <button 
-        id="add-item-btn"
-        class="bg-[#B9314F] hover:bg-[#992743] px-4 py-2 rounded-md text-white shadow-md font-medium"
-      >
-        + Adicionar Game
-      </button>
+    <!-- ÁREA DE CONTEÚDO -->
+    <div id="main-app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 hidden">
+      <div class="max-w-7xl mx-auto">
+        
+        <!-- AÇÕES TOPO -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+          <button id="add-item-btn" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i> Adicionar Game
+          </button>
 
-      <button 
-        onclick="window.location.href='games_teams.html'"
-        class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md text-white border border-gray-700"
-      >
-        Lista de Times
-      </button>
+          <button id="search-btn" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-2.5 rounded-xl border border-white/10 transition-all font-bold text-sm flex items-center justify-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros
+          </button>
+        </div>
 
-      <button 
-        id="search-btn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md text-white border border-gray-700">
-        Mostrar Filtros
-      </button>
+        <!-- PAINEL DE FILTROS -->
+        <div id="search-and-sort-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+          <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Pesquisa</label>
+                <input id="search-input" type="text" placeholder="Pesquisar..." class="w-full rounded-xl px-4 py-2.5">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Status</label>
+                <select id="status-filter" class="w-full rounded-xl px-4 py-2.5"></select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Avaliação</label>
+                <select id="stars-filter" class="w-full rounded-xl px-4 py-2.5">
+                    <option value="">Todas as estrelas</option>
+                    <option value="5">5 Estrelas</option>
+                    <option value="4">4 Estrelas</option>
+                    <option value="3">3 Estrelas</option>
+                    <option value="2">2 Estrelas</option>
+                    <option value="1">1 Estrela</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">Ordenar por:</label>
+                <select id="sort-select" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                    <option value="createdAt-desc">Mais Recentes</option>
+                    <option value="name-asc">Nome (A-Z)</option>
+                    <option value="stars-desc">Melhores Avaliados</option>
+                    <option value="hours-desc">Mais Jogados</option>
+                </select>
+            </div>
+          </section>
+        </div>
+
+        <!-- CARDS VIEW -->
+        <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        
+        <div id="empty-state" class="text-center py-16 hidden">
+            <i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i>
+            <p class="text-lg text-gray-500 font-semibold">Nenhum jogo encontrado.</p>
+        </div>
+
+      </div>
     </div>
 
-    <div id="search-and-sort-container" class="hidden bg-[#151515] border border-[#2a2a2a] p-4 rounded-lg mb-6 shadow-md">
-      <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <input id="search-input" type="text" placeholder="Pesquisar..." class="p-2 rounded filter-input">
-        <select id="status-filter" class="p-2 rounded filter-input"></select>
-        <select id="stars-filter" class="p-2 rounded filter-input">
-            <option value="">Todas as estrelas</option>
-            <option value="5">5 Estrelas</option>
-            <option value="4">4 Estrelas</option>
-            <option value="3">3 Estrelas</option>
-            <option value="2">2 Estrelas</option>
-            <option value="1">1 Estrela</option>
-        </select>
-        <select id="sort-select" class="p-2 rounded filter-input">
-            <option value="createdAt-desc">Mais Recentes</option>
-            <option value="name-asc">Nome (A-Z)</option>
-            <option value="stars-desc">Melhores Avaliados</option>
-            <option value="hours-desc">Mais Jogados</option>
-        </select>
-      </section>
-    </div>
+    <!-- BOTÃO FLUTUANTE (LISTA DE TIMES) -->
+    <a href="games_teams.html" class="absolute bottom-6 right-6 xbox-button bg-accent hover:bg-[#99233b] text-white p-4 rounded-full shadow-[0_0_20px_rgba(185,49,79,0.4)] border border-white/10 z-40 flex items-center justify-center gap-2 group" title="Lista de Times">
+        <i data-lucide="users" class="w-6 h-6"></i>
+        <span class="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 font-bold text-sm">Lista de Times</span>
+    </a>
 
-    <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-    
-    <div id="empty-state" class="text-center p-8 hidden col-span-full">
-        <p class="text-xl text-gray-500">Nenhum jogo encontrado.</p>
-    </div>
+  </main>
 
-  </div>
-
-  <div id="item-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-[#1a1a1a] rounded-lg w-full max-w-lg p-6 border border-gray-700 shadow-2xl relative">
-      <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
-      
-      <h2 id="modal-title" class="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-2">Novo Jogo</h2>
+  <!-- MODAL DE ITEM -->
+  <div id="item-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="glass-panel rounded-2xl w-full max-w-xl p-6 border border-white/10 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+          <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="gamepad-2" class="w-5 h-5 text-accent"></i> Novo Jogo
+          </h2>
+          <button id="close-modal-btn" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+              <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+      </div>
       
       <form id="item-form" class="space-y-4">
         <input type="hidden" id="item-id">
         
         <div>
-          <label class="block text-sm text-gray-400 mb-1">Nome do Jogo</label>
-          <input id="item-name" type="text" class="w-full p-2 rounded modal-input" required>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome do Jogo</label>
+          <input id="item-name" type="text" class="w-full rounded-xl px-4 py-3 text-sm" required placeholder="Ex: Halo Infinite">
         </div>
         
         <div>
-          <label class="block text-sm text-gray-400 mb-1">Imagem (URL)</label>
-          <input id="item-image" type="url" class="w-full p-2 rounded modal-input" placeholder="https://...">
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Imagem (URL)</label>
+          <input id="item-image" type="url" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="https://...">
         </div>
         
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Estrelas</label>
-            <select id="item-stars" class="w-full p-2 rounded modal-input">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Estrelas</label>
+            <select id="item-stars" class="w-full rounded-xl px-4 py-3 text-sm">
+              <option value="0">0 Estrelas</option>
+              <option value="1">1 Estrela</option>
+              <option value="2">2 Estrelas</option>
+              <option value="3">3 Estrelas</option>
+              <option value="4">4 Estrelas</option>
+              <option value="5">5 Estrelas</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Status</label>
-            <select id="item-status" class="w-full p-2 rounded modal-input"></select>
+            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Status</label>
+            <select id="item-status" class="w-full rounded-xl px-4 py-3 text-sm"></select>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 bg-[#252525] p-2 rounded border border-gray-800">
+        <div class="grid grid-cols-3 gap-3 bg-black/40 p-3 rounded-xl border border-white/10">
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Início</label>
-                <input id="item-date-start" type="date" class="w-full p-1 rounded modal-input text-xs">
+                <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Início</label>
+                <input id="item-date-start" type="date" class="w-full rounded-lg px-2 py-2 text-xs">
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Fim</label>
-                <input id="item-date-end" type="date" class="w-full p-1 rounded modal-input text-xs">
+                <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Fim</label>
+                <input id="item-date-end" type="date" class="w-full rounded-lg px-2 py-2 text-xs">
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Horas</label>
-                <input id="item-count-games" type="number" min="0" class="w-full p-1 rounded modal-input text-xs">
+                <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Horas</label>
+                <input id="item-count-games" type="number" min="0" class="w-full rounded-lg px-2 py-2 text-xs" placeholder="Ex: 50">
             </div>
         </div>
 
-        <details id="arts_group" class="bg-[#1f1f1f] p-3 mb-3 shadow-xl rounded-xl border border-[#2a2a2a] group/details">
-            <summary class="cursor-pointer text-[#B9314F] font-bold list-none flex justify-between items-center select-none">
+        <details id="arts_group" class="bg-black/20 p-4 mb-3 shadow-xl rounded-xl border border-white/10 group/details">
+            <summary class="cursor-pointer text-accent font-bold list-none flex justify-between items-center select-none">
                 <span class="flex items-center gap-2">
-                    🎨 Arts e Prints (<span id="arts_count" class="text-white">0</span>)
+                    <i data-lucide="image" class="w-4 h-4"></i> Arts e Prints (<span id="arts_count" class="text-white">0</span>)
                 </span>
-                <span class="text-gray-500 group-open/details:rotate-180 transition-transform">▼</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500 group-open/details:rotate-180 transition-transform"></i>
             </summary>
 
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3 bg-[#151515] p-3 rounded-lg border border-[#333]">
-                <select id="art-type" class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none">
+            <!-- NOVO CAMPO: URL DO ÁLBUM -->
+            <div class="mt-4 flex gap-2 items-end border-b border-white/5 pb-4 mb-4">
+                <div class="flex-1">
+                    <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">URL do Álbum</label>
+                    <input id="item-album-url" type="url" class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none" placeholder="https://imgur.com/a/...">
+                </div>
+                <button type="button" id="btn-view-album" class="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors h-[38px] flex items-center justify-center" title="Visualizar Álbum">
+                    <i data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
+                <select id="art-type" class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none">
                     <option value="Art">Art</option>
                     <option value="Print">Print</option>
                 </select>
 
                 <input id="art-name" type="text" placeholder="Nome (Opcional)" 
-                       class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none sm:col-span-3">
+                       class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none sm:col-span-3">
 
                 <input id="art-url" type="url" placeholder="URL da Imagem (https://...)" 
-                       class="bg-[#1f2937] border border-gray-700 text-white rounded px-2 py-2 text-sm focus:border-[#B9314F] outline-none sm:col-span-3">
+                       class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none sm:col-span-3">
 
-                <button type="button" id="btn-add-art"
-                        class="bg-[#B9314F] hover:bg-[#99233b] text-white rounded px-2 py-2 text-sm font-bold transition-colors shadow-md">
+                <button type="button" id="btn-add-art" class="xbox-button bg-accent hover:bg-[#99233b] text-white rounded-xl px-3 py-2 text-sm font-bold transition-colors shadow-md flex items-center justify-center gap-2">
                     Adicionar
                 </button>
             </div>
 
-            <ul id="arts-list" class="mt-4 space-y-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                </ul>
+            <ul id="arts-list" class="mt-4 space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
         </details>
 
         <div>
-          <label class="block text-sm text-gray-400 mb-1">Observações</label>
-          <textarea id="item-notes" rows="3" class="w-full p-2 rounded modal-input"></textarea>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Observações</label>
+          <textarea id="item-notes" rows="3" class="w-full rounded-xl px-4 py-3 text-sm resize-none" placeholder="Detalhes da sua jogatina..."></textarea>
         </div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-800">
-          <button type="button" onclick="document.getElementById('item-modal').classList.add('hidden')" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white">Cancelar</button>
-          <button id="delete-item-btn" type="button" class="px-4 py-2 rounded bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white border border-red-900 hidden">Excluir</button>
-          <button type="submit" class="px-4 py-2 rounded btn-primary font-medium">Salvar</button>
+        <div class="flex items-center gap-3 pt-4 border-t border-white/5 mt-4">
+            <button id="delete-item-btn" type="button" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+            
+            <button type="submit" class="xbox-button flex-1 bg-accent text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-5 h-5"></i> Salvar
+            </button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="image-view-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-[60] p-4">
-        <div class="relative max-w-4xl w-full flex flex-col items-center">
-            <button onclick="document.getElementById('image-view-modal').classList.add('hidden')" 
-                    class="absolute -top-10 right-0 text-white hover:text-[#B9314F] text-3xl font-bold transition-colors">
-                &times;
-            </button>
-            <img id="view-modal-img" src="" class="max-h-[80vh] w-auto rounded-lg border-2 border-[#B9314F] shadow-2xl object-contain">
-            <p id="view-modal-caption" class="text-white mt-4 text-lg font-semibold bg-[#151515] px-4 py-2 rounded-full border border-[#333]"></p>
-        </div>
-    </div>
+  <!-- MODAL DE VISUALIZAÇÃO DE IMAGEM -->
+  <div id="image-view-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center z-[60] p-4">
+      <div class="relative max-w-4xl w-full flex flex-col items-center">
+          <button onclick="document.getElementById('image-view-modal').classList.add('hidden')" 
+                  class="absolute -top-12 right-0 bg-white/10 hover:bg-accent text-white p-2 rounded-xl transition-colors">
+              <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+          <img id="view-modal-img" src="" class="max-h-[80vh] w-auto rounded-xl border border-white/10 shadow-2xl object-contain">
+          <p id="view-modal-caption" class="text-white mt-4 text-sm font-semibold glass-panel px-6 py-2 rounded-full border border-white/10"></p>
+      </div>
+  </div>
 
-  <div id="message-box" class="fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 hidden shadow-lg"></div>
+  <!-- CAIXA DE MENSAGEM -->
+  <div id="message-box" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 p-4 rounded-xl text-white font-bold z-[100] hidden shadow-2xl glass-panel text-sm text-center flex items-center gap-2 transition-opacity"></div>
 
+  <!-- SCRIPT PARA UI DA SIDEBAR E ÍCONES -->
+  <script>
+      lucide.createIcons();
+      
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      
+      toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('hidden');
+          mainContent.classList.toggle('sidebar-hidden');
+      });
+  </script>
+
+  <!-- FIREBASE E LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -264,7 +459,7 @@
         status: document.getElementById('status-filter'),
         addBtn: document.getElementById('add-item-btn'),
         searchBtn: document.getElementById('search-btn'),
-        authBtn: document.getElementById('auth-btn'),
+        authBtn: document.getElementById('logout-btn'), // Atualizado ID
         modal: document.getElementById('item-modal'),
         closeModal: document.getElementById('close-modal-btn'),
         form: document.getElementById('item-form'),
@@ -300,9 +495,10 @@
     };
 
     const showMsg = (txt, isErr = false) => {
-        els.msgBox.textContent = txt;
-        els.msgBox.className = `fixed bottom-4 right-4 p-4 rounded-lg text-white font-medium z-50 shadow-lg ${isErr ? 'bg-red-600' : 'bg-green-600'}`;
+        els.msgBox.innerHTML = `<i data-lucide="${isErr ? 'alert-circle' : 'check-circle'}" class="w-5 h-5"></i> ${txt}`;
+        els.msgBox.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 p-4 rounded-xl text-white font-bold z-[100] shadow-2xl glass-panel text-sm text-center flex items-center gap-2 transition-opacity ${isErr ? 'border border-red-500 bg-red-500/20 text-red-100' : 'border border-green-500 bg-green-500/20 text-green-100'}`;
         els.msgBox.classList.remove('hidden');
+        lucide.createIcons();
         setTimeout(() => els.msgBox.classList.add('hidden'), 3000);
     };
 
@@ -314,54 +510,51 @@
         return d;
     };
 
-    // --- RENDERIZAÇÃO DOS CARDS (GRID + IMAGEM HORIZONTAL) ---
+    // --- RENDERIZAÇÃO DOS CARDS ESTILO XBOX ---
     const renderCard = (item) => {
         const hours = (item.hours || 0) + 'h';
         const stars = parseInt(item.stars) || 0;
         
-        let statusColor = 'bg-gray-700 text-gray-200';
-        if(item.status === 'Zerado') statusColor = 'bg-green-900 text-green-100 border border-green-700';
-        else if(item.status === 'Jogando') statusColor = 'bg-blue-900 text-blue-100 border border-blue-700';
-        else if(item.status === 'Dropei') statusColor = 'bg-red-900 text-red-100 border border-red-700';
+        let statusColor = 'bg-white/5 border-white/10 text-gray-300';
+        if(item.status === 'Zerado') statusColor = 'bg-green-500/20 border-green-500/30 text-green-400';
+        else if(item.status === 'Jogando') statusColor = 'bg-blue-500/20 border-blue-500/30 text-blue-400';
+        else if(item.status === 'Dropei') statusColor = 'bg-red-500/20 border-red-500/30 text-red-400';
 
-        // Layout: Card Vertical (Flex-Col) com Imagem Larga no topo
         return `
-        <div data-id="${item.id}" class="card rounded-lg overflow-hidden cursor-pointer relative group">
+        <div data-id="${item.id}" class="task-card rounded-2xl overflow-hidden cursor-pointer relative flex flex-col group">
             
-            <div class="relative w-full h-48 bg-gray-800">
+            <div class="relative w-full h-48 bg-gray-900 flex-shrink-0">
                 <img src="${item.image || ''}" 
                      class="w-full h-full object-cover"
-                     onerror="this.src='https://placehold.co/600x400/1a1a1a/333?text=Sem+Imagem'">
+                     onerror="this.src='https://placehold.co/600x400/151515/333?text=Sem+Imagem'">
                 
-                <span class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded shadow-md ${statusColor}">
+                <span class="absolute top-3 right-3 text-[10px] uppercase font-bold px-2.5 py-1 rounded-lg backdrop-blur-md border shadow-lg ${statusColor}">
                     ${item.status || 'Status?'}
                 </span>
             </div>
 
-            <div class="p-4 flex flex-col gap-2">
-                
+            <div class="p-5 flex flex-col gap-3 flex-1 justify-between">
                 <div>
                     <h3 class="text-lg font-bold text-white leading-tight truncate" title="${item.name}">${item.name}</h3>
-                    <div class="text-yellow-400 text-sm mt-1">
-                        ${'★'.repeat(stars)}${'<span class="text-gray-600">★</span>'.repeat(5-stars)}
+                    <div class="text-yellow-500 text-sm mt-1 tracking-widest">
+                        ${'★'.repeat(stars)}${'<span class="opacity-30">★</span>'.repeat(5-stars)}
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-1 mt-2 pt-3 border-t border-gray-800 text-xs">
+                <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/5 text-xs">
                     <div class="flex flex-col">
-                        <span class="text-gray-500 uppercase text-[10px]">Início</span>
+                        <span class="text-gray-500 uppercase text-[10px] font-semibold mb-1">Início</span>
                         <span class="text-gray-300 font-mono">${formatDate(item.dateStart)}</span>
                     </div>
-                     <div class="flex flex-col text-center border-l border-r border-gray-800">
-                        <span class="text-gray-500 uppercase text-[10px]">Horas</span>
-                        <span class="text-[#B9314F] font-mono font-bold">${hours}</span>
+                     <div class="flex flex-col text-center border-l border-r border-white/5">
+                        <span class="text-gray-500 uppercase text-[10px] font-semibold mb-1">Horas</span>
+                        <span class="text-accent font-mono font-bold">${hours}</span>
                     </div>
                     <div class="flex flex-col text-right">
-                        <span class="text-gray-500 uppercase text-[10px]">Fim</span>
+                        <span class="text-gray-500 uppercase text-[10px] font-semibold mb-1">Fim</span>
                         <span class="text-gray-300 font-mono">${formatDate(item.dateEnd)}</span>
                     </div>
                 </div>
-
             </div>
         </div>
         `;
@@ -399,11 +592,15 @@
         els.form.reset();
         els.inputs.id.value = '';
         els.deleteBtn.classList.add('hidden');
-        els.modalTitle.textContent = id ? 'Editar Jogo' : 'Novo Jogo';
-        
+        els.modalTitle.innerHTML = id ? '<i data-lucide="edit-3" class="w-5 h-5 text-accent"></i> Editar Jogo' : '<i data-lucide="gamepad-2" class="w-5 h-5 text-accent"></i> Novo Jogo';
+        lucide.createIcons();
+
         // Resetar lista de Arts
         currentArts = [];
         renderArtsList(); 
+
+        els.inputs.id.value = '';
+        document.getElementById('item-album-url').value = ''; // Limpa o campo de álbum
 
         if(id) {
             const item = allGames.find(i => i.id === id);
@@ -417,8 +614,9 @@
                 els.inputs.hours.value = item.hours || '';
                 els.inputs.status.value = item.status || '';
                 els.inputs.notes.value = item.notes || '';
+
+                document.getElementById('item-album-url').value = item.albumUrl || '';
                 
-                // CARREGAR ARTS SE EXISTIREM
                 if (item.arts && Array.isArray(item.arts)) {
                     currentArts = [...item.arts];
                     renderArtsList();
@@ -431,7 +629,6 @@
         els.modal.classList.add('flex');
     };
 
-    // --- ATUALIZAR A FUNÇÃO HANDLESUBMIT ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         if(!userId) return;
@@ -446,10 +643,8 @@
             hours: parseInt(els.inputs.hours.value) || 0,
             status: els.inputs.status.value,
             notes: els.inputs.notes.value,
-            
-            // ADICIONAR O ARRAY DE ARTS NO PAYLOAD
+            albumUrl: document.getElementById('item-album-url').value.trim(),
             arts: currentArts, 
-            
             updatedAt: serverTimestamp()
         };
 
@@ -477,8 +672,6 @@
     };
 
     // --- FUNÇÕES DE ARTS E PRINTS ---
-
-    // 1. Renderizar a lista na tela
     const renderArtsList = () => {
         const listEl = document.getElementById('arts-list');
         const countEl = document.getElementById('arts_count');
@@ -488,38 +681,34 @@
 
         currentArts.forEach((art, index) => {
             const li = document.createElement('li');
-            li.className = "flex items-center justify-between bg-[#252525] p-2 rounded border border-[#333] hover:border-[#444] transition-colors";
+            li.className = "flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-colors";
             
-            // Ícones SVG
-            const iconEye = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-            const iconEdit = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-            const iconTrash = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-
             li.innerHTML = `
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-[#1f1f1f] text-gray-400 border border-gray-700 min-w-[50px] text-center">
+                    <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-black/40 text-gray-400 border border-white/10 min-w-[50px] text-center">
                         ${art.type}
                     </span>
-                    <span class="text-sm text-gray-200 truncate" title="${art.name || 'Sem nome'}">
+                    <span class="text-sm text-gray-200 truncate font-medium" title="${art.name || 'Sem nome'}">
                         ${art.name || art.url}
                     </span>
                 </div>
                 <div class="flex gap-2 shrink-0 ml-2">
-                    <button type="button" class="btn-view-art p-1.5 rounded bg-blue-900/40 text-blue-400 hover:bg-blue-900 hover:text-white transition-colors" data-idx="${index}" title="Visualizar">
-                        ${iconEye}
+                    <button type="button" class="btn-view-art p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors" data-idx="${index}" title="Visualizar">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
-                    <button type="button" class="btn-edit-art p-1.5 rounded bg-yellow-900/40 text-yellow-400 hover:bg-yellow-900 hover:text-white transition-colors" data-idx="${index}" title="Editar">
-                        ${iconEdit}
+                    <button type="button" class="btn-edit-art p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500 hover:text-white transition-colors" data-idx="${index}" title="Editar">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
                     </button>
-                    <button type="button" class="btn-delete-art p-1.5 rounded bg-red-900/40 text-red-400 hover:bg-red-900 hover:text-white transition-colors" data-idx="${index}" title="Excluir">
-                        ${iconTrash}
+                    <button type="button" class="btn-delete-art p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors" data-idx="${index}" title="Excluir">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>
             `;
             listEl.appendChild(li);
         });
 
-        // Reatribuir eventos aos botões dinâmicos
+        lucide.createIcons();
+
         document.querySelectorAll('.btn-view-art').forEach(btn => 
             btn.onclick = (e) => viewArt(e.currentTarget.dataset.idx));
         
@@ -530,7 +719,6 @@
             btn.onclick = (e) => editArt(e.currentTarget.dataset.idx));
     };
 
-    // 2. Adicionar Item
     const addArt = () => {
         const typeEl = document.getElementById('art-type');
         const nameEl = document.getElementById('art-name');
@@ -547,32 +735,28 @@
             url: urlEl.value.trim()
         });
 
-        // Limpar inputs
         nameEl.value = '';
         urlEl.value = '';
-        typeEl.value = 'Art'; // Resetar para o padrão
+        typeEl.value = 'Art';
         
         renderArtsList();
     };
 
-    // 3. Deletar Item
     const deleteArt = (index) => {
         currentArts.splice(index, 1);
         renderArtsList();
     };
 
-    // 4. Editar Item (Remove da lista e joga de volta nos inputs)
     const editArt = (index) => {
         const item = currentArts[index];
         document.getElementById('art-type').value = item.type;
         document.getElementById('art-name').value = item.name;
         document.getElementById('art-url').value = item.url;
         
-        deleteArt(index); // Remove para não duplicar ao salvar
-        document.getElementById('art-url').focus(); // Foca no input
+        deleteArt(index);
+        document.getElementById('art-url').focus(); 
     };
 
-    // 5. Visualizar Item (Abre Modal de Imagem)
     const viewArt = (index) => {
         const item = currentArts[index];
         const viewModal = document.getElementById('image-view-modal');
@@ -581,7 +765,7 @@
 
         imgEl.src = item.url;
         captionEl.textContent = item.name || item.type;
-        captionEl.classList.toggle('hidden', !item.name); // Esconde legenda se não tiver nome
+        captionEl.classList.toggle('hidden', !item.name);
 
         viewModal.classList.remove('hidden');
         viewModal.classList.add('flex');
@@ -589,7 +773,17 @@
 
     const setupEvents = () => {
         els.addBtn.onclick = () => openModal();
-        els.searchBtn.onclick = () => els.filterCont.classList.toggle('hidden');
+        
+        els.searchBtn.onclick = () => {
+            const isHidden = els.filterCont.classList.toggle('hidden');
+            if (isHidden) {
+                els.searchBtn.innerHTML = '<i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros';
+            } else {
+                els.searchBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Esconder Filtros';
+            }
+            lucide.createIcons();
+        };
+
         els.closeModal.onclick = () => els.modal.classList.add('hidden');
         els.form.onsubmit = handleSubmit;
         els.deleteBtn.onclick = handleDelete;
@@ -597,14 +791,22 @@
 
         document.getElementById('btn-add-art').onclick = addArt;
 
+        document.getElementById('btn-view-album').onclick = () => {
+            const url = document.getElementById('item-album-url').value.trim();
+            if(url) {
+                window.open(url, '_blank');
+            } else {
+                showMsg('Insira uma URL de álbum primeiro!', true);
+            }
+        };
+
         els.cards.onclick = (e) => {
-            const c = e.target.closest('.card');
+            const c = e.target.closest('.task-card');
             if(c) openModal(c.dataset.id);
         };
 
         [els.search, els.sort, els.stars, els.status].forEach(i => i.oninput = filterSortRender);
 
-        // Preencher selects
         const fill = (sel) => statusOptions.forEach(o => sel.innerHTML += `<option value="${o.value}">${o.text}</option>`);
         els.inputs.status.innerHTML = '<option value="">Selecione...</option>';
         els.status.innerHTML = '<option value="">Todos os Status</option>';
