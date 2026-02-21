@@ -3,292 +3,385 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Meus Times & Guildas</title>
+  <title>Meus Times & Guildas — My Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    
-    /* --- GERAL --- */
-    .list-container { display: flex; flex-direction: column; gap: 1rem; }
-    .team-card { background:#151515; border:1px solid #2a2a2a; transition:all .3s ease; display: flex; flex-direction: column; border-radius: 0.75rem; overflow: hidden; }
-    @media (min-width: 768px) { .team-card { flex-direction: row; height: 160px; } }
-    .team-card:hover { border-color:#B9314F; transform:translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5); }
-    .action-section { background: #101010; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #2a2a2a; }
-    @media (min-width: 768px) { .action-section { border-top: none; border-left: 1px solid #2a2a2a; flex-direction: column; width: 80px; flex-shrink: 0; padding: 0; gap: 0.5rem; } }
-    .btn-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; color: #6b7280; transition: all 0.2s; background: transparent; border: 1px solid transparent; }
-    .btn-icon:hover { background: #2a2a2a; color: #e5e7eb; border-color: #374151; }
-    .btn-icon.edit:hover { color: #3b82f6; } 
-    .btn-icon.members:hover { color: #B9314F; } 
-    .btn-icon.view:hover { color: #10b981; } 
-    .btn-primary { background:#B9314F; color: white; }
-    .btn-primary:hover { background:#99233b; }
-    .modal-input { background-color: #1f2937; border: 1px solid #374151; color: white; }
-    .modal-input:focus { outline: none; border-color: #B9314F; }
-    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-    .custom-scroll::-webkit-scrollbar-track { background: #111; }
-    .avatar-fallback-container { display: flex; align-items: center; justify-content: center; background-color: #262626; color: #a3a3a3; font-weight: bold; text-transform: uppercase; user-select: none; }
+      /* Configurações Base Xbox / Gamer Minimalista */
+      :root {
+          --accent-color: #B9314F;
+          --bg-dark: #0b0b0b;
+          --bg-panel: #151515;
+      }
+      body {
+          background-color: var(--bg-dark);
+          color: #e6e6e6;
+          font-family: 'Inter', system-ui, sans-serif;
+          background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+          min-height: 100vh;
+      }
 
-    /* --- CAMPO DE FUTEBOL (RETRATO) --- */
-    .soccer-field-container {
-        background-color: #1a1a1a; /* Cor do gramado (Cinza Escuro) */
-        position: relative;
-        width: 100%;
-        height: 100%;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    }
-    
-    /* Linhas do Campo (CSS Puro) */
-    .pitch-lines {
-        position: absolute; inset: 15px; border: 2px solid rgba(255,255,255,0.15); pointer-events: none;
-    }
-    .pitch-lines::before { /* Linha de Meio Campo */
-        content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.15); transform: translateY(-50%);
-    }
-    .pitch-lines::after { /* Círculo Central */
-        content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 100px; 
-        border: 2px solid rgba(255,255,255,0.15); border-radius: 50%; transform: translate(-50%, -50%);
-    }
-    /* Pequenas áreas (Gol) */
-    .goal-area-top { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 40%; height: 60px; border: 2px solid rgba(255,255,255,0.15); border-top: none; }
-    .goal-area-bottom { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 40%; height: 60px; border: 2px solid rgba(255,255,255,0.15); border-bottom: none; }
+      .text-accent { color: var(--accent-color); }
+      .bg-accent { background-color: var(--accent-color); }
+      
+      /* Painéis translúcidos */
+      .glass-panel {
+          background: rgba(21, 21, 21, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+      }
 
-    /* --- TOKEN DO JOGADOR (NOVO ESTILO) --- */
-    .player-token {
-        position: absolute; transform: translate(-50%, -50%);
-        display: flex; flex-direction: column; align-items: center;
-        z-index: 10; cursor: default;
-        width: 80px; /* Largura da área de toque */
-    }
-    .player-token:hover { z-index: 20; transform: translate(-50%, -55%); transition: transform 0.2s; }
-    
-    /* Imagem Grande (Foco) */
-    .token-img-wrapper {
-        width: 64px; height: 64px; /* w-16 h-16 */
-        border-radius: 50%;
-        border: 3px solid #1a1a1a;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        overflow: hidden;
-        background: #222;
-        margin-bottom: 4px;
-        position: relative;
-    }
-    .token-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-    
-    /* Texto Pequeno (Detalhe) */
-    .token-info {
-        text-align: center;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 2px 6px;
-        border-radius: 4px;
-        backdrop-filter: blur(2px);
-    }
-    .token-name { font-size: 10px; color: white; font-weight: 700; line-height: 1; margin-bottom: 2px; white-space: nowrap; }
-    .token-pos { font-size: 9px; color: #B9314F; font-weight: 600; text-transform: uppercase; line-height: 1; }
+      /* Cards com efeito Xbox */
+      .task-card {
+          background: rgba(30, 30, 30, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+      }
+      .task-card:hover {
+          transform: translateY(-4px);
+          background: rgba(40, 40, 40, 0.6);
+          border-color: rgba(185, 49, 79, 0.3);
+          box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+      }
 
-    /* --- TCG CARD STYLE --- */
-    .tcg-card {
-        background-color: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 12px;
-        overflow: hidden;
-        position: relative;
-        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.5);
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        display: flex;
-        flex-direction: column;
-        height: 420px; /* Altura fixa para uniformidade */
-        user-select: none;
-    }
-    
-    /* Efeito Hover (Levantar e Brilho) */
-    .tcg-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 20px 30px -10px rgba(185, 49, 79, 0.3); /* Sombra avermelhada */
-        border-color: #B9314F;
-        z-index: 10;
-    }
+      /* Inputs estilo Xbox */
+      input, select, textarea {
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s;
+          color: white;
+          color-scheme: dark;
+      }
+      input:focus, select:focus, textarea:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+          outline: none;
+      }
+      option { background-color: var(--bg-panel); color: #e6e6e6; padding: 10px; }
 
-    /* Moldura interna (Look de Carta) */
-    .tcg-frame {
-        padding: 8px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        background: linear-gradient(to bottom, #222, #111);
-    }
+      /* Botões com efeito Xbox */
+      .xbox-button { position: relative; overflow: hidden; transition: all 0.3s; }
+      .xbox-button::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%); transition: transform 0.6s;
+      }
+      .xbox-button:hover::before { transform: translateX(100%); }
+      .xbox-button:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(185, 49, 79, 0.4); }
 
-    /* Imagem da Carta */
-    .tcg-art {
-        flex: 1; /* Ocupa o espaço disponível */
-        width: 100%;
-        background: #000;
-        border: 2px solid #444;
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-    }
-    .tcg-art img { width: 100%; height: 100%; object-fit: cover; }
+      /* Sidebar retrátil */
+      .sidebar {
+          position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+          transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+      }
+      .sidebar.hidden { transform: translateX(-100%); }
+      .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+      .main-content.sidebar-hidden { margin-left: 0; }
+      .toggle-sidebar-btn { transition: all 0.3s; }
+      .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
 
-    /* Cabeçalho (Nome) */
-    .tcg-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #2a2a2a;
-        border: 1px solid #444;
-        padding: 6px 10px;
-        border-radius: 6px;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    }
-    .tcg-name { font-weight: 700; color: #e5e7eb; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    /* Caixa de Texto (Descrição/Obs) */
-    .tcg-textbox {
-        height: 100px; /* Altura fixa para texto */
-        background: #181818;
-        border: 1px solid #333;
-        border-radius: 4px;
-        padding: 8px;
-        font-size: 0.75rem;
-        color: #a3a3a3;
-        overflow-y: auto;
-        font-family: 'Courier New', monospace; /* Fonte estilo máquina de escrever/RPG */
-        line-height: 1.4;
-    }
-    /* Scrollbar fina para a caixa de texto */
-    .tcg-textbox::-webkit-scrollbar { width: 4px; }
-    .tcg-textbox::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+      /* Scrollbar customizada */
+      .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+      .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+      .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+      .custom-scroll::-webkit-scrollbar-track { background: var(--bg-dark); }
 
-    /* Rodapé da carta (Tipo/Raridade fictícia) */
-    .tcg-footer {
-        display: flex;
-        justify-content: center;
-        border-top: 1px solid #333;
-        padding-top: 4px;
-    }
-    .tcg-badge { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+      .avatar-fallback-container { display: flex; align-items: center; justify-content: center; background-color: #262626; color: #a3a3a3; font-weight: bold; text-transform: uppercase; user-select: none; }
 
+      /* --- VISUALIZADOR DE FUTEBOL (PRANCHETA TÁTICA) --- */
+      .soccer-field-container { background: radial-gradient(circle, #1a1a1a 0%, #0b0b0b 100%); position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
+      .pitch-lines { position: absolute; inset: 4%; border: 2px solid rgba(185, 49, 79, 0.3); pointer-events: none; border-radius: 6px; }
+      .pitch-lines::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(185, 49, 79, 0.3); transform: translateY(-50%); }
+      .pitch-lines::after { content: ''; position: absolute; top: 50%; left: 50%; width: 25%; aspect-ratio: 1/1; border: 2px solid rgba(185, 49, 79, 0.3); border-radius: 50%; transform: translate(-50%, -50%); }
+      .goal-area-top { position: absolute; top: 4%; left: 50%; transform: translateX(-50%); width: 45%; height: 14%; border: 2px solid rgba(185, 49, 79, 0.3); border-top: none; }
+      .goal-area-bottom { position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%); width: 45%; height: 14%; border: 2px solid rgba(185, 49, 79, 0.3); border-bottom: none; }
+
+      .player-token { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 10; cursor: default; width: 15%; max-width: 80px; min-width: 45px; }
+      .player-token:hover { z-index: 20; transform: translate(-50%, -55%) scale(1.1); transition: all 0.2s; }
+      .token-img-wrapper { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; border: 2px solid var(--accent-color); box-shadow: 0 4px 15px rgba(185, 49, 79, 0.3); overflow: hidden; background: #222; margin-bottom: 4px; position: relative; display: flex; align-items: center; justify-content: center; }
+      .token-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+      .token-img-wrapper .avatar-fallback-container { width: 100%; height: 100%; font-size: clamp(12px, 3vw, 24px); }
+      .token-info { text-align: center; background: rgba(21, 21, 21, 0.9); padding: 3px 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px); width: max-content; max-width: 150%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+      .token-name { font-size: clamp(9px, 2vw, 12px); color: white; font-weight: 700; line-height: 1.1; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .token-pos { font-size: clamp(7px, 1.5vw, 9px); color: var(--accent-color); font-weight: 800; text-transform: uppercase; line-height: 1; letter-spacing: 0.5px; }
+
+      .tcg-card { background-color: #1a1a1a; border: 1px solid #333; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; height: 420px; user-select: none; }
+      .tcg-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 30px -10px rgba(185, 49, 79, 0.3); border-color: #B9314F; z-index: 10; }
+      .tcg-frame { padding: 8px; height: 100%; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(to bottom, #222, #111); }
+      .tcg-art { flex: 1; width: 100%; background: #000; border: 2px solid #444; border-radius: 4px; overflow: hidden; position: relative; }
+      .tcg-art img { width: 100%; height: 100%; object-fit: cover; }
+      .tcg-header { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; border: 1px solid #444; padding: 6px 10px; border-radius: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+      .tcg-name { font-weight: 700; color: #e5e7eb; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+      .tcg-textbox { height: 100px; background: #181818; border: 1px solid #333; border-radius: 4px; padding: 8px; font-size: 0.75rem; color: #a3a3a3; overflow-y: auto; font-family: 'Courier New', monospace; line-height: 1.4; }
+      .tcg-textbox::-webkit-scrollbar { width: 4px; }
+      .tcg-textbox::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+      .tcg-footer { display: flex; justify-content: center; border-top: 1px solid #333; padding-top: 4px; }
+      .tcg-badge { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
   </style>
 </head>
-<body class="min-h-screen pb-20 custom-scroll">
+<body class="flex h-screen overflow-hidden custom-scroll">
 
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+  <!-- OVERLAY DE CARREGAMENTO -->
+  <div id="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
     <div class="flex flex-col items-center">
       <div class="animate-spin h-12 w-12 border-4 border-t-transparent border-[#B9314F] rounded-full mb-4"></div>
-      <p class="text-gray-400 animate-pulse">Carregando...</p>
+      <p class="text-gray-400 font-bold tracking-widest text-sm uppercase">Carregando...</p>
     </div>
   </div>
 
-  <div id="app" class="container mx-auto p-4 max-w-5xl hidden">
-    <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-[#151515] p-4 rounded-xl border border-[#2a2a2a]">
-      <div class="flex items-center gap-3">
-        <button onclick="window.location.href='home.html'" class="p-2 rounded-full hover:bg-gray-800 transition"><i data-lucide="arrow-left" class="text-[#B9314F]"></i></button>
-        <div>
-          <h1 class="text-2xl font-bold text-white flex items-center gap-2"><i data-lucide="users" class="text-[#B9314F]"></i> Gestão de Times</h1>
-          <p class="text-xs text-gray-500 font-mono" id="user-display">Carregando...</p>
-        </div>
+  <!-- SIDEBAR RETRÁTIL -->
+  <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+      <div class="text-accent mb-8">
+          <i data-lucide="sparkle" class="w-10 h-10"></i>
       </div>
-      <div class="flex gap-3">
-        <button id="add-btn" class="flex items-center gap-2 bg-[#B9314F] hover:bg-[#99233b] px-5 py-2.5 rounded-lg text-white font-medium transition shadow-lg shadow-red-900/20"><i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Time</button>
-        <button id="logout-btn" class="p-2.5 rounded-lg bg-gray-800 hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition border border-gray-700"><i data-lucide="log-out" class="w-5 h-5"></i></button>
-      </div>
-    </header>
-    
-    <div class="mb-6 grid grid-cols-1 md:grid-cols-12 gap-4">
-      <div class="md:col-span-8 relative">
-        <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-gray-500"></i>
-        <input id="search-input" type="text" placeholder="Buscar time..." class="w-full pl-10 pr-4 py-3 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
-      </div>
-      <div class="md:col-span-4">
-        <select id="filter-type" class="w-full py-3 px-4 bg-[#151515] border border-[#2a2a2a] rounded-lg focus:border-[#B9314F] outline-none text-gray-300">
-          <option value="">Todos os Tipos</option>
-          <option value="Pokemon Principal">Pokemon Principal</option>
-          <option value="Pokemon Fazenda">Pokemon Fazenda</option>
-          <option value="Digimon">Digimon</option>
-          <option value="Futebol">Futebol</option>
-          <option value="Geral">Geral</option>
-        </select>
-      </div>
-    </div>
-    <div id="cards-container" class="list-container"></div>
-    <div id="empty-state" class="hidden text-center py-20 text-gray-500">Nenhum time encontrado.</div>
-  </div>
+      
+      <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+          <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+              <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
 
-  <div id="modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm p-4 overflow-hidden">
-    <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]">
-      <div class="flex justify-between items-center p-6 border-b border-[#2a2a2a]">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2"><i data-lucide="shield" class="text-[#B9314F]"></i> <span id="modal-title-text">Time</span></h2>
-        <button id="close-modal" class="text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+          <!-- Games está ativo e é a raiz para Times, mas deixaremos como link sutil se quiser voltar -->
+          <a href="games_manager.html" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl transition shadow-[0_0_15px_rgba(185,49,79,0.2)]" title="Games / Times">
+              <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+              <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards">
+              <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+              <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+              <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+              <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+              <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+              <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+      </nav>
+
+      <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+          <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+      </button>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+      
+      <!-- HEADER -->
+      <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 border-b border-white/5">
+          <div class="flex items-center gap-3">
+              <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                  <i data-lucide="menu" class="w-5 h-5"></i>
+              </button>
+              <div>
+                  <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                      <i data-lucide="users" class="text-accent"></i> Gestão de Times
+                  </h2>
+              </div>
+          </div>
+          <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              Usuário: <span id="user-display" class="text-accent font-mono font-bold">...</span>
+          </div>
+      </header>
+
+      <!-- ÁREA DE CONTEÚDO -->
+      <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 custom-scroll hidden">
+          <div class="max-w-6xl mx-auto">
+              
+              <!-- AÇÕES TOPO E FILTROS -->
+              <div class="glass-panel p-6 rounded-2xl mb-6">
+                  <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                      <button id="add-btn" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                          <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Time
+                      </button>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <div class="md:col-span-8 relative">
+                          <i data-lucide="search" class="absolute left-4 top-3.5 w-5 h-5 text-gray-500"></i>
+                          <input id="search-input" type="text" placeholder="Buscar time..." class="w-full pl-12 pr-4 py-3 rounded-xl bg-black/40 border-white/10 text-white focus:border-accent outline-none">
+                      </div>
+                      <div class="md:col-span-4">
+                          <select id="filter-type" class="w-full py-3 px-4 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none">
+                              <option value="">Todos os Tipos</option>
+                              <option value="Pokemon Principal">Pokemon Principal</option>
+                              <option value="Pokemon Fazenda">Pokemon Fazenda</option>
+                              <option value="Digimon">Digimon</option>
+                              <option value="Futebol">Futebol</option>
+                              <option value="Geral">Geral</option>
+                          </select>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- LISTA DE CARDS -->
+              <div id="cards-container" class="flex flex-col gap-4 pb-20"></div>
+              
+              <div id="empty-state" class="hidden text-center py-20">
+                  <i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i>
+                  <p class="text-lg text-gray-500 font-semibold">Nenhum time encontrado.</p>
+              </div>
+
+          </div>
       </div>
-      <form id="team-form" class="p-6 space-y-5 overflow-y-auto custom-scroll">
+
+      <!-- BOTÃO FLUTUANTE (GAMES) -->
+      <a href="games_manager.html" class="absolute bottom-6 right-6 xbox-button bg-accent hover:bg-[#99233b] text-white p-4 rounded-full shadow-[0_0_20px_rgba(185,49,79,0.4)] border border-white/10 z-40 flex items-center justify-center gap-2 group" title="Voltar para Games">
+          <i data-lucide="gamepad-2" class="w-6 h-6"></i>
+          <span class="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 font-bold text-sm">Games</span>
+      </a>
+
+  </main>
+
+  <!-- MODAL DE TIME (NOVO/EDITAR) -->
+  <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-hidden">
+    <div class="glass-panel rounded-2xl w-full max-w-lg shadow-2xl relative flex flex-col border border-white/10 max-h-[90vh]">
+      <div class="flex justify-between items-center p-6 border-b border-white/5">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="shield" class="text-accent"></i> <span id="modal-title-text">Time</span>
+        </h2>
+        <button id="close-modal" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <form id="team-form" class="p-6 space-y-4 overflow-y-auto custom-scroll">
         <input type="hidden" id="team-id">
-        <div><label class="block text-sm font-medium text-gray-400 mb-1">Nome</label><input id="team-name" type="text" class="w-full p-3 rounded-lg modal-input" required></div>
-        <div><label class="block text-sm font-medium text-gray-400 mb-1">Jogo</label><input id="team-game" list="games-list" type="text" class="w-full p-3 rounded-lg modal-input" required><datalist id="games-list"></datalist></div>
-        <div><label class="block text-sm font-medium text-gray-400 mb-1">Tipo</label>
-            <select id="team-type" class="w-full p-3 rounded-lg modal-input">
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label>
+            <input id="team-name" type="text" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition" required>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jogo</label>
+            <input id="team-game" list="games-list" type="text" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition" required>
+            <datalist id="games-list"></datalist>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label>
+            <select id="team-type" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition">
                 <option value="Geral">Geral</option>
                 <option value="Pokemon Principal">Pokemon Principal</option>
                 <option value="Pokemon Fazenda">Pokemon Fazenda</option>
                 <option value="Digimon">Digimon</option>
                 <option value="Futebol">Futebol</option>
-            </select></div>
-        <div><label class="block text-sm font-medium text-gray-400 mb-1">Banner (URL)</label><input id="team-img" type="url" class="w-full p-3 rounded-lg modal-input"></div>
-        <div class="flex justify-between items-center pt-4 border-t border-[#2a2a2a] mt-4">
-            <button id="delete-btn" type="button" class="hidden text-red-500 hover:text-red-400 text-sm font-medium">Excluir</button>
-            <button type="submit" class="px-6 py-2 rounded-lg btn-primary font-medium ml-auto">Salvar</button>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Banner (URL)</label>
+            <input id="team-img" type="url" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition">
+        </div>
+        
+        <div class="flex items-center justify-between pt-4 mt-4 border-t border-white/5">
+            <button id="delete-btn" type="button" class="hidden px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center" title="Excluir">
+                <i data-lucide="trash-2" class="w-5 h-5"></i> Excluir
+            </button>
+            <button type="submit" class="xbox-button px-6 py-3 rounded-xl bg-accent text-white font-bold ml-auto flex items-center gap-2">
+                <i data-lucide="save" class="w-5 h-5"></i> Salvar
+            </button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="members-modal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[60] backdrop-blur-md p-2 sm:p-4">
-    <div class="bg-[#151515] border border-[#2a2a2a] rounded-xl w-full max-w-5xl h-[90vh] shadow-2xl relative flex flex-col md:flex-row overflow-hidden">
-        <div class="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#2a2a2a] flex flex-col bg-[#111] h-1/3 md:h-full shrink-0">
-            <div class="p-3 border-b border-[#2a2a2a] bg-[#1a1a1a]"><h3 class="font-bold text-white text-sm flex items-center gap-2"><i data-lucide="users" class="w-4 h-4 text-[#B9314F]"></i> Integrantes</h3><p id="member-team-name" class="text-[10px] text-gray-500 truncate mt-1">-</p></div>
+  <!-- MODAL DE INTEGRANTES -->
+  <div id="members-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center z-[60] p-2 sm:p-4">
+    <div class="glass-panel border border-white/10 rounded-2xl w-full max-w-5xl h-[90vh] shadow-2xl relative flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Lista de Integrantes (Esquerda) -->
+        <div class="w-full md:w-80 border-b md:border-b-0 md:border-r border-white/5 flex flex-col bg-black/40 shrink-0">
+            <div class="p-4 border-b border-white/5 bg-white/5">
+                <h3 class="font-bold text-white text-sm flex items-center gap-2"><i data-lucide="users" class="w-4 h-4 text-accent"></i> Integrantes</h3>
+                <p id="member-team-name" class="text-[10px] font-mono text-gray-500 uppercase tracking-widest truncate mt-1">-</p>
+            </div>
+            
+            <!-- NOVO: Container da Formação Tática -->
+            <div id="team-formation-container" class="px-4 py-3 border-b border-white/5 bg-black/60 hidden">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1"><i data-lucide="layout-template" class="w-3 h-3 text-accent"></i> Formação Tática do Time</label>
+                <select id="team-formation-select" class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:border-accent outline-none transition"></select>
+            </div>
+            
             <div id="members-list" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scroll"></div>
-            <div class="p-3 border-t border-[#2a2a2a] bg-[#111]"><button onclick="prepareNewMember()" class="w-full py-2 bg-[#2a2a2a] hover:bg-[#B9314F] text-gray-300 hover:text-white rounded-lg transition text-xs font-bold flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Novo Integrante</button></div>
+            <div class="p-3 border-t border-white/5 bg-white/5">
+                <button onclick="prepareNewMember()" class="xbox-button w-full py-2.5 bg-accent/20 border border-accent/50 hover:bg-accent text-white rounded-xl transition text-xs font-bold flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Integrante
+                </button>
+            </div>
         </div>
-        <div class="flex-1 flex flex-col bg-[#151515] relative min-h-0">
-            <div class="p-3 border-b border-[#2a2a2a] flex justify-between items-center shrink-0"><h3 id="member-form-title" class="font-bold text-white text-sm">Adicionar / Editar</h3><button onclick="closeMembersModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        
+        <!-- Formulário do Integrante (Direita) -->
+        <div class="flex-1 flex flex-col bg-transparent relative min-h-0">
+            <div class="p-4 border-b border-white/5 flex justify-between items-center shrink-0">
+                <h3 id="member-form-title" class="font-bold text-white text-sm uppercase tracking-widest">Adicionar / Editar</h3>
+                <button onclick="closeMembersModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-xl hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
             <div id="member-form-container" class="flex-1 overflow-y-auto p-4 md:p-6 hidden custom-scroll">
                 <form id="member-form" class="space-y-4 max-w-lg mx-auto pb-4">
                     <input type="hidden" id="member-id">
-                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label><input id="member-name" type="text" class="w-full p-2.5 rounded-lg modal-input text-sm" required></div>
-                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Avatar (URL)</label><input id="member-avatar" type="url" class="w-full p-2.5 rounded-lg modal-input text-sm"><p class="text-[10px] text-gray-500 mt-1">Se falhar, usaremos a inicial.</p></div>
-                    <div id="dynamic-fields" class="p-4 bg-[#1a1a1a] rounded-lg border border-[#333] space-y-4"></div>
-                    <div class="flex justify-between items-center pt-4 mt-2 border-t border-[#2a2a2a]"><button type="button" id="btn-delete-member" class="text-red-500 hover:text-red-300 text-xs font-bold uppercase hidden">Excluir</button><button type="submit" class="px-6 py-2 rounded-lg btn-primary text-sm font-bold shadow-lg ml-auto">Salvar</button></div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label>
+                        <input id="member-name" type="text" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Avatar (URL)</label>
+                        <input id="member-avatar" type="url" class="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-white/10 text-white focus:border-accent transition">
+                        <p class="text-[10px] text-gray-500 mt-1">Se falhar, usaremos a inicial.</p>
+                    </div>
+                    
+                    <div id="dynamic-fields" class="p-4 bg-white/5 rounded-xl border border-white/10 space-y-4"></div>
+                    
+                    <div class="flex justify-between items-center pt-4 mt-2 border-t border-white/5">
+                        <button type="button" id="btn-delete-member" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition text-xs uppercase hidden">Excluir</button>
+                        <button type="submit" class="xbox-button px-6 py-3 rounded-xl bg-accent text-white font-bold ml-auto shadow-lg text-sm">Salvar</button>
+                    </div>
                 </form>
             </div>
-            <div id="member-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-600 p-10"><i data-lucide="user-plus" class="w-12 h-12 mb-3 opacity-50"></i><p class="text-sm text-center">Selecione ou crie um novo.</p></div>
+            
+            <div id="member-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-600 p-10">
+                <i data-lucide="user-plus" class="w-16 h-16 mb-4 opacity-20 text-accent"></i>
+                <p class="text-sm text-center font-bold">Selecione ou crie um novo integrante.</p>
+            </div>
         </div>
     </div>
   </div>
 
-  <div id="soccer-visualizer-modal" class="fixed inset-0 bg-[#0b0b0b] hidden z-[70] flex flex-col">
-      <div class="bg-[#151515] border-b border-[#2a2a2a] p-3 flex justify-between items-center shrink-0">
+  <!-- VISUALIZADORES (MANTIDOS E APENAS COM CLASSES ATUALIZADAS NO HEADER) -->
+  <div id="soccer-visualizer-modal" class="fixed inset-0 bg-black/95 hidden z-[70] flex flex-col backdrop-blur-md">
+      <div class="glass-panel border-b border-white/5 p-4 flex justify-between items-center shrink-0 z-10 shadow-xl">
           <div class="flex items-center gap-4">
-              <h3 class="text-white font-bold flex items-center gap-2"><i data-lucide="layout-template" class="text-[#B9314F]"></i> Prancheta Tática</h3>
-              <select id="formation-select" class="bg-[#2a2a2a] text-white text-sm border border-[#333] rounded px-3 py-1.5 outline-none focus:border-[#B9314F]"></select>
+              <h3 class="text-white font-bold flex items-center gap-2 uppercase tracking-widest text-sm"><i data-lucide="layout-template" class="text-accent"></i> Prancheta Tática</h3>
+              <span id="current-formation-display" class="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20 font-mono font-bold shadow-sm"></span>
           </div>
-          <button onclick="closeSoccerVisualizer()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+          <button onclick="closeSoccerVisualizer()" class="bg-white/5 p-2 rounded-xl text-gray-400 hover:text-white transition hover:bg-white/10 border border-transparent hover:border-white/10"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="flex-1 flex overflow-hidden relative">
-          
-          <div class="flex-1 bg-[#111] flex items-center justify-center p-2 sm:p-6 overflow-hidden relative">
-              
-              <button id="toggle-sidebar-btn" onclick="toggleSoccerSidebar()" 
-                      class="absolute right-0 top-1/2 -translate-y-1/2 z-40 bg-[#2a2a2a] border-l border-y border-[#333] text-gray-400 hover:text-[#B9314F] hover:bg-[#222] p-1 rounded-l-lg shadow-lg transition-colors h-16 flex items-center justify-center">
-                  <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          <div class="flex-1 bg-transparent flex items-center justify-center p-2 sm:p-6 overflow-hidden relative">
+              <button id="toggle-sidebar-btn" onclick="toggleSoccerSidebar()" class="absolute right-0 top-1/2 -translate-y-1/2 z-40 bg-white/10 border-l border-y border-white/20 text-gray-300 hover:text-accent hover:bg-white/20 p-2 rounded-l-xl shadow-lg transition-colors h-16 flex items-center justify-center backdrop-blur">
+                  <i data-lucide="chevron-left" class="w-5 h-5"></i>
               </button>
-
-              <div class="relative h-full aspect-[3/5] max-h-[85vh] max-w-full transition-all duration-300">
-                  <div id="soccer-field" class="soccer-field-container w-full h-full">
+              <!-- Container dimensionável e responsivo para o campo -->
+              <div class="relative h-full w-full max-w-2xl aspect-[3/5] transition-all duration-300 flex items-center justify-center">
+                  <div id="soccer-field" class="soccer-field-container">
                       <div class="pitch-lines"></div>
                       <div class="goal-area-top"></div>
                       <div class="goal-area-bottom"></div>
@@ -296,205 +389,145 @@
                   </div>
               </div>
           </div>
-
-          <div id="soccer-sidebar" class="w-64 bg-[#111] border-l border-[#2a2a2a] flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden">
-              <div class="flex-1 flex flex-col p-3 border-b border-[#2a2a2a] overflow-hidden">
-                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i> Reservas</h4>
+          <!-- Sidebar vem recolhida (w-0 e opacity-0) -->
+          <div id="soccer-sidebar" class="w-0 opacity-0 border-l-0 border-white/5 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden z-10 glass-panel shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
+              <div class="flex-1 flex flex-col p-4 border-b border-white/5 overflow-hidden bg-black/20">
+                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="users" class="w-3 h-3 text-accent"></i> Reservas</h4>
                   <div id="subs-list" class="space-y-2 overflow-y-auto custom-scroll pr-1 flex-1"></div>
-                  <div id="subs-overflow" class="hidden mt-2 text-center text-xs text-gray-500 p-2 bg-[#1a1a1a] rounded">+X Jogadores</div>
+                  <div id="subs-overflow" class="hidden mt-2 text-center text-xs font-bold text-accent p-2 bg-accent/10 rounded-xl border border-accent/20">+X Jogadores</div>
               </div>
-              <div class="h-1/3 p-3 bg-[#151515] flex flex-col overflow-hidden">
-                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="clipboard" class="w-3 h-3"></i> Comissão</h4>
+              <div class="h-1/3 p-4 bg-black/40 flex flex-col overflow-hidden">
+                  <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="clipboard" class="w-3 h-3 text-blue-400"></i> Comissão</h4>
                   <div id="coaches-list" class="space-y-2 overflow-y-auto custom-scroll pr-1"></div>
               </div>
           </div>
       </div>
   </div>
 
-  <div id="general-visualizer-modal" class="fixed inset-0 bg-[#0b0b0b] hidden z-[70] flex flex-col overflow-hidden">
+  <div id="general-visualizer-modal" class="fixed inset-0 bg-black/95 hidden z-[70] flex flex-col overflow-hidden backdrop-blur-md">
       <div class="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-start pointer-events-none">
-          <div class="pointer-events-auto bg-[#151515]/90 backdrop-blur border border-[#333] px-4 py-2 rounded-lg shadow-2xl">
-              <h2 id="gen-viz-title" class="text-xl font-bold text-white flex items-center gap-2">
-                  <i data-lucide="library" class="text-[#B9314F]"></i> <span>Nome do Time</span>
+          <div class="pointer-events-auto glass-panel px-6 py-3 rounded-2xl shadow-2xl">
+              <h2 id="gen-viz-title" class="text-xl font-bold text-white flex items-center gap-2 uppercase tracking-widest">
+                  <i data-lucide="library" class="text-accent"></i> <span>Nome do Time</span>
               </h2>
               <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Coleção de Membros</p>
           </div>
-          <button onclick="closeGeneralVisualizer()" class="pointer-events-auto bg-[#151515]/90 hover:bg-[#B9314F] text-white border border-[#333] rounded-full p-2 transition shadow-xl">
+          <button onclick="closeGeneralVisualizer()" class="pointer-events-auto bg-white/10 hover:bg-accent text-white border border-white/10 rounded-full p-3 transition shadow-xl">
               <i data-lucide="x" class="w-6 h-6"></i>
           </button>
       </div>
-
-      <div class="absolute inset-0 z-0 opacity-20 pointer-events-none" 
-           style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;">
-      </div>
-
-      <div class="flex-1 overflow-y-auto custom-scroll z-0 pt-24 pb-10 px-4 sm:px-10">
-          <div id="general-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
-              </div>
+      <div class="absolute inset-0 z-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+      <div class="flex-1 overflow-y-auto custom-scroll z-0 pt-28 pb-10 px-4 sm:px-10">
+          <div id="general-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto"></div>
       </div>
   </div>
 
-  <div id="pokemon-visualizer-modal" class="fixed inset-0 bg-[#121212] hidden z-[70] flex flex-col overflow-hidden">
-      <div class="relative z-10 p-4 flex justify-between items-center bg-[#1a1a1a] border-b border-[#333] shadow-md">
+  <div id="pokemon-visualizer-modal" class="fixed inset-0 bg-[#0a0a0a] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center glass-panel shadow-xl">
           <div class="flex items-center gap-3">
-              <div class="bg-red-600 text-white p-2 rounded-full shadow-lg border border-red-400">
-                  <img src="https://cdn-icons-png.flaticon.com/512/188/188987.png" class="w-6 h-6 invert brightness-0"> </div>
+              <div class="bg-red-600/20 text-red-500 p-2.5 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.4)] border border-red-500/50">
+                  <img src="https://cdn-icons-png.flaticon.com/512/188/188987.png" class="w-6 h-6 invert brightness-0" style="filter: invert(33%) sepia(85%) saturate(2250%) hue-rotate(345deg) brightness(97%) contrast(92%);"> 
+              </div>
               <div>
-                  <h2 id="poke-viz-title" class="text-xl font-bold text-white tracking-wide">Hall of Fame</h2>
-                  <p class="text-[10px] text-gray-400 uppercase font-mono">Registro de Campeão</p>
+                  <h2 id="poke-viz-title" class="text-xl font-bold text-white tracking-widest uppercase">Hall of Fame</h2>
+                  <p class="text-[10px] text-gray-400 uppercase font-mono tracking-widest">Registro de Campeão</p>
               </div>
           </div>
-          <button onclick="closePokemonVisualizer()" class="text-gray-400 hover:text-white bg-[#2a2a2a] hover:bg-red-600 p-2 rounded-full transition">
+          <button onclick="closePokemonVisualizer()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-red-600 p-3 rounded-xl transition border border-white/5">
               <i data-lucide="x" class="w-6 h-6"></i>
           </button>
       </div>
-
-      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#121212]">
-          <div class="absolute inset-0 opacity-10 pointer-events-none" 
-               style="background-image: repeating-linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222), repeating-linear-gradient(45deg, #222 25%, #121212 25%, #121212 75%, #222 75%, #222); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
-
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-transparent">
+          <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: repeating-linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222), repeating-linear-gradient(45deg, #222 25%, #121212 25%, #121212 75%, #222 75%, #222); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
           <div class="container mx-auto px-4 py-8 relative z-0 flex flex-col items-center gap-12">
-              
               <div class="w-full max-w-4xl">
                   <h3 class="text-center text-white/50 text-sm uppercase tracking-[0.3em] mb-6 border-b border-white/10 pb-2">Time Principal</h3>
-                  <div id="poke-main-grid" class="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8 justify-items-center">
-                      </div>
+                  <div id="poke-main-grid" class="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8 justify-items-center"></div>
               </div>
-
               <div id="poke-extra-container" class="w-full max-w-5xl hidden">
                   <h3 class="text-center text-white/50 text-sm uppercase tracking-[0.3em] mb-6 border-b border-white/10 pb-2">Caixa / Histórico</h3>
-                  <div id="poke-extra-grid" class="flex flex-wrap justify-center gap-4">
-                      </div>
+                  <div id="poke-extra-grid" class="flex flex-wrap justify-center gap-4"></div>
               </div>
           </div>
       </div>
   </div>
 
-  <div id="pokemon-farm-modal" class="fixed inset-0 bg-[#121212] hidden z-[70] flex flex-col overflow-hidden">
-      <div class="relative z-10 p-4 flex justify-between items-center bg-[#1a1a1a] border-b border-[#333] shadow-md">
+  <div id="pokemon-farm-modal" class="fixed inset-0 bg-[#0a0a0a] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center glass-panel shadow-xl">
           <div class="flex items-center gap-3">
-              <div class="bg-green-600 text-white p-2 rounded-full shadow-lg border border-green-400">
+              <div class="bg-green-600/20 text-green-500 p-2.5 rounded-xl shadow-[0_0_15px_rgba(22,163,74,0.4)] border border-green-500/50">
                   <i data-lucide="sprout" class="w-6 h-6"></i>
               </div>
               <div>
-                  <h2 id="farm-viz-title" class="text-xl font-bold text-white tracking-wide">Minha Fazenda</h2>
-                  <p class="text-[10px] text-gray-400 uppercase font-mono">Coleção Agrupada</p>
+                  <h2 id="farm-viz-title" class="text-xl font-bold text-white tracking-widest uppercase">Minha Fazenda</h2>
+                  <p class="text-[10px] text-gray-400 uppercase font-mono tracking-widest">Coleção Agrupada</p>
               </div>
           </div>
-          <button onclick="closeFarmVisualizer()" class="text-gray-400 hover:text-white bg-[#2a2a2a] hover:bg-green-600 p-2 rounded-full transition">
+          <button onclick="closeFarmVisualizer()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-green-600 p-3 rounded-xl transition border border-white/5">
               <i data-lucide="x" class="w-6 h-6"></i>
           </button>
       </div>
-
-      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#0f0f0f]">
-          <div class="absolute inset-0 opacity-5 pointer-events-none" 
-               style="background-image: radial-gradient(#444 1px, transparent 1px); background-size: 30px 30px;"></div>
-
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-transparent">
+          <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 30px 30px;"></div>
           <div class="container mx-auto px-4 py-8 relative z-0">
               <div id="farm-groups-container" class="flex flex-col gap-12 pb-20"></div>
           </div>
       </div>
   </div>
 
-  <div id="digimon-visualizer-modal" class="fixed inset-0 bg-[#050510] hidden z-[70] flex flex-col overflow-hidden">
-      <div class="relative z-10 p-4 flex justify-between items-center bg-[#0a0a15] border-b border-blue-900/30 shadow-[0_0_15px_rgba(0,181,226,0.1)]">
+  <div id="digimon-visualizer-modal" class="fixed inset-0 bg-[#020205] hidden z-[70] flex flex-col overflow-hidden">
+      <div class="relative z-10 p-4 flex justify-between items-center glass-panel border-b border-blue-900/30 shadow-[0_0_25px_rgba(0,181,226,0.1)]">
           <div class="flex items-center gap-3">
-              <div class="bg-blue-600 text-white p-2 rounded sm:rounded-tl-xl sm:rounded-br-xl shadow-[0_0_10px_#2563eb]">
+              <div class="bg-blue-600/20 text-blue-400 p-2.5 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-500/50">
                   <i data-lucide="cpu" class="w-6 h-6"></i>
               </div>
               <div>
-                  <h2 id="digi-viz-title" class="text-xl font-bold text-white tracking-widest uppercase font-mono" style="text-shadow: 0 0 5px rgba(255,255,255,0.5);">Digivice</h2>
-                  <p class="text-[10px] text-blue-400 uppercase font-mono tracking-widest">Digital Monster DB</p>
+                  <h2 id="digi-viz-title" class="text-xl font-bold text-blue-100 tracking-[0.3em] uppercase font-mono" style="text-shadow: 0 0 10px rgba(59,130,246,0.5);">Digivice</h2>
+                  <p class="text-[10px] text-blue-400/80 uppercase font-mono tracking-widest">Digital Monster DB</p>
               </div>
           </div>
-          <button onclick="closeDigimonVisualizer()" class="text-blue-500 hover:text-white hover:bg-blue-600/20 p-2 rounded transition">
+          <button onclick="closeDigimonVisualizer()" class="text-blue-500 hover:text-white bg-blue-900/20 hover:bg-blue-600 p-3 rounded-xl transition border border-blue-900/50">
               <i data-lucide="x" class="w-6 h-6"></i>
           </button>
       </div>
-
-      <div class="flex-1 overflow-y-auto custom-scroll relative bg-[#050510]">
-          <div class="absolute inset-0 opacity-10 pointer-events-none" 
-               style="background-image: radial-gradient(#1e3a8a 1px, transparent 1px); background-size: 40px 40px;"></div>
-          
+      <div class="flex-1 overflow-y-auto custom-scroll relative bg-transparent">
+          <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#3b82f6 1px, transparent 1px); background-size: 40px 40px;"></div>
           <div class="container mx-auto px-4 py-8 relative z-0 flex flex-col gap-10">
-              <div id="digimon-groups-container" class="space-y-12 pb-20">
-                  </div>
+              <div id="digimon-groups-container" class="space-y-12 pb-20"></div>
           </div>
       </div>
   </div>
 
+  <!-- SCRIPT UI / SIDEBAR -->
+  <script>
+      lucide.createIcons();
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('hidden');
+          mainContent.classList.toggle('sidebar-hidden');
+      });
+  </script>
+
+  <!-- FIREBASE E LÓGICA CORE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    /* =========================================================
-       ÁREA DE CONFIGURAÇÃO DE TÁTICAS FÁCIL
-       Adicione novas formações aqui.
-       t (top): 0% = Gol Adversário (Topo) | 100% = Nosso Gol (Baixo)
-       l (left): 0% = Esquerda | 100% = Direita
-    ========================================================= */
+    /* Configuração Táticas, Tipos Pokemon e Digimon (Inalterado) */
     const TACTICS_CONFIG = {
-        '4-3-3': {
-            'Goleiro':  [{t:92,l:50}],
-            'Zagueiro': [{t:80,l:30},{t:80,l:70}],
-            'Lateral':  [{t:75,l:10},{t:75,l:90}],
-            'Volante':  [{t:60,l:50}],
-            'Meia':     [{t:50,l:30},{t:50,l:70}],
-            'Atacante': [{t:25,l:15},{t:20,l:50},{t:25,l:85}]
-        },
-        '3-5-2': {
-             'Goleiro':  [{t:92,l:50}],
-             'Zagueiro': [{t:75,l:50}],
-             'Lateral':  [{t:75,l:25},{t:75,l:75}],
-             'Volante':  [{t:60,l:50}],
-             'Meia':     [{t:50,l:30},{t:50,l:70}, {t:35,l:20},{t:35,l:80}],
-             'Atacante': [{t:15,l:30},{t:15,l:70}]
-        },
-        '4-4-2': {
-            'Goleiro':  [{t:92,l:50}],
-            'Zagueiro': [{t:80,l:35},{t:80,l:65}],
-            'Lateral':  [{t:75,l:10},{t:75,l:90}],
-            'Volante':  [{t:60,l:40},{t:60,l:60}],
-            'Meia':     [{t:45,l:15},{t:45,l:85}],
-            'Atacante': [{t:20,l:35},{t:20,l:65}]
-        },
-        // Adicione mais aqui se quiser...
+        '4-3-3': { 'Goleiro':[{t:92,l:50}], 'Zagueiro':[{t:80,l:30},{t:80,l:70}], 'Lateral':[{t:75,l:10},{t:75,l:90}], 'Volante':[{t:60,l:50}], 'Meia':[{t:50,l:30},{t:50,l:70}], 'Atacante':[{t:25,l:15},{t:20,l:50},{t:25,l:85}] },
+        '3-5-2': { 'Goleiro':[{t:92,l:50}], 'Zagueiro':[{t:75,l:50}], 'Lateral':[{t:75,l:25},{t:75,l:75}], 'Volante':[{t:60,l:50}], 'Meia':[{t:50,l:30},{t:50,l:70}, {t:35,l:20},{t:35,l:80}], 'Atacante':[{t:15,l:30},{t:15,l:70}] },
+        '4-4-2': { 'Goleiro':[{t:92,l:50}], 'Zagueiro':[{t:80,l:35},{t:80,l:65}], 'Lateral':[{t:75,l:10},{t:75,l:90}], 'Volante':[{t:60,l:40},{t:60,l:60}], 'Meia':[{t:45,l:15},{t:45,l:85}], 'Atacante':[{t:20,l:35},{t:20,l:65}] }
     };
 
-    const POKE_TYPES = [
-        'Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison', 'Ground', 
-        'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Steel', 'Dark', 'Fairy'
-    ];
+    const POKE_TYPES = ['Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Steel', 'Dark', 'Fairy'];
+    const TYPE_COLORS = { Normal: '#A8A77A', Fire: '#EE8130', Water: '#6390F0', Electric: '#F7D02C', Grass: '#7AC74C', Ice: '#96D9D6', Fighting: '#C22E28', Poison: '#A33EA1', Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A', Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Steel: '#B7B7CE', Dark: '#705746', Fairy: '#D685AD', None: '#333333' };
 
-    const TYPE_COLORS = {
-        Normal: '#A8A77A', Fire: '#EE8130', Water: '#6390F0', Electric: '#F7D02C',
-        Grass: '#7AC74C', Ice: '#96D9D6', Fighting: '#C22E28', Poison: '#A33EA1',
-        Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A',
-        Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Steel: '#B7B7CE',
-        Dark: '#705746', Fairy: '#D685AD', None: '#333333'
-    };
-
-    // --- CONSTANTES DIGIMON ---
-    const DIGI_TYPES = {
-        'Vaccine': { color: '#00B5E2', icon: 'shield-check', label: 'Vacina' }, // Azul/Teal
-        'Virus': { color: '#9d4dbb', icon: 'skull', label: 'Vírus' },          // Roxo
-        'Data': { color: '#EAB308', icon: 'database', label: 'Dados' },        // Amarelo/Laranja
-        'Free': { color: '#22C55E', icon: 'circle-dashed', label: 'Livre' }    // Verde
-    };
-
-    const DIGI_ATTRS = {
-        'Fire': { color: '#EF4444', icon: 'flame', label: 'Fogo' },
-        'Water': { color: '#3B82F6', icon: 'droplet', label: 'Água' },
-        'Plant': { color: '#4ADE80', icon: 'leaf', label: 'Planta' },
-        'Electric': { color: '#FACC15', icon: 'zap', label: 'Elétrico' },
-        'Earth': { color: '#A16207', icon: 'mountain', label: 'Terra' },
-        'Wind': { color: '#2DD4BF', icon: 'wind', label: 'Vento' },
-        'Light': { color: '#FEF08A', icon: 'sun', label: 'Luz' },
-        'Dark': { color: '#581C87', icon: 'moon', label: 'Trevas' },
-        'Steel': { color: '#94A3B8', icon: 'wrench', label: 'Metal' }, // Representado por chave inglesa/ferramenta
-        'Neutral': { color: '#737373', icon: 'circle', label: 'Neutro' }
-    };
+    const DIGI_TYPES = { 'Vaccine': { color: '#00B5E2', icon: 'shield-check', label: 'Vacina' }, 'Virus': { color: '#9d4dbb', icon: 'skull', label: 'Vírus' }, 'Data': { color: '#EAB308', icon: 'database', label: 'Dados' }, 'Free': { color: '#22C55E', icon: 'circle-dashed', label: 'Livre' } };
+    const DIGI_ATTRS = { 'Fire': { color: '#EF4444', icon: 'flame', label: 'Fogo' }, 'Water': { color: '#3B82F6', icon: 'droplet', label: 'Água' }, 'Plant': { color: '#4ADE80', icon: 'leaf', label: 'Planta' }, 'Electric': { color: '#FACC15', icon: 'zap', label: 'Elétrico' }, 'Earth': { color: '#A16207', icon: 'mountain', label: 'Terra' }, 'Wind': { color: '#2DD4BF', icon: 'wind', label: 'Vento' }, 'Light': { color: '#FEF08A', icon: 'sun', label: 'Luz' }, 'Dark': { color: '#581C87', icon: 'moon', label: 'Trevas' }, 'Steel': { color: '#94A3B8', icon: 'wrench', label: 'Metal' }, 'Neutral': { color: '#737373', icon: 'circle', label: 'Neutro' } };
 
     const firebaseConfig = { apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91" };
     const app = initializeApp(firebaseConfig);
@@ -515,42 +548,43 @@
         btnDeleteMember: document.getElementById('btn-delete-member'), memberTeamName: document.getElementById('member-team-name'),
         soccerModal: document.getElementById('soccer-visualizer-modal'), formationSelect: document.getElementById('formation-select'), fieldPlayersContainer: document.getElementById('field-players-container'),
         subsList: document.getElementById('subs-list'), subsOverflow: document.getElementById('subs-overflow'), coachesList: document.getElementById('coaches-list'),
-        generalModal: document.getElementById('general-visualizer-modal'),
-        generalGrid: document.getElementById('general-cards-grid'),
-        generalTitle: document.getElementById('gen-viz-title'),
+        generalModal: document.getElementById('general-visualizer-modal'), generalGrid: document.getElementById('general-cards-grid'), generalTitle: document.getElementById('gen-viz-title'),
     };
 
     const toggleLoading = (show) => { if(show) { els.loading.classList.remove('hidden'); els.app.classList.add('hidden'); } else { els.loading.classList.add('hidden'); els.app.classList.remove('hidden'); lucide.createIcons(); } };
-    const getTypeColor = (type) => { switch(type) { case 'Pokemon': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'; case 'Digimon': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'; case 'Futebol': return 'bg-green-500/10 text-green-400 border-green-500/20'; default: return 'bg-gray-700/30 text-gray-300 border-gray-600'; } };
+    const getTypeColor = (type) => { switch(type) { case 'Pokemon': case 'Pokemon Principal': case 'Pokemon Fazenda': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'; case 'Digimon': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'; case 'Futebol': return 'bg-green-500/10 text-green-400 border-green-500/20'; default: return 'bg-gray-500/10 text-gray-300 border-gray-500/20'; } };
     
-    // Função Avatar com Fallback Seguro (Alta Qualidade)
     const generateAvatarHTML = (avatarUrl, name, sizeClass = "w-10 h-10") => {
         const initial = name ? name.charAt(0).toUpperCase() : '?';
-        const fallbackHtml = `<div class='${sizeClass} avatar-fallback-container rounded-full border border-[#444] shadow-sm bg-[#222]'>${initial}</div>`;
+        const fallbackHtml = `<div class='${sizeClass} avatar-fallback-container rounded-full border border-white/10 shadow-sm bg-black/40 text-xs'>${initial}</div>`;
         if (!avatarUrl || avatarUrl.trim() === '') return fallbackHtml;
-        // Limpa URL da wikia se necessário para pegar imagem full
         if (avatarUrl.includes('static.wikia')) avatarUrl = avatarUrl.split('/revision/')[0];
-        
-        return `<img src="${avatarUrl}" class="${sizeClass} rounded-full object-cover border border-[#444] bg-[#222]" 
-                     style="image-rendering: -webkit-optimize-contrast;" alt="${name}" 
-                     onerror="this.parentElement.innerHTML=\`${fallbackHtml}\`">`;
+        return `<img src="${avatarUrl}" class="${sizeClass} rounded-full object-cover border border-white/10 bg-black/40" style="image-rendering: -webkit-optimize-contrast;" alt="${name}" onerror="this.parentElement.innerHTML=\`${fallbackHtml}\`">`;
     };
 
     // --- VISUALIZADOR TÁTICO ---
-    // Popula o select de formações baseado na config
-    Object.keys(TACTICS_CONFIG).forEach(f => {
-        const opt = document.createElement('option'); opt.value = f; opt.textContent = f; els.formationSelect.appendChild(opt);
+    // Preenche a opção de seleção de tática no modal de edição de membros
+    Object.keys(TACTICS_CONFIG).forEach(f => { 
+        const opt = document.createElement('option'); 
+        opt.value = f; opt.textContent = f; 
+        document.getElementById('team-formation-select').appendChild(opt); 
     });
 
-    window.openSoccerVisualizer = (team) => {
-        if(team.type !== 'Futebol') { alert('Disponível apenas para Futebol.'); return; }
-        currentTeamData = team;
-        els.soccerModal.classList.remove('hidden');
-        renderSoccerLayout();
-    };
-    window.closeSoccerVisualizer = () => els.soccerModal.classList.add('hidden');
-    els.formationSelect.addEventListener('change', () => renderSoccerField());
+    window.openSoccerVisualizer = (team) => { 
+        if(team.type !== 'Futebol') { alert('Disponível apenas para Futebol.'); return; } 
+        currentTeamData = team; 
+        
+        // Garante que a barra lateral de comissão/reservas venha fechada por padrão
+        const sidebar = document.getElementById('soccer-sidebar'); 
+        const btn = document.getElementById('toggle-sidebar-btn');
+        sidebar.className = 'w-0 opacity-0 border-l-0 border-white/5 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden z-10 glass-panel shadow-[-10px_0_30px_rgba(0,0,0,0.5)]';
+        btn.innerHTML = '<i data-lucide="chevron-left" class="w-5 h-5"></i>';
 
+        els.soccerModal.classList.remove('hidden'); 
+        renderSoccerLayout(); 
+    };
+    
+    window.closeSoccerVisualizer = () => els.soccerModal.classList.add('hidden');
     const renderSoccerLayout = () => {
         const members = currentTeamData.members || [];
         const titulares = members.filter(m => m.status === 'Titular' && m.posicao !== 'Técnico');
@@ -562,34 +596,20 @@
 
     const renderSoccerField = (titularesList) => {
         els.fieldPlayersContainer.innerHTML = '';
-        const formationId = els.formationSelect.value;
+        const formationId = currentTeamData.formation || '4-3-3'; // Puxa do banco de dados
+        document.getElementById('current-formation-display').textContent = formationId;
+
         const slotsConfig = TACTICS_CONFIG[formationId];
         if(!slotsConfig) return;
-        
         let playersToPlace = titularesList || currentTeamData.members.filter(m => m.status === 'Titular' && m.posicao !== 'Técnico');
 
         for (const [posicaoName, slots] of Object.entries(slotsConfig)) {
             slots.forEach((coords) => {
                 const playerIndex = playersToPlace.findIndex(p => p.posicao === posicaoName);
                 if(playerIndex > -1) {
-                    const player = playersToPlace[playerIndex];
-                    playersToPlace.splice(playerIndex, 1);
-
-                    // Cria o TOKEN no campo
-                    const token = document.createElement('div');
-                    token.className = 'player-token group/token';
-                    token.style.top = `${coords.t}%`;
-                    token.style.left = `${coords.l}%`;
-                    
-                    token.innerHTML = `
-                        <div class="token-img-wrapper">
-                            ${generateAvatarHTML(player.avatar, player.name, "w-full h-full")}
-                        </div>
-                        <div class="token-info">
-                             <div class="token-name">${player.name.split(' ')[0]}</div>
-                             <div class="token-pos">${player.posicao} ${player.numero ? '#'+player.numero : ''}</div>
-                        </div>
-                    `;
+                    const player = playersToPlace[playerIndex]; playersToPlace.splice(playerIndex, 1);
+                    const token = document.createElement('div'); token.className = 'player-token group/token'; token.style.top = `${coords.t}%`; token.style.left = `${coords.l}%`;
+                    token.innerHTML = `<div class="token-img-wrapper border-[#B9314F] shadow-[0_0_15px_rgba(185,49,79,0.3)]">${generateAvatarHTML(player.avatar, player.name, "w-full h-full")}</div><div class="token-info"><div class="token-name" title="${player.name}">${player.name.split(' ')[0]}</div><div class="token-pos">${player.posicao} ${player.numero ? '#'+player.numero : ''}</div></div>`;
                     els.fieldPlayersContainer.appendChild(token);
                 }
             });
@@ -599,21 +619,36 @@
     const renderSoccerSidebar = (reservas, tecnicos) => {
         els.subsList.innerHTML = ''; const maxSubs = 7;
         reservas.slice(0, maxSubs).forEach(sub => {
-             const item = document.createElement('div'); item.className = "flex items-center gap-2 p-2 bg-[#1a1a1a] rounded border border-[#2a2a2a]";
-             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(sub.avatar, sub.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${sub.name}</p><p class="text-[10px] text-gray-500">${sub.posicao} #${sub.numero||'?'}</p></div>`;
+             const item = document.createElement('div'); item.className = "flex items-center gap-3 p-2.5 bg-white/5 rounded-xl border border-white/5";
+             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(sub.avatar, sub.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${sub.name}</p><p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">${sub.posicao} #${sub.numero||'?'}</p></div>`;
              els.subsList.appendChild(item);
         });
         if(reservas.length > maxSubs) { els.subsOverflow.textContent = `+${reservas.length - maxSubs} Jogadores`; els.subsOverflow.classList.remove('hidden'); } else els.subsOverflow.classList.add('hidden');
 
         els.coachesList.innerHTML = '';
         tecnicos.slice(0, 3).forEach(coach => {
-             const item = document.createElement('div'); item.className = "flex items-center gap-2 p-2 bg-[#1a1a1a] rounded border border-[#B9314F]/30";
-             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(coach.avatar, coach.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${coach.name}</p><p class="text-[10px] text-[#B9314F]">Técnico</p></div>`;
+             const item = document.createElement('div'); item.className = "flex items-center gap-3 p-2.5 bg-accent/10 rounded-xl border border-accent/20";
+             item.innerHTML = `<div class="shrink-0">${generateAvatarHTML(coach.avatar, coach.name, "w-8 h-8")}</div><div class="min-w-0"><p class="text-sm text-white font-bold truncate leading-none">${coach.name}</p><p class="text-[10px] text-accent uppercase tracking-widest mt-1">Técnico</p></div>`;
              els.coachesList.appendChild(item);
         });
     };
 
-    // --- CORE (Render, CRUD, Auth) ---
+    window.toggleSoccerSidebar = () => {
+        const sidebar = document.getElementById('soccer-sidebar'); 
+        const btn = document.getElementById('toggle-sidebar-btn');
+        if (sidebar.classList.contains('w-0')) { 
+            sidebar.classList.remove('w-0', 'border-l-0', 'opacity-0'); 
+            sidebar.classList.add('w-64', 'border-l'); 
+            btn.innerHTML = '<i data-lucide="chevron-right" class="w-5 h-5"></i>'; 
+        } else { 
+            sidebar.classList.remove('w-64', 'border-l'); 
+            sidebar.classList.add('w-0', 'border-l-0', 'opacity-0'); 
+            btn.innerHTML = '<i data-lucide="chevron-left" class="w-5 h-5"></i>'; 
+        }
+        if(typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    // --- CORE (Render Cards na Tela Principal) ---
     const render = () => {
         const term = els.search.value.toLowerCase(); const typeFilter = els.filterType.value;
         const filtered = allTeams.filter(t => (t.name.toLowerCase().includes(term) || t.game.toLowerCase().includes(term)) && (!typeFilter || t.type === typeFilter));
@@ -622,35 +657,48 @@
         else {
             els.empty.classList.add('hidden');
             filtered.forEach(t => {
-                const imgSource = t.img || 'https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'; const members = t.members || [];
+                const imgSource = t.img || 'https://placehold.co/300x200/151515/B9314F?text=No+Image'; const members = t.members || [];
                 let membersStackHTML = '';
                 if (members.length > 0) {
                     const maxDisplay = 10; const displayMembers = members.slice(0, maxDisplay); const remaining = members.length - maxDisplay;
-                    const avatars = displayMembers.map(m => `<div class="relative -ml-2 transition-transform hover:-translate-y-1 hover:z-10"><div class="avatar-wrapper">${generateAvatarHTML(m.avatar, m.name, "w-11 h-11")}</div></div>`).join('');
-                    const plusBubble = remaining > 0 ? `<div class="relative -ml-2 z-0 w-8 h-8 rounded-full bg-[#222] border border-[#333] text-gray-400 text-[10px] font-bold flex items-center justify-center">+${remaining}</div>` : '';
-                    membersStackHTML = `<div class="flex items-center pl-2 mt-3 h-9">${avatars}${plusBubble}</div>`;
-                } else membersStackHTML = `<p class="text-xs text-gray-600 mt-3 italic pl-1 h-9 flex items-center">Sem integrantes</p>`;
+                    const avatars = displayMembers.map(m => `<div class="relative -ml-2 transition-transform hover:-translate-y-1 hover:z-10"><div class="avatar-wrapper shadow-lg">${generateAvatarHTML(m.avatar, m.name, "w-11 h-11")}</div></div>`).join('');
+                    const plusBubble = remaining > 0 ? `<div class="relative -ml-2 z-0 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold flex items-center justify-center shadow-lg">+${remaining}</div>` : '';
+                    membersStackHTML = `<div class="flex items-center pl-2 mt-4 h-11">${avatars}${plusBubble}</div>`;
+                } else membersStackHTML = `<p class="text-xs text-gray-500 mt-4 italic pl-1 h-11 flex items-center font-medium">Nenhum integrante adicionado</p>`;
 
-                const card = document.createElement('div'); card.className = 'team-card group';
+                const card = document.createElement('div');
+                card.className = 'task-card flex flex-col md:flex-row rounded-2xl overflow-hidden relative group';
                 card.innerHTML = `
-                    <div class="w-full md:w-56 h-32 md:h-full relative shrink-0 bg-black"><img src="${imgSource}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://placehold.co/300x200/2a2a2a/B9314F?text=No+Image'"><div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent md:hidden"></div></div>
-                    <div class="flex-1 p-4 md:p-5 flex flex-col justify-between relative"><div><div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-[#B9314F]">${t.game}</span><span class="text-[10px] px-2 py-0.5 rounded border ${getTypeColor(t.type)}">${t.type}</span></div><h3 class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight">${t.name}</h3>${membersStackHTML}</div></div>
-                    <div class="action-section"><button class="btn-icon edit" title="Editar"><i data-lucide="pencil" class="w-5 h-5"></i></button><button class="btn-icon members" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button><button class="btn-icon view" title="Ver"><i data-lucide="eye" class="w-5 h-5"></i></button></div>`;
-                card.querySelector('.edit').onclick = () => openEditTeamModal(t); card.querySelector('.members').onclick = () => openMembersModal(t);
+                    <div class="w-full md:w-56 h-36 md:h-auto relative shrink-0 bg-gray-900">
+                        <img src="${imgSource}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" onerror="this.src='https://placehold.co/300x200/151515/B9314F?text=No+Image'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#151515]/80 pointer-events-none"></div>
+                    </div>
+                    <div class="flex-1 p-5 md:p-6 flex flex-col justify-between relative min-w-0 z-10">
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/20">${t.game}</span>
+                                <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg border ${getTypeColor(t.type)}">${t.type}</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-1 leading-tight truncate">${t.name}</h3>
+                            ${membersStackHTML}
+                        </div>
+                    </div>
+                    <div class="flex flex-row md:flex-col items-center justify-center gap-3 p-4 border-t md:border-t-0 md:border-l border-white/5 bg-black/20 shrink-0 w-full md:w-24">
+                        <button class="btn-icon edit p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors" title="Editar"><i data-lucide="edit-2" class="w-5 h-5"></i></button>
+                        <button class="btn-icon members p-2.5 rounded-xl bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500 hover:text-white transition-colors" title="Membros"><i data-lucide="users" class="w-5 h-5"></i></button>
+                        <button class="btn-icon view p-2.5 rounded-xl bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white transition-colors" title="Visualizar Prancheta"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                    </div>`;
+                
+                card.querySelector('.edit').onclick = () => openEditTeamModal(t); 
+                card.querySelector('.members').onclick = () => openMembersModal(t);
                 
                 const viewBtn = card.querySelector('.view');
-                
-                if (t.type === 'Futebol') {
-                    viewBtn.onclick = () => openSoccerVisualizer(t);
-                } else if (t.type === 'Geral') {
-                    viewBtn.onclick = () => openGeneralVisualizer(t);
-                } else if (t.type === 'Pokemon Principal') {
-                    viewBtn.onclick = () => openPokemonVisualizer(t);
-                } else if (t.type === 'Pokemon Fazenda') {
-                    viewBtn.onclick = () => openFarmVisualizer(t);
-                }else if (t.type === 'Digimon') {
-                    viewBtn.onclick = () => openDigimonVisualizer(t);
-                } else {
+                if (t.type === 'Futebol') viewBtn.onclick = () => openSoccerVisualizer(t);
+                else if (t.type === 'Geral') viewBtn.onclick = () => openGeneralVisualizer(t);
+                else if (t.type === 'Pokemon Principal') viewBtn.onclick = () => openPokemonVisualizer(t);
+                else if (t.type === 'Pokemon Fazenda') viewBtn.onclick = () => openFarmVisualizer(t);
+                else if (t.type === 'Digimon') viewBtn.onclick = () => openDigimonVisualizer(t);
+                else {
                     viewBtn.classList.add('opacity-50', 'cursor-not-allowed');
                     viewBtn.onclick = () => alert('Visualização disponível apenas para Futebol e Geral.');
                 }
@@ -661,409 +709,145 @@
         lucide.createIcons();
     };
 
-    // --- Lógica do Toggle da Sidebar ---
-    window.toggleSoccerSidebar = () => {
-        const sidebar = document.getElementById('soccer-sidebar');
-        const btn = document.getElementById('toggle-sidebar-btn');
-        const icon = btn.querySelector('i'); // Pega o ícone dentro do botão
-        
-        // Verifica se está fechado (largura 0)
-        if (sidebar.classList.contains('w-0')) {
-            // ABRIR
-            sidebar.classList.remove('w-0', 'border-l-0', 'opacity-0');
-            sidebar.classList.add('w-64', 'border-l');
-            
-            // Troca ícone para seta direita (para fechar)
-            btn.innerHTML = '<i data-lucide="chevron-right" class="w-5 h-5"></i>';
-        } else {
-            // FECHAR
-            sidebar.classList.remove('w-64', 'border-l');
-            sidebar.classList.add('w-0', 'border-l-0', 'opacity-0');
-            
-            // Troca ícone para seta esquerda (para abrir)
-            btn.innerHTML = '<i data-lucide="chevron-left" class="w-5 h-5"></i>';
-        }
-        
-        // Recarrega os ícones recém inseridos
-        if(typeof lucide !== 'undefined') lucide.createIcons();
-    };
-
-    window.toggleSoccerSidebar = window.toggleSoccerSidebar;
-
-    // --- VISUALIZADOR GERAL (TCG) ---
-    window.openGeneralVisualizer = (team) => {
-        currentTeamData = team;
-        els.generalTitle.querySelector('span').textContent = team.name;
-        renderGeneralCards(team.members || []);
-        els.generalModal.classList.remove('hidden');
-    };
-
-    window.closeGeneralVisualizer = () => {
-        els.generalModal.classList.add('hidden');
-    };
-
+    // --- VISUALIZADORES (GERAL, POKEMON, FAZENDA, DIGIMON) INALTERADOS DA LÓGICA ORIGINAL ---
+    window.openGeneralVisualizer = (team) => { currentTeamData = team; els.generalTitle.querySelector('span').textContent = team.name; renderGeneralCards(team.members || []); els.generalModal.classList.remove('hidden'); };
+    window.closeGeneralVisualizer = () => { els.generalModal.classList.add('hidden'); };
     const renderGeneralCards = (members) => {
         els.generalGrid.innerHTML = '';
-        
-        if (members.length === 0) {
-            els.generalGrid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-20 italic">Este Time está vazio... Adicione membros.</div>`;
-            return;
-        }
-
+        if (members.length === 0) { els.generalGrid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-20 italic">Este Time está vazio...</div>`; return; }
         members.forEach(member => {
-            const card = document.createElement('div');
-            card.className = 'tcg-card group';
-            
-            // Fallback de imagem
+            const card = document.createElement('div'); card.className = 'tcg-card group';
             let imgHtml = '';
-            if (member.avatar && member.avatar.trim() !== '') {
-                imgHtml = `<img src="${member.avatar}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                           <div class="hidden w-full h-full bg-[#111] items-center justify-center text-[#333] font-bold text-4xl">${member.name.charAt(0)}</div>`;
-            } else {
-                imgHtml = `<div class="w-full h-full bg-[#151515] flex items-center justify-center text-[#333] font-bold text-6xl shadow-inner">${member.name.charAt(0)}</div>`;
-            }
-
-            // Descrição ou texto padrão
-            const obsText = member.obs ? member.obs : "Nenhuma habilidade especial ou observação registrada para este integrante.";
-
-            card.innerHTML = `
-                <div class="tcg-frame">
-                    <div class="tcg-header">
-                        <span class="tcg-name truncate">${member.name}</span>
-                        <i data-lucide="sparkles" class="w-3 h-3 text-[#B9314F]"></i>
-                    </div>
-                    
-                    <div class="tcg-art">
-                        ${imgHtml}
-                    </div>
-                    
-                    <div class="tcg-textbox custom-scroll">
-                        ${obsText}
-                    </div>
-                    
-                    <div class="tcg-footer">
-                        <span class="tcg-badge">Unit • Geral</span>
-                    </div>
-                </div>
-            `;
+            if (member.avatar && member.avatar.trim() !== '') { imgHtml = `<img src="${member.avatar}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="hidden w-full h-full bg-[#111] items-center justify-center text-[#333] font-bold text-4xl">${member.name.charAt(0)}</div>`; } 
+            else { imgHtml = `<div class="w-full h-full bg-[#151515] flex items-center justify-center text-[#333] font-bold text-6xl shadow-inner">${member.name.charAt(0)}</div>`; }
+            const obsText = member.obs ? member.obs : "Nenhuma habilidade especial registrada.";
+            card.innerHTML = `<div class="tcg-frame"><div class="tcg-header"><span class="tcg-name truncate">${member.name}</span><i data-lucide="sparkles" class="w-3 h-3 text-[#B9314F]"></i></div><div class="tcg-art">${imgHtml}</div><div class="tcg-textbox custom-scroll">${obsText}</div><div class="tcg-footer"><span class="tcg-badge">Unit • Geral</span></div></div>`;
             els.generalGrid.appendChild(card);
         });
         lucide.createIcons();
     };
 
-    // --- VISUALIZADOR POKEMON ---
-    const elsPoke = {
-        modal: document.getElementById('pokemon-visualizer-modal'),
-        title: document.getElementById('poke-viz-title'),
-        mainGrid: document.getElementById('poke-main-grid'),
-        extraContainer: document.getElementById('poke-extra-container'),
-        extraGrid: document.getElementById('poke-extra-grid')
-    };
-
-    window.openPokemonVisualizer = (team) => {
-        elsPoke.title.textContent = team.name;
-        renderPokemonLayout(team.members || []);
-        elsPoke.modal.classList.remove('hidden');
-    };
-
+    const elsPoke = { modal: document.getElementById('pokemon-visualizer-modal'), title: document.getElementById('poke-viz-title'), mainGrid: document.getElementById('poke-main-grid'), extraContainer: document.getElementById('poke-extra-container'), extraGrid: document.getElementById('poke-extra-grid') };
+    window.openPokemonVisualizer = (team) => { elsPoke.title.textContent = team.name; renderPokemonLayout(team.members || []); elsPoke.modal.classList.remove('hidden'); };
     window.closePokemonVisualizer = () => elsPoke.modal.classList.add('hidden');
-
     const renderPokemonLayout = (members) => {
-        elsPoke.mainGrid.innerHTML = '';
-        elsPoke.extraGrid.innerHTML = '';
-        
-        // Separa os 6 primeiros (Main) do resto (Extra)
-        const mainTeam = members.slice(0, 6);
-        const extraTeam = members.slice(6);
-
-        // Renderiza Time Principal (Cards Grandes)
+        elsPoke.mainGrid.innerHTML = ''; elsPoke.extraGrid.innerHTML = '';
+        const mainTeam = members.slice(0, 6); const extraTeam = members.slice(6);
         mainTeam.forEach(p => elsPoke.mainGrid.appendChild(createPokemonCard(p, true)));
-
-        // Renderiza Extras (Cards Menores)
-        if (extraTeam.length > 0) {
-            elsPoke.extraContainer.classList.remove('hidden');
-            extraTeam.forEach(p => elsPoke.extraGrid.appendChild(createPokemonCard(p, false)));
-        } else {
-            elsPoke.extraContainer.classList.add('hidden');
-        }
+        if (extraTeam.length > 0) { elsPoke.extraContainer.classList.remove('hidden'); extraTeam.forEach(p => elsPoke.extraGrid.appendChild(createPokemonCard(p, false))); } else { elsPoke.extraContainer.classList.add('hidden'); }
     };
-
     const createPokemonCard = (pokemon, isMain) => {
-        // Cores dos Tipos
-        const c1 = TYPE_COLORS[pokemon.type1] || '#333';
-        const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
-        
-        // Gradiente da Borda (Se tiver 2 tipos, divide a borda)
+        const c1 = TYPE_COLORS[pokemon.type1] || '#333'; const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
         const gradientStyle = `linear-gradient(135deg, ${c1}, ${c2})`;
-
-        // Tamanhos baseados se é Principal ou Extra
         const sizeClasses = isMain ? "w-32 h-32 md:w-40 md:h-40" : "w-16 h-16 opacity-80 hover:opacity-100";
-        const nameSize = isMain ? "text-lg md:text-xl mt-4" : "hidden"; // Esconde nome dos extras para economizar espaço ou mostra tooltip
-        
-        const card = document.createElement('div');
-        card.className = `flex flex-col items-center group relative ${!isMain ? 'cursor-help' : ''}`;
-        if(!isMain) card.title = pokemon.name; // Tooltip simples para os pequenos
-
-        // HTML do Círculo
-        card.innerHTML = `
-            <div class="${sizeClasses} rounded-full p-[4px] shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-110 relative z-10 bg-[#1a1a1a]"
-                 style="background: ${gradientStyle}">
-                <div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative">
-                    ${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}
-                </div>
-                
-                ${isMain ? getTypesBadges(pokemon) : ''}
-            </div>
-            
-            <div class="${nameSize} font-bold text-white text-center drop-shadow-md flex flex-col items-center">
-                <span>${pokemon.name}</span>
-            </div>
-        `;
+        const nameSize = isMain ? "text-lg md:text-xl mt-4" : "hidden";
+        const card = document.createElement('div'); card.className = `flex flex-col items-center group relative ${!isMain ? 'cursor-help' : ''}`;
+        if(!isMain) card.title = pokemon.name;
+        card.innerHTML = `<div class="${sizeClasses} rounded-full p-[4px] shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-110 relative z-10 bg-[#1a1a1a]" style="background: ${gradientStyle}"><div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative">${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}</div>${isMain ? getTypesBadges(pokemon) : ''}</div><div class="${nameSize} font-bold text-white text-center drop-shadow-md flex flex-col items-center"><span>${pokemon.name}</span></div>`;
         return card;
     };
-
     const getTypesBadges = (pokemon) => {
-        // Pequenos ícones/bolinhas de cor flutuando no card principal
-        const t1Color = TYPE_COLORS[pokemon.type1];
-        const t2Color = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : null;
-        
-        return `
-            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
-                <div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t1Color}" title="${pokemon.type1}"></div>
-                ${t2Color ? `<div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t2Color}" title="${pokemon.type2}"></div>` : ''}
-            </div>
-        `;
+        const t1Color = TYPE_COLORS[pokemon.type1]; const t2Color = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : null;
+        return `<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1"><div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t1Color}" title="${pokemon.type1}"></div>${t2Color ? `<div class="w-4 h-4 rounded-full border border-[#1a1a1a] shadow-sm" style="background:${t2Color}" title="${pokemon.type2}"></div>` : ''}</div>`;
     };
 
-    // --- VISUALIZADOR FAZENDA (GROUPS) ---
-    const elsFarm = {
-        modal: document.getElementById('pokemon-farm-modal'),
-        title: document.getElementById('farm-viz-title'),
-        container: document.getElementById('farm-groups-container')
-    };
-
-    window.openFarmVisualizer = (team) => {
-        elsFarm.title.textContent = team.name;
-        renderFarmLayout(team.members || []);
-        elsFarm.modal.classList.remove('hidden');
-    };
-
+    const elsFarm = { modal: document.getElementById('pokemon-farm-modal'), title: document.getElementById('farm-viz-title'), container: document.getElementById('farm-groups-container') };
+    window.openFarmVisualizer = (team) => { elsFarm.title.textContent = team.name; renderFarmLayout(team.members || []); elsFarm.modal.classList.remove('hidden'); };
     window.closeFarmVisualizer = () => elsFarm.modal.classList.add('hidden');
-
     const renderFarmLayout = (members) => {
         elsFarm.container.innerHTML = '';
-
-        if (members.length === 0) {
-            elsFarm.container.innerHTML = `<div class="text-center text-gray-500 mt-20">A fazenda está vazia.</div>`;
-            return;
-        }
-
-        // 1. Agrupar membros por chave 'group'
-        const grouped = members.reduce((acc, curr) => {
-            const g = curr.group || 'Geral';
-            if (!acc[g]) acc[g] = [];
-            acc[g].push(curr);
-            return acc;
-        }, {});
-
-        // 2. Iterar sobre os grupos e criar seções
+        if (members.length === 0) { elsFarm.container.innerHTML = `<div class="text-center text-gray-500 mt-20">A fazenda está vazia.</div>`; return; }
+        const grouped = members.reduce((acc, curr) => { const g = curr.group || 'Geral'; if (!acc[g]) acc[g] = []; acc[g].push(curr); return acc; }, {});
         Object.keys(grouped).sort().forEach(groupName => {
             const groupMembers = grouped[groupName];
-
-            // Container do Grupo
-            const section = document.createElement('div');
-            section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
-            
-            section.innerHTML = `
-                <div class="flex items-center gap-4 mb-6">
-                    <h3 class="text-2xl font-bold text-white capitalize">${groupName}</h3>
-                    <div class="h-[1px] flex-1 bg-gradient-to-r from-[#333] to-transparent"></div>
-                    <span class="text-xs font-mono text-gray-500 bg-[#1a1a1a] px-2 py-1 rounded border border-[#333]">${groupMembers.length}</span>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 justify-items-center group-grid">
-                    </div>
-            `;
-
-            const grid = section.querySelector('.group-grid');
-            
-            // Criar cards para este grupo
-            groupMembers.forEach(p => {
-                grid.appendChild(createFarmCard(p));
-            });
-
+            const section = document.createElement('div'); section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
+            section.innerHTML = `<div class="flex items-center gap-4 mb-6"><h3 class="text-2xl font-bold text-white capitalize">${groupName}</h3><div class="h-[1px] flex-1 bg-gradient-to-r from-white/20 to-transparent"></div><span class="text-xs font-mono text-gray-500 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10">${groupMembers.length}</span></div><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 justify-items-center group-grid"></div>`;
+            const grid = section.querySelector('.group-grid'); groupMembers.forEach(p => { grid.appendChild(createFarmCard(p)); });
             elsFarm.container.appendChild(section);
         });
-        
         lucide.createIcons();
     };
-
-    // Card Específico para Fazenda (Similar ao Principal, mas tamanho uniforme e otimizado para grids maiores)
     const createFarmCard = (pokemon) => {
-        const c1 = TYPE_COLORS[pokemon.type1] || '#333';
-        const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
+        const c1 = TYPE_COLORS[pokemon.type1] || '#333'; const c2 = pokemon.type2 ? TYPE_COLORS[pokemon.type2] : c1;
         const gradientStyle = `linear-gradient(135deg, ${c1}, ${c2})`;
-
-        const card = document.createElement('div');
-        card.className = 'flex flex-col items-center group relative hover:-translate-y-2 transition-transform duration-300';
-        
-        card.innerHTML = `
-            <div class="w-32 h-32 rounded-full p-[3px] shadow-lg relative z-10 bg-[#1a1a1a]" style="background: ${gradientStyle}">
-                <div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative group-hover:brightness-110 transition">
-                    ${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}
-                </div>
-                
-                <div class="absolute -right-1 bottom-1 flex flex-col gap-1">
-                     <div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c1}" title="${pokemon.type1}"></div>
-                     ${pokemon.type2 ? `<div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c2}" title="${pokemon.type2}"></div>` : ''}
-                </div>
-            </div>
-            
-            <div class="mt-3 text-center">
-                <p class="font-bold text-gray-200 text-sm md:text-base leading-tight group-hover:text-white">${pokemon.name}</p>
-                <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">${pokemon.type1} ${pokemon.type2 ? '/ '+pokemon.type2 : ''}</p>
-            </div>
-        `;
+        const card = document.createElement('div'); card.className = 'flex flex-col items-center group relative hover:-translate-y-2 transition-transform duration-300';
+        card.innerHTML = `<div class="w-32 h-32 rounded-full p-[3px] shadow-lg relative z-10 bg-[#1a1a1a]" style="background: ${gradientStyle}"><div class="w-full h-full rounded-full border-[3px] border-[#1a1a1a] overflow-hidden bg-[#222] relative group-hover:brightness-110 transition">${generateAvatarHTML(pokemon.avatar, pokemon.name, "w-full h-full")}</div><div class="absolute -right-1 bottom-1 flex flex-col gap-1"><div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c1}" title="${pokemon.type1}"></div>${pokemon.type2 ? `<div class="w-3 h-3 rounded-full border border-[#1a1a1a]" style="background:${c2}" title="${pokemon.type2}"></div>` : ''}</div></div><div class="mt-3 text-center"><p class="font-bold text-gray-200 text-sm md:text-base leading-tight group-hover:text-white">${pokemon.name}</p><p class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">${pokemon.type1} ${pokemon.type2 ? '/ '+pokemon.type2 : ''}</p></div>`;
         return card;
     };
 
-    // --- VISUALIZADOR DIGIMON ---
-    const elsDigi = {
-        modal: document.getElementById('digimon-visualizer-modal'),
-        title: document.getElementById('digi-viz-title'),
-        container: document.getElementById('digimon-groups-container')
-    };
-
-    window.openDigimonVisualizer = (team) => {
-        elsDigi.title.textContent = team.name;
-        renderDigimonLayout(team.members || []);
-        elsDigi.modal.classList.remove('hidden');
-    };
-
+    const elsDigi = { modal: document.getElementById('digimon-visualizer-modal'), title: document.getElementById('digi-viz-title'), container: document.getElementById('digimon-groups-container') };
+    window.openDigimonVisualizer = (team) => { elsDigi.title.textContent = team.name; renderDigimonLayout(team.members || []); elsDigi.modal.classList.remove('hidden'); };
     window.closeDigimonVisualizer = () => elsDigi.modal.classList.add('hidden');
-
     const renderDigimonLayout = (members) => {
         elsDigi.container.innerHTML = '';
-        
-        // Define a ordem fixa de exibição
         const order = ['Principal', 'Reserva', 'Box'];
-        
-        // Agrupa membros
         const grouped = { 'Principal': [], 'Reserva': [], 'Box': [] };
-        members.forEach(m => {
-            const g = m.group || 'Box'; // Fallback para Box
-            if (grouped[g]) grouped[g].push(m);
-            else grouped['Box'].push(m); // Segurança
-        });
-
-        // Renderiza na ordem definida
+        members.forEach(m => { const g = m.group || 'Box'; if (grouped[g]) grouped[g].push(m); else grouped['Box'].push(m); });
         order.forEach(groupName => {
-            const groupMembers = grouped[groupName];
-            if (groupMembers.length === 0) return; // Pula grupo vazio
-
-            // Design do Header do Grupo
-            const section = document.createElement('div');
-            section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
-            
-            // Cores do header dependendo do grupo
-            let headerColor = 'text-blue-400 border-blue-900';
-            if(groupName === 'Reserva') headerColor = 'text-yellow-500 border-yellow-900';
-            if(groupName === 'Box') headerColor = 'text-gray-500 border-gray-800';
-
-            section.innerHTML = `
-                <div class="flex items-end gap-3 mb-4 border-b ${headerColor} pb-2">
-                    <h3 class="text-2xl font-bold uppercase font-mono tracking-widest ${headerColor.split(' ')[0]}">${groupName}</h3>
-                    <div class="text-xs bg-[#111] px-2 py-0.5 rounded border border-[#333] text-gray-400 mb-1">
-                        MEM: ${String(groupMembers.length).padStart(2, '0')}
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    ${groupMembers.map(m => createDigimonCardHTML(m)).join('')}
-                </div>
-            `;
-            
+            const groupMembers = grouped[groupName]; if (groupMembers.length === 0) return;
+            const section = document.createElement('div'); section.className = 'w-full animate-in fade-in slide-in-from-bottom-4 duration-500';
+            let headerColor = 'text-blue-400 border-blue-900/50';
+            if(groupName === 'Reserva') headerColor = 'text-yellow-500 border-yellow-900/50';
+            if(groupName === 'Box') headerColor = 'text-gray-500 border-gray-800/50';
+            section.innerHTML = `<div class="flex items-end gap-3 mb-4 border-b ${headerColor} pb-2"><h3 class="text-2xl font-bold uppercase font-mono tracking-widest ${headerColor.split(' ')[0]}">${groupName}</h3><div class="text-xs bg-black/40 px-3 py-1 rounded-lg border border-white/10 text-gray-400 mb-1 font-mono">MEM: ${String(groupMembers.length).padStart(2, '0')}</div></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${groupMembers.map(m => createDigimonCardHTML(m)).join('')}</div>`;
             elsDigi.container.appendChild(section);
         });
-        
         lucide.createIcons();
     };
-
-    // Função que retorna STRING HTML do card (mais fácil para grids complexos)
     const createDigimonCardHTML = (digimon) => {
-        // Dados visuais
-        const dType = DIGI_TYPES[digimon.digiType] || DIGI_TYPES['Free'];
-        const dAttr = DIGI_ATTRS[digimon.digiAttr] || DIGI_ATTRS['Neutral'];
-
-        // Fallback imagem
+        const dType = DIGI_TYPES[digimon.digiType] || DIGI_TYPES['Free']; const dAttr = DIGI_ATTRS[digimon.digiAttr] || DIGI_ATTRS['Neutral'];
         const imgUrl = (digimon.avatar && digimon.avatar.length > 5) ? digimon.avatar : 'https://placehold.co/150x150/111/333?text=D';
-
-        return `
-        <div class="group relative bg-[#0f0f1a] border border-[#333] hover:border-[${dType.color}] rounded-xl overflow-hidden flex h-28 transition-all hover:-translate-y-1 hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.7)] hover:shadow-[${dType.color}40]">
-            
-            <div class="w-1.5 h-full" style="background-color: ${dType.color}"></div>
-
-            <div class="w-28 h-full shrink-0 relative overflow-hidden bg-black">
-                <img src="${imgUrl}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
-            </div>
-
-            <div class="flex-1 flex flex-col justify-between p-3 relative z-10">
-                
-                <div class="w-full border-b border-white/10 pb-1 mb-1">
-                    <h4 class="font-bold text-gray-100 truncate text-sm sm:text-base leading-tight font-mono">${digimon.name}</h4>
-                </div>
-
-                <div class="flex items-center gap-3 mt-auto">
-                    
-                    <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#1a1a2e] border border-white/10 shadow-sm" title="Tipo: ${dType.label}">
-                        <i data-lucide="${dType.icon}" class="w-3.5 h-3.5" style="color: ${dType.color}"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 hidden sm:inline">${dType.label.substring(0,3)}</span>
-                    </div>
-
-                    <div class="flex items-center justify-center w-7 h-7 rounded-full bg-[#1a1a2e] border border-white/10 shadow-sm" title="Atributo: ${dAttr.label}">
-                        <i data-lucide="${dAttr.icon}" class="w-4 h-4" style="color: ${dAttr.color}"></i>
-                    </div>
-
-                </div>
-
-                <i data-lucide="${dType.icon}" class="absolute right-[-10px] bottom-[-15px] w-20 h-20 opacity-[0.03] text-white rotate-12 pointer-events-none"></i>
-            </div>
-        </div>
-        `;
+        return `<div class="group relative bg-[#0f0f1a]/80 backdrop-blur-md border border-white/5 hover:border-[${dType.color}] rounded-xl overflow-hidden flex h-28 transition-all hover:-translate-y-1 hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.7)] hover:shadow-[${dType.color}40]"><div class="w-1.5 h-full" style="background-color: ${dType.color}"></div><div class="w-28 h-full shrink-0 relative overflow-hidden bg-black"><img src="${imgUrl}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"><div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none"></div></div><div class="flex-1 flex flex-col justify-between p-3 relative z-10"><div class="w-full border-b border-white/10 pb-1 mb-1"><h4 class="font-bold text-gray-100 truncate text-sm sm:text-base leading-tight font-mono">${digimon.name}</h4></div><div class="flex items-center gap-3 mt-auto"><div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/40 border border-white/5 shadow-sm" title="Tipo: ${dType.label}"><i data-lucide="${dType.icon}" class="w-3.5 h-3.5" style="color: ${dType.color}"></i><span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 hidden sm:inline">${dType.label.substring(0,3)}</span></div><div class="flex items-center justify-center w-7 h-7 rounded-full bg-black/40 border border-white/5 shadow-sm" title="Atributo: ${dAttr.label}"><i data-lucide="${dAttr.icon}" class="w-4 h-4" style="color: ${dAttr.color}"></i></div></div><i data-lucide="${dType.icon}" class="absolute right-[-10px] bottom-[-15px] w-20 h-20 opacity-[0.03] text-white rotate-12 pointer-events-none"></i></div></div>`;
     };
 
+    // --- MANIPULAÇÃO DE DADOS & MODAIS ---
     const openNewTeamModal = () => { editingId = null; els.form.reset(); els.btns.delete.classList.add('hidden'); els.modalTitle.textContent = "Novo Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
-    const openEditTeamModal = (data) => { editingId = data.id; els.inputs.name.value = data.name; els.inputs.game.value = data.game; els.inputs.img.value = data.img || ''; els.inputs.type.value = data.type || 'Geral'; els.btns.delete.classList.remove('hidden'); els.modalTitle.textContent = "Editar Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
+    const openEditTeamModal = (data) => { editingId = data.id; els.inputs.name.value = data.name; els.inputs.game.value = data.game; els.inputs.img.value = data.img || ''; els.inputs.type.value = data.type || 'Geral'; els.btns.delete.classList.remove('hidden'); els.modalTitle.innerHTML = "Editar Time"; els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
     const saveTeam = async (e) => { e.preventDefault(); const data = { name: els.inputs.name.value, game: els.inputs.game.value, img: els.inputs.img.value, type: els.inputs.type.value, updatedAt: new Date() }; try { if (editingId) await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId), data); else { data.members = []; await addDoc(collection(db, 'users', currentUser.uid, 'teams_games'), data); } els.modal.classList.add('hidden'); } catch (err) { console.error(err); } };
     const deleteTeam = async () => { if(!editingId || !confirm("Tem certeza?")) return; await deleteDoc(doc(db, 'users', currentUser.uid, 'teams_games', editingId)); els.modal.classList.add('hidden'); };
 
-    window.openMembersModal = (team) => { currentTeamData = team; currentTeamMembers = team.members || []; els.memberTeamName.textContent = team.name; renderMembersList(); els.memberEmptyState.classList.remove('hidden'); els.memberFormContainer.classList.add('hidden'); els.membersModal.classList.remove('hidden'); els.membersModal.classList.add('flex'); };
+    window.openMembersModal = (team) => { 
+        currentTeamData = team; 
+        currentTeamMembers = team.members || []; 
+        els.memberTeamName.textContent = team.name; 
+
+        // Adiciona funcionalidade para gerenciar a Formação Tática (Se for time de futebol)
+        const formationContainer = document.getElementById('team-formation-container');
+        const formationSelect = document.getElementById('team-formation-select');
+        if (team.type === 'Futebol') {
+            formationContainer.classList.remove('hidden');
+            formationSelect.value = team.formation || '4-3-3';
+            formationSelect.onchange = async (e) => {
+                const newFormation = e.target.value;
+                try {
+                    await updateDoc(doc(db, 'users', currentUser.uid, 'teams_games', currentTeamData.id), { formation: newFormation });
+                    currentTeamData.formation = newFormation;
+                } catch (err) {
+                    console.error("Erro ao salvar formação:", err);
+                }
+            };
+        } else {
+            formationContainer.classList.add('hidden');
+        }
+
+        renderMembersList(); 
+        els.memberEmptyState.classList.remove('hidden'); 
+        els.memberFormContainer.classList.add('hidden'); 
+        els.membersModal.classList.remove('hidden'); 
+        els.membersModal.classList.add('flex'); 
+    };
+    
     window.closeMembersModal = () => els.membersModal.classList.add('hidden');
     
     const renderMembersList = () => {
         els.membersList.innerHTML = '';
         currentTeamMembers.forEach((member, index) => {
             const item = document.createElement('div');
-            item.className = 'p-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3 transition group border border-transparent hover:border-[#333]';
-            
+            item.className = 'p-3 rounded-xl bg-black/40 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition group border border-white/5 hover:border-white/20 mb-2';
             let extraInfo = '';
-            
-            // Exibição condicional baseada no tipo
-            if(currentTeamData.type === 'Futebol') {
-                extraInfo = `<span class="text-[10px] text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'} ${member.status === 'Reserva' ? '(R)' : ''}</span>`;
-            } else {
-                // Para Geral: Mostra a observação truncada
-                const obsText = member.obs ? member.obs.substring(0, 30) + (member.obs.length > 30 ? '...' : '') : 'Membro';
-                extraInfo = `<span class="text-[10px] text-gray-500 block">${obsText}</span>`;
-            }
-
-            item.innerHTML = `
-                <div class="avatar-wrapper shrink-0">${generateAvatarHTML(member.avatar, member.name, "w-8 h-8")}</div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>
-                    ${extraInfo}
-                </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>
-            `;
+            if(currentTeamData.type === 'Futebol') extraInfo = `<span class="text-[10px] uppercase tracking-widest text-gray-500 block">${member.posicao || '-'} #${member.numero || '?'} ${member.status === 'Reserva' ? '(R)' : ''}</span>`;
+            else { const obsText = member.obs ? member.obs.substring(0, 30) + (member.obs.length > 30 ? '...' : '') : 'Membro'; extraInfo = `<span class="text-[10px] uppercase tracking-widest text-gray-500 block">${obsText}</span>`; }
+            item.innerHTML = `<div class="avatar-wrapper shrink-0 shadow-md">${generateAvatarHTML(member.avatar, member.name, "w-10 h-10")}</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-200 truncate">${member.name}</p>${extraInfo}</div><i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-white"></i>`;
             item.onclick = () => loadMemberToForm(member, index);
             els.membersList.appendChild(item);
         });
@@ -1071,186 +855,33 @@
     };
 
     const renderTypeSpecificFields = (type, data = {}) => {
-        const container = els.memberInputs.dynamic;
-        container.innerHTML = '';
-
-        // --- FUTEBOL ---
+        const container = els.memberInputs.dynamic; container.innerHTML = '';
         if (type === 'Futebol') {
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label>
-                        <select id="mem-futebol-pos" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            <option value="Goleiro">Goleiro</option>
-                            <option value="Zagueiro">Zagueiro</option>
-                            <option value="Lateral">Lateral</option>
-                            <option value="Volante">Volante</option>
-                            <option value="Meia">Meia</option>
-                            <option value="Atacante">Atacante</option>
-                            <option value="Técnico">Técnico</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label>
-                        <input id="mem-futebol-num" type="number" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="10">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Titular" class="accent-[#B9314F]" checked> <span class="text-sm">Titular</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Reserva" class="accent-[#B9314F]"> <span class="text-sm">Reserva</span></label>
-                    </div>
-                </div>
-            `;
-            if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao;
-            if(data.numero) document.getElementById('mem-futebol-num').value = data.numero;
-            if(data.status) {
-                const radios = document.getElementsByName('status');
-                radios.forEach(r => { if(r.value === data.status) r.checked = true; });
-            }
-        }
-        else if (type === 'Pokemon Principal') {
-            // Cria as opções do Select
+            container.innerHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Posição</label><select id="mem-futebol-pos" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none"><option value="Goleiro">Goleiro</option><option value="Zagueiro">Zagueiro</option><option value="Lateral">Lateral</option><option value="Volante">Volante</option><option value="Meia">Meia</option><option value="Atacante">Atacante</option><option value="Técnico">Técnico</option></select></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Número</label><input id="mem-futebol-num" type="number" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none" placeholder="10"></div></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-2 mt-2">Status</label><div class="flex gap-6 bg-black/40 p-3 rounded-xl border border-white/10"><label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-white"><input type="radio" name="status" value="Titular" class="accent-accent w-4 h-4" checked> Titular</label><label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-white"><input type="radio" name="status" value="Reserva" class="accent-accent w-4 h-4"> Reserva</label></div></div>`;
+            if(data.posicao) document.getElementById('mem-futebol-pos').value = data.posicao; if(data.numero) document.getElementById('mem-futebol-num').value = data.numero;
+            if(data.status) { const radios = document.getElementsByName('status'); radios.forEach(r => { if(r.value === data.status) r.checked = true; }); }
+        } else if (type === 'Pokemon Principal' || type === 'Pokemon Fazenda') {
             const typeOptions = POKE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
-            
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 1</label>
-                        <select id="mem-poke-t1" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            ${typeOptions}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 2 (Opcional)</label>
-                        <select id="mem-poke-t2" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            <option value="">Nenhum</option>
-                            ${typeOptions}
-                        </select>
-                    </div>
-                </div>
-            `;
-            // Preencher valores se editando
-            if(data.type1) document.getElementById('mem-poke-t1').value = data.type1;
-            if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
-        }
-        else if (type === 'Pokemon Fazenda') {
-            const typeOptions = POKE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
-            
-            // Define o HTML extra específico para Fazenda (Campo Grupo)
-            let groupHtml = '';
-            if (type === 'Pokemon Fazenda') {
-                groupHtml = `
-                    <div class="col-span-2 mt-3">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label>
-                        <input id="mem-poke-group" type="text" list="existing-groups" class="w-full p-2.5 rounded-lg modal-input text-sm" placeholder="Ex: Fofos, Lendários, Shiny...">
-                        <datalist id="existing-groups"></datalist> </div>
-                `;
-            }
-
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 1</label>
-                        <select id="mem-poke-t1" class="w-full p-2.5 rounded-lg modal-input text-sm">${typeOptions}</select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 2</label>
-                        <select id="mem-poke-t2" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            <option value="">Nenhum</option>
-                            ${typeOptions}
-                        </select>
-                    </div>
-                    ${groupHtml}
-                </div>
-            `;
-            
-            if(data.type1) document.getElementById('mem-poke-t1').value = data.type1;
-            if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
+            let groupHtml = type === 'Pokemon Fazenda' ? `<div class="col-span-2 mt-2"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label><input id="mem-poke-group" type="text" list="existing-groups" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none" placeholder="Ex: Fofos, Lendários, Shiny..."><datalist id="existing-groups"></datalist></div>` : '';
+            container.innerHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 1</label><select id="mem-poke-t1" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none">${typeOptions}</select></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo 2 (Opcional)</label><select id="mem-poke-t2" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none"><option value="">Nenhum</option>${typeOptions}</select></div>${groupHtml}</div>`;
+            if(data.type1) document.getElementById('mem-poke-t1').value = data.type1; if(data.type2) document.getElementById('mem-poke-t2').value = data.type2;
             if(type === 'Pokemon Fazenda' && data.group) document.getElementById('mem-poke-group').value = data.group;
-        }
-        else if (type === 'Digimon') {
-            // Gerar Options dos Selects
+        } else if (type === 'Digimon') {
             const typeOpts = Object.keys(DIGI_TYPES).map(k => `<option value="${k}">${DIGI_TYPES[k].label}</option>`).join('');
             const attrOpts = Object.keys(DIGI_ATTRS).map(k => `<option value="${k}">${DIGI_ATTRS[k].label}</option>`).join('');
-
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label>
-                        <select id="mem-digi-type" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            ${typeOpts}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Atributo</label>
-                        <select id="mem-digi-attr" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            ${attrOpts}
-                        </select>
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label>
-                        <select id="mem-digi-group" class="w-full p-2.5 rounded-lg modal-input text-sm">
-                            <option value="Principal">Principal (Party)</option>
-                            <option value="Reserva">Reserva (Backup)</option>
-                            <option value="Box">Box (Storage)</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-            
-            if(data.digiType) document.getElementById('mem-digi-type').value = data.digiType;
-            if(data.digiAttr) document.getElementById('mem-digi-attr').value = data.digiAttr;
-            if(data.group) document.getElementById('mem-digi-group').value = data.group;
-        }
-        else {
-            // Apenas campos básicos já existem no form principal, adicionamos a Observação aqui
-            container.innerHTML = `
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observação / Cargo</label>
-                    <textarea id="mem-geral-obs" rows="3" class="w-full p-2.5 rounded-lg modal-input text-sm resize-none" placeholder="Ex: Líder do grupo, Suporte, etc...">${data.obs || ''}</textarea>
-                </div>
-            `;
+            container.innerHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label><select id="mem-digi-type" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none">${typeOpts}</select></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Atributo</label><select id="mem-digi-attr" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none">${attrOpts}</select></div><div class="col-span-2 mt-2"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grupo / Box</label><select id="mem-digi-group" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none"><option value="Principal">Principal (Party)</option><option value="Reserva">Reserva (Backup)</option><option value="Box">Box (Storage)</option></select></div></div>`;
+            if(data.digiType) document.getElementById('mem-digi-type').value = data.digiType; if(data.digiAttr) document.getElementById('mem-digi-attr').value = data.digiAttr; if(data.group) document.getElementById('mem-digi-group').value = data.group;
+        } else {
+            container.innerHTML = `<div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observação / Cargo</label><textarea id="mem-geral-obs" rows="3" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white focus:border-accent outline-none resize-none" placeholder="Ex: Líder do grupo, Suporte, etc...">${data.obs || ''}</textarea></div>`;
         }
     };
     
     const getDynamicData = (type) => {
-        if(type === 'Futebol') {
-            return {
-                posicao: document.getElementById('mem-futebol-pos').value,
-                numero: document.getElementById('mem-futebol-num').value,
-                status: document.querySelector('input[name="status"]:checked')?.value || 'Titular'
-            };
-        }
-
-        if(type === 'Pokemon Principal') {
-            return {
-                type1: document.getElementById('mem-poke-t1').value,
-                type2: document.getElementById('mem-poke-t2').value
-            };
-        }
-
-        if (type === 'Pokemon Fazenda') {
-            return {
-                type1: document.getElementById('mem-poke-t1').value,
-                type2: document.getElementById('mem-poke-t2').value,
-                group: document.getElementById('mem-poke-group').value || 'Sem Grupo'
-            };
-        }
-
-        if (type === 'Digimon') {
-            return {
-                digiType: document.getElementById('mem-digi-type').value,
-                digiAttr: document.getElementById('mem-digi-attr').value,
-                group: document.getElementById('mem-digi-group').value
-            };
-        }
-
-        // Captura o campo de observação para 'Geral' e outros tipos padrão
-        return { 
-            obs: document.getElementById('mem-geral-obs') ? document.getElementById('mem-geral-obs').value : '' 
-        };
+        if(type === 'Futebol') return { posicao: document.getElementById('mem-futebol-pos').value, numero: document.getElementById('mem-futebol-num').value, status: document.querySelector('input[name="status"]:checked')?.value || 'Titular' };
+        if(type === 'Pokemon Principal') return { type1: document.getElementById('mem-poke-t1').value, type2: document.getElementById('mem-poke-t2').value };
+        if (type === 'Pokemon Fazenda') return { type1: document.getElementById('mem-poke-t1').value, type2: document.getElementById('mem-poke-t2').value, group: document.getElementById('mem-poke-group').value || 'Sem Grupo' };
+        if (type === 'Digimon') return { digiType: document.getElementById('mem-digi-type').value, digiAttr: document.getElementById('mem-digi-attr').value, group: document.getElementById('mem-digi-group').value };
+        return { obs: document.getElementById('mem-geral-obs') ? document.getElementById('mem-geral-obs').value : '' };
     };
 
     window.prepareNewMember = () => { els.memberInputs.id.value = -1; els.memberInputs.name.value = ''; els.memberInputs.avatar.value = ''; renderTypeSpecificFields(currentTeamData.type); els.memberEmptyState.classList.add('hidden'); els.memberFormContainer.classList.remove('hidden'); els.btnDeleteMember.classList.add('hidden'); document.getElementById('member-form-title').textContent = "Novo Integrante"; };
