@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    
+    <title>Gerenciador de Backgrounds — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Cards com efeito Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
+
+        /* Inputs estilo Xbox */
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            color: white;
+            color-scheme: dark;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
+        
+        input[type="color"] {
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; }
+
+        option {
+            background-color: var(--bg-panel);
+            color: #e6e6e6;
+            padding: 10px;
+        }
+
+        /* Botões com efeito Xbox */
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .xbox-button:hover::before {
+            transform: translateX(100%);
+        }
+        .xbox-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        .toggle-sidebar-btn { transition: all 0.3s; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
+
+        /* ======== ESTILOS DO PREVIEW ======== */
+        .card-preview-container { 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            transition: width 0.3s, height 0.3s;
+            background-color: #1a1a1a;
+        }
+        .card-preview-container.vertical { width: 340px; height: 476px; } 
+        .card-preview-container.horizontal { width: 476px; height: 340px; }
+
+        .layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+        .layer-overlay { z-index: 5; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); } 
+
+        .card-item-preview {
+            position: relative;
+            width: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .card-item-preview.vertical { aspect-ratio: 2.5 / 3.5; }
+        .card-item-preview.horizontal { aspect-ratio: 3.5 / 2.5; }
+
+        @media (max-width: 1024px) {
+            .card-preview-container { transform: scale(0.85); transform-origin: top center; margin-bottom: -50px; }
+        }
+        @media (max-width: 640px) {
+            .card-preview-container { transform: scale(0.7); transform-origin: top center; margin-bottom: -100px; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- OVERLAY DE CARREGAMENTO -->
+    <div id="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
+    </div>
+
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+                <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+                <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Cards/Molduras/Bg">
+                <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+                <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+                <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+                <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+                <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+                <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="monitor" class="text-accent"></i> My Backgrounds
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO DA LISTA -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28 hidden">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- AÇÕES TOPO -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <button onclick="openModal()" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-accent/20">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Background
+                    </button>
+
+                    <button id="toggle-filter-btn" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-2.5 rounded-xl border border-white/10 transition-all font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros
+                    </button>
+                </div>
+
+                <!-- PAINEL DE FILTROS -->
+                <div id="filter-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🔍 Buscar</label>
+                            <input type="text" id="search" placeholder="Nome do background..." oninput="renderBackgroundsList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🧩 Tipo</label>
+                            <select id="filterType" onchange="renderBackgroundsList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                <option value="">Todos</option>
+                                <option value="image">🖼️ Imagem</option>
+                                <option value="gradient">🎨 Gradiente</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">⬇️ Ordenar por</label>
+                            <select id="sortBg" onchange="renderBackgroundsList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                <option value="date_desc">Data (Mais Recentes)</option>
+                                <option value="date_asc">Data (Mais Antigos)</option>
+                                <option value="name_asc">Nome (A-Z)</option>
+                                <option value="type">Tipo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <button onclick="clearFilters()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl text-sm font-bold transition whitespace-nowrap">Limpar Filtros</button>
+                            <span id="bgCount" class="text-sm font-semibold text-gray-400"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LISTA DE BACKGROUNDS (GRID) -->
+                <div id="bgGrid" class="flex flex-wrap justify-center gap-5"></div>
+
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <a href="cards_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4"></i> <span class="hidden sm:inline">Cards</span>
+            </a>
+            <a href="cards_frames.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">Molduras</span>
+            </a>
+            <a href="cards_backgrounds.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20">
+                <i data-lucide="monitor" class="w-4 h-4"></i> <span class="hidden sm:inline">Backgrounds</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- MODAL DO EDITOR DE BACKGROUND -->
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-[100] overflow-auto p-2 sm:p-4 transition-all">
+        <div class="glass-panel rounded-2xl w-full max-w-[98vw] lg:max-w-[1200px] h-[95vh] flex flex-col shadow-2xl relative border border-white/10">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 shrink-0">
+                <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="monitor" class="w-5 h-5 text-accent"></i> <span>Novo Background</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button type="button" id="delete-btn" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Editor Grid) -->
+            <div class="flex-1 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 p-4 sm:p-6 h-full overflow-y-auto">
+                    
+                    <!-- ESQUERDA: CONFIGURAÇÕES -->
+                    <div class="space-y-4 lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+                        <form id="bgForm" onsubmit="event.preventDefault();" class="space-y-4">
+                            <input type="hidden" id="bgId">
+                            
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-3">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Configuração Básica</div>
+                                
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome</label>
+                                    <input type="text" id="bgName" required placeholder="Ex: Floresta Mística" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Tipo</label>
+                                    <select id="bgType" onchange="toggleType()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                        <option value="image">🖼️ Imagem</option>
+                                        <option value="gradient">🎨 Gradiente</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Orientação (Apenas Teste Visual)</label>
+                                    <select id="previewOrient" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                        <option value="vertical">Vertical</option>
+                                        <option value="horizontal">Horizontal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- CONTROLES IMAGEM -->
+                            <div id="controlsImg" class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-3">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> Configurar Imagem</div>
+                                
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">URL da Imagem</label>
+                                    <input type="url" id="bgUrl" placeholder="https://..." oninput="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Zoom</label><input type="number" id="bgZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Rotação</label><input type="number" id="bgRotate" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Pos X (%)</label><input type="number" id="bgPosX" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Pos Y (%)</label><input type="number" id="bgPosY" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                </div>
+                            </div>
+
+                            <!-- CONTROLES GRADIENTE -->
+                            <div id="controlsGrad" class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-3" style="display: none;">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4"></i> Cores e Direção</div>
+                                
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Direção</label>
+                                    <select id="bgGradDir" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                        <option value="135deg">Diagonal (135°)</option>
+                                        <option value="180deg">Vertical (Top-Down)</option>
+                                        <option value="90deg">Horizontal</option>
+                                        <option value="45deg">Diagonal Inversa</option>
+                                        <option value="radial">Radial (Centro)</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Cor 1</label><input type="color" id="col1" value="#0a0e27" oninput="updatePreview()" class="w-full h-[32px] rounded-lg p-0 cursor-pointer bg-transparent"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Cor 2</label><input type="color" id="col2" value="#1a1f3a" oninput="updatePreview()" class="w-full h-[32px] rounded-lg p-0 cursor-pointer bg-transparent"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Cor 3</label><input type="color" id="col3" value="#8b5cf6" oninput="updatePreview()" class="w-full h-[32px] rounded-lg p-0 cursor-pointer bg-transparent"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- CENTRO: PREVIEW DO CARD -->
+                    <div class="flex flex-col items-center justify-center bg-black/50 rounded-2xl border border-white/5 p-4 sm:p-6 overflow-hidden min-h-[500px]">
+                        <div id="previewContainer" class="card-preview-container vertical">
+                            <div id="previewBox" class="layer" style="z-index: 1;"></div>
+                            <div class="layer layer-overlay"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-6 border-t border-white/10 shrink-0 flex justify-end gap-3 sm:gap-4 bg-black/20 rounded-b-2xl">
+                <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 font-bold transition">Cancelar</button>
+                <button onclick="saveBg()" class="xbox-button bg-accent text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i> Salvar Background
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+<script>
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Toggle Filters
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+    const filterContainer = document.getElementById('filter-container');
+    toggleFilterBtn.addEventListener('click', () => {
+        const isHidden = filterContainer.classList.toggle('hidden');
+        if (isHidden) {
+            toggleFilterBtn.innerHTML = '<i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros';
+        } else {
+            toggleFilterBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Esconder Filtros';
+        }
+        lucide.createIcons();
+    });
+</script>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let userId = null;
+    let backgroundsCache = [];
+    let isFirstLoad = true;
+
+    const userEmailEl = document.getElementById('user-email');
+    const loadingEl = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const modalEl = document.getElementById('modal');
+
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => window.location.href = 'index.html');
+    };
+
+    onAuthStateChanged(auth, u => {
+        if(u) {
+            userId = u.uid;
+            if(userEmailEl) userEmailEl.textContent = u.email || u.uid;
+            loadBackgrounds();
+        } else window.location.href = 'index.html';
+    });
+
+    // --- CARREGAMENTO DO BANCO DE DADOS ---
+    function loadBackgrounds() {
+        onSnapshot(query(collection(db, 'users', userId, 'backgrounds')), snap => {
+            backgroundsCache = [];
+            snap.forEach(d => backgroundsCache.push({id: d.id, ...d.data()}));
+            renderBackgroundsList();
+            
+            if (isFirstLoad) {
+                loadingEl.classList.add('hidden');
+                appEl.classList.remove('hidden');
+                isFirstLoad = false;
+            }
+        });
+    }
+
+    // --- LÓGICA DE LISTAGEM E FILTROS ---
+    window.clearFilters = () => {
+        document.getElementById('search').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('sortBg').value = 'date_desc';
+        renderBackgroundsList();
+    };
+
+    window.renderBackgroundsList = () => {
+        const grid = document.getElementById('bgGrid');
+        if(!grid) return;
+
+        const term = document.getElementById('search')?.value.toLowerCase() || '';
+        const filterType = document.getElementById('filterType')?.value || '';
+        const sortBg = document.getElementById('sortBg')?.value || 'date_desc';
+
+        let filtered = backgroundsCache.filter(b => {
+            return (!term || (b.name && b.name.toLowerCase().includes(term))) &&
+                   (!filterType || b.type === filterType);
+        });
+
+        filtered.sort((a, b) => {
+            if (sortBg === 'date_desc') return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+            if (sortBg === 'date_asc') return new Date(a.updatedAt || a.createdAt || 0) - new Date(b.updatedAt || b.createdAt || 0);
+            if (sortBg === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+            if (sortBg === 'type') return (a.type || '').localeCompare(b.type || '');
+            return 0;
+        });
+
+        const bgCountEl = document.getElementById('bgCount');
+        if(bgCountEl) bgCountEl.innerText = `${filtered.length} background(s) encontrado(s)`;
+
+        if(filtered.length === 0) {
+            grid.innerHTML = '<div class="w-full text-center py-16"><i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i><p class="text-lg text-gray-500 font-semibold">Nenhum background encontrado.</p></div>';
+            lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = filtered.map(b => {
+            const previewHTML = generateMiniPreview(b);
+            const typeLabel = b.type === 'image' ? '🖼️ Imagem' : '🎨 Gradiente';
+
+            return `
+                <div class="task-card rounded-2xl overflow-hidden cursor-pointer flex flex-col w-full sm:w-[260px]" onclick="editBg('${b.id}')">
+                    <div class="card-item-preview vertical bg-black/60 border-b border-white/5 relative">
+                        ${previewHTML}
+                    </div>
+                    <div class="p-4 flex flex-col gap-2 flex-1">
+                        <div class="font-bold text-lg text-accent font-['Cinzel'] truncate" title="${b.name || 'Sem Nome'}">${b.name || 'Sem Nome'}</div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase px-2 py-1 rounded-md bg-white/5 border border-white/10 truncate">${typeLabel}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    };
+
+    function generateMiniPreview(b) {
+        let content = '';
+        if(b.type === 'image') {
+            const zoom = b.image.zoom || 1;
+            const rot = b.image.rotate || 0;
+            const posX = b.image.posX || 50;
+            const posY = b.image.posY || 50;
+            content = `<img src="${b.image.url}" style="width:100%; height:100%; object-fit:cover; transform: scale(${zoom}) rotate(${rot}deg); object-position: ${posX}% ${posY}%;" onerror="this.style.display='none';">`;
+        } else {
+            const g = b.gradient;
+            let css = '';
+            if(g.dir === 'radial') {
+                css = `radial-gradient(circle, ${g.colors.join(', ')})`;
+            } else {
+                css = `linear-gradient(${g.dir || '180deg'}, ${g.colors.join(', ')})`;
+            }
+            content = `<div style="width:100%; height:100%; background: ${css};"></div>`;
+        }
+        
+        return `
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; position: absolute; inset: 0;">
+            ${content}
+        </div>
+        `;
+    }
+
+    // --- CONTROLE DE UI NO MODAL ---
+    window.openModal = () => {
+        resetForm();
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="monitor" class="w-5 h-5 text-accent"></i> <span>Novo Background</span>';
+        document.getElementById('delete-btn').classList.add('hidden');
+        lucide.createIcons();
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+        updatePreview();
+    };
+
+    window.closeModal = () => {
+        modalEl.classList.add('hidden');
+        modalEl.classList.remove('flex');
+    };
+
+    window.toggleType = () => {
+        const t = document.getElementById('bgType').value;
+        document.getElementById('controlsImg').style.display = t === 'image' ? 'block' : 'none';
+        document.getElementById('controlsGrad').style.display = t === 'gradient' ? 'block' : 'none';
+        updatePreview();
+    };
+
+    window.updatePreview = () => {
+        const t = document.getElementById('bgType').value;
+        const box = document.getElementById('previewBox');
+        const container = document.getElementById('previewContainer');
+        const orient = document.getElementById('previewOrient').value;
+
+        container.className = `card-preview-container ${orient}`;
+
+        if(t === 'image') {
+            const url = document.getElementById('bgUrl').value;
+            const zoom = parseFloat(document.getElementById('bgZoom').value) || 1;
+            const rot = parseFloat(document.getElementById('bgRotate').value) || 0;
+            const posX = parseFloat(document.getElementById('bgPosX').value) || 50;
+            const posY = parseFloat(document.getElementById('bgPosY').value) || 50;
+
+            if (url) {
+                box.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:cover; transform: scale(${zoom}) rotate(${rot}deg); object-position: ${posX}% ${posY}%;">`;
+            } else {
+                box.innerHTML = `<div style="width:100%; height:100%; background: #222;"></div>`;
+            }
+        } else {
+            const dir = document.getElementById('bgGradDir').value;
+            const c1 = document.getElementById('col1').value;
+            const c2 = document.getElementById('col2').value;
+            const c3 = document.getElementById('col3').value;
+            
+            let css = '';
+            if (dir === 'radial') {
+                css = `radial-gradient(circle, ${c1}, ${c2}, ${c3})`;
+            } else {
+                css = `linear-gradient(${dir}, ${c1}, ${c2}, ${c3})`;
+            }
+            box.innerHTML = `<div style="width:100%; height:100%; background: ${css}"></div>`;
+        }
+    };
+
+    // --- SALVAR, EDITAR E DELETAR ---
+    window.saveBg = async () => {
+        const id = document.getElementById('bgId').value;
+        const type = document.getElementById('bgType').value;
+        
+        const data = {
+            name: document.getElementById('bgName').value,
+            type: type,
+            updatedAt: new Date().toISOString()
+        };
+
+        if(type === 'image') {
+            data.image = {
+                url: document.getElementById('bgUrl').value,
+                zoom: document.getElementById('bgZoom').value,
+                rotate: document.getElementById('bgRotate').value,
+                posX: document.getElementById('bgPosX').value,
+                posY: document.getElementById('bgPosY').value
+            };
+        } else {
+            data.gradient = {
+                dir: document.getElementById('bgGradDir').value,
+                colors: [
+                    document.getElementById('col1').value, 
+                    document.getElementById('col2').value,
+                    document.getElementById('col3').value
+                ]
+            };
+        }
+
+        try {
+            if(id) {
+                await updateDoc(doc(db, 'users', userId, 'backgrounds', id), data);
+            } else {
+                data.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'users', userId, 'backgrounds'), data);
+            }
+            closeModal();
+        } catch(e) {
+            alert("Erro: " + e.message);
+        }
+    };
+
+    window.editBg = (id) => {
+        const bg = backgroundsCache.find(b => b.id === id);
+        if(!bg) return;
+
+        document.getElementById('bgId').value = bg.id;
+        document.getElementById('bgName').value = bg.name || '';
+        document.getElementById('bgType').value = bg.type || 'image';
+
+        if(bg.type === 'image') {
+            document.getElementById('bgUrl').value = bg.image?.url || '';
+            document.getElementById('bgZoom').value = bg.image?.zoom || 1;
+            document.getElementById('bgRotate').value = bg.image?.rotate || 0;
+            document.getElementById('bgPosX').value = bg.image?.posX || 50;
+            document.getElementById('bgPosY').value = bg.image?.posY || 50;
+        } else {
+            document.getElementById('bgGradDir').value = bg.gradient?.dir || '180deg';
+            const colors = bg.gradient?.colors || ['#0a0e27', '#1a1f3a', '#8b5cf6'];
+            document.getElementById('col1').value = colors[0] || '#0a0e27';
+            document.getElementById('col2').value = colors[1] || '#1a1f3a';
+            document.getElementById('col3').value = colors[2] || '#8b5cf6';
+        }
+
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> <span>Editar Background</span>';
+        document.getElementById('delete-btn').classList.remove('hidden');
+        lucide.createIcons();
+        
+        toggleType();
+        
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+    };
+
+    document.getElementById('delete-btn').onclick = async () => {
+        const id = document.getElementById('bgId').value;
+        if(!id) return;
+        if(confirm('Tem certeza que deseja excluir este background?')) {
+            try {
+                await deleteDoc(doc(db, 'users', userId, 'backgrounds', id));
+                closeModal();
+            } catch(e) {
+                alert('Erro ao excluir: ' + e.message);
+            }
+        }
+    };
+
+    window.resetForm = () => {
+        document.getElementById('bgForm').reset();
+        document.getElementById('bgId').value = '';
+        
+        document.getElementById('bgZoom').value = '1';
+        document.getElementById('bgRotate').value = '0';
+        document.getElementById('bgPosX').value = '50';
+        document.getElementById('bgPosY').value = '50';
+        
+        document.getElementById('bgGradDir').value = '180deg';
+        document.getElementById('col1').value = '#0a0e27';
+        document.getElementById('col2').value = '#1a1f3a';
+        document.getElementById('col3').value = '#8b5cf6';
+        
+        document.getElementById('previewOrient').value = 'vertical';
+        
+        toggleType();
+    };
+
+</script>
+</body>
+</html>
