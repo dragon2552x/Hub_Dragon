@@ -3,106 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <meta name="referrer" content="no-referrer">
     
-    <title>Gerenciador de Cards</title>
+    <title>Gerenciador de Cards — My Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
         
-        body { background: #0b0b0b; color: #e6e6e6; font-family: 'Inter', sans-serif; padding-bottom: 100px; user-select: none; }
-        .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
         
-        /* Navegação */
-        .page-nav { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; border-bottom: 1px solid #333; padding-bottom: 1rem; }
-        .page-link { padding: 0.5rem 1.5rem; color: #888; text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-        .page-link:hover { color: #fff; background: #222; }
-        .page-link.active { color: #0b0b0b; background: #d4af37; }
-
-        /* Inputs */
-        input, select { width: 100%; background: #222; border: 1px solid #444; color: white; padding: 0.6rem; border-radius: 6px; outline: none; font-size: 0.9rem; }
-        input:focus { border-color: #d4af37; }
-        label { display: block; margin-bottom: 0.2rem; font-size: 0.75rem; color: #aaa; font-weight: bold; text-transform: uppercase; }
-        
-        /* Card Preview Wrapper */
-        .preview-wrapper { 
-            background: #111; 
-            border-radius: 12px; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            border: 1px solid #333; 
-            min-height: 500px;
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+            user-select: none;
         }
 
-        /* O CONTAINER DO CARD (A "FOLHA" DE PAPEL) */
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Cards com efeito Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
+
+        /* Inputs estilo Xbox */
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            color: white;
+            color-scheme: dark;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
+        
+        input[type="color"] {
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; }
+
+        option {
+            background-color: var(--bg-panel);
+            color: #e6e6e6;
+            padding: 10px;
+        }
+
+        /* Botões com efeito Xbox */
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .xbox-button:hover::before {
+            transform: translateX(100%);
+        }
+        .xbox-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            transform: translateX(0);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        .toggle-sidebar-btn { transition: all 0.3s; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
+
+        /* ======== ESTILOS DO CARD (PREVIEW FÍSICO) ======== */
         .card-preview-container { 
             position: relative; 
             overflow: hidden; 
             box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            border-radius: 12px; /* Arredondamento do card físico */
+            border-radius: 12px;
             transition: width 0.3s, height 0.3s;
-            background-color: #1a1a1a; /* Cor base caso não tenha imagem */
+            background-color: #1a1a1a;
         }
-        .card-preview-container.vertical { width: 340px; height: 476px; } /* Proporção ~ 2.5/3.5 */
+        .card-preview-container.vertical { width: 340px; height: 476px; } 
         .card-preview-container.horizontal { width: 476px; height: 340px; }
 
-        /* CAMADAS (LAYERS) - ORDEM IMPORTA MUITO AQUI */
         .layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-        
-        .layer-bg { z-index: 1; }     /* Fundo */
-        .layer-char { z-index: 2; }   /* Personagem */
-        .layer-frame { z-index: 3; }  /* Moldura */
-        .layer-text { z-index: 4; }   /* Textos */
-        .layer-overlay { z-index: 5; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); } /* Brilho/Acabamento */
+        .layer-bg { z-index: 1; }     
+        .layer-char { z-index: 2; }   
+        .layer-frame { z-index: 3; }  
+        .layer-text { z-index: 4; }   
+        .layer-overlay { z-index: 5; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); } 
 
-        /* Elementos de Texto */
         .text-element { 
             position: absolute; 
             white-space: nowrap; 
             text-shadow: 0 2px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5); 
             cursor: grab; 
-            pointer-events: auto; /* Permite arrastar */
+            pointer-events: auto;
             user-select: none;
             z-index: 10;
         }
         .text-element:active { cursor: grabbing; outline: 1px dashed rgba(255,255,255,0.3); }
-        
-        /* UI Auxiliar */
-        .control-group { background: #151515; border: 1px solid #333; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .control-header { color: #d4af37; font-weight: bold; margin-bottom: 0.5rem; display: flex; justify-content: space-between; cursor: pointer; }
-        .grid-list { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 1.5rem;
-            grid-auto-flow: dense; /* Permite reorganização inteligente */
-        }
-        .card-item { 
-            background: #151515; 
-            border: 1px solid #333; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; 
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Cards horizontais ocupam 2 colunas */
-        .card-item.horizontal-card {
-            grid-column: span 2;
-        }
-        
-        .card-item:hover { 
-            transform: translateY(-5px); 
-            border-color: #d4af37; 
-            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
-        }
-        
-        /* Preview do Card na Lista */
+
         .card-item-preview {
             position: relative;
             width: 100%;
@@ -112,287 +168,388 @@
             justify-content: center;
             overflow: hidden;
         }
+        .card-item-preview.vertical { aspect-ratio: 2.5 / 3.5; }
+        .card-item-preview.horizontal { aspect-ratio: 3.5 / 2.5; }
+        .card-item-preview .layer { position: absolute; inset: 0; width: 100%; height: 100%; }
         
-        .card-item-preview.vertical {
-            aspect-ratio: 2.5 / 3.5;
+        /* Permite escala de preview no modal para telas pequenas */
+        @media (max-width: 1024px) {
+            .card-preview-container { transform: scale(0.85); transform-origin: top center; margin-bottom: -50px; }
         }
-        
-        .card-item-preview.horizontal {
-            aspect-ratio: 3.5 / 2.5;
-        }
-        
-        .card-item-preview .layer {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .card-item-info {
-            padding: 1rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        /* Responsividade */
-        @media (max-width: 1200px) {
-            .grid-list {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-            .card-item.horizontal-card {
-                grid-column: span 2;
-            }
-            .editor-grid {
-                grid-template-columns: 300px 1fr 280px !important;
-                gap: 1rem !important;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .grid-list {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 1rem;
-            }
-            .card-item.horizontal-card {
-                grid-column: span 2; /* Ainda ocupa 2 colunas */
-            }
-            .card-item-preview {
-                min-height: 200px;
-            }
-            .editor-grid {
-                grid-template-columns: 1fr !important;
-                gap: 1rem !important;
-            }
-            .editor-grid > div {
-                height: auto !important;
-                overflow-y: visible !important;
-            }
-            .preview-wrapper {
-                min-height: 400px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .grid-list {
-                grid-template-columns: 1fr; /* Uma coluna apenas */
-            }
-            .card-item.horizontal-card {
-                grid-column: span 1; /* Ocupa 1 coluna em mobile */
-            }
-            .page-nav {
-                flex-direction: column;
-            }
-            .card-item-preview {
-                min-height: 250px;
-            }
-            .card-item-preview.horizontal {
-                min-height: 180px; /* Menor altura para horizontais em mobile */
-            }
-            .preview-wrapper {
-                min-height: 350px;
-            }
+        @media (max-width: 640px) {
+            .card-preview-container { transform: scale(0.7); transform-origin: top center; margin-bottom: -100px; }
         }
     </style>
 </head>
-<body>
+<body class="flex h-screen overflow-hidden">
 
-<div class="container">
-    <button onclick="window.location.href='home.html'" style="position: absolute; top: 1rem; left: 1rem; color: #888;">⬅ Voltar</button>
-
-    <header style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="font-family: 'Cinzel'; font-size: 2.5rem; color: #d4af37;">Gerenciador de Cards</h1>
-    </header>
-
-    <nav class="page-nav">
-        <a href="cards_manager.html" class="page-link active">🃏 Cards</a>
-        <a href="frames.html" class="page-link">🖼️ Molduras</a>
-        <a href="backgrounds.html" class="page-link">🌄 Backgrounds</a>
-    </nav>
-
-    <div style="text-align: center; margin-bottom: 1rem;">
-        <button onclick="toggleView('list')" class="px-4 py-2 bg-gray-800 rounded hover:bg-gray-700">Ver Lista</button>
-        <button onclick="toggleView('create')" class="px-4 py-2 bg-gray-800 rounded hover:bg-gray-700">Criar Novo</button>
+    <!-- OVERLAY DE CARREGAMENTO -->
+    <div id="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
     </div>
 
-    <div id="viewList">
-        <!-- Barra de Busca e Filtros -->
-        <div style="background: #151515; border: 1px solid #333; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                <div>
-                    <label>🔍 Buscar</label>
-                    <input type="text" id="search" placeholder="Nome do card..." oninput="renderCardsList()">
-                </div>
-                <div>
-                    <label>🎭 Origem</label>
-                    <select id="filterOrigin" onchange="renderCardsList()">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-                <div>
-                    <label>⭐ Raridade</label>
-                    <select id="filterRarity" onchange="renderCardsList()">
-                        <option value="">Todas</option>
-                        <option value="common">Comum</option>
-                        <option value="rare">Raro</option>
-                        <option value="epic">Épico</option>
-                        <option value="legendary">Lendário</option>
-                    </select>
-                </div>
-                <div>
-                    <label>📐 Orientação</label>
-                    <select id="filterOrient" onchange="renderCardsList()">
-                        <option value="">Todas</option>
-                        <option value="vertical">Vertical</option>
-                        <option value="horizontal">Horizontal</option>
-                    </select>
-                </div>
-                <div>
-                    <label>📚 Série</label>
-                    <select id="filterSeries" onchange="renderCardsList()">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button onclick="clearFilters()" class="px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 text-sm">Limpar Filtros</button>
-                <span id="cardCount" style="margin-left: auto; padding: 0.5rem; color: #888;"></span>
-            </div>
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
         </div>
         
-        <div id="cardsGrid" class="grid-list" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">Carregando...</div>
-    </div>
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-    <div id="viewEditor" style="display: none;">
-        <div style="display: grid; grid-template-columns: 350px 1fr 300px; gap: 2rem;" class="editor-grid">
-            
-            <div style="height: 80vh; overflow-y: auto; padding-right: 10px;">
-                <form id="cardForm" onsubmit="event.preventDefault();">
-                    <input type="hidden" id="cardId">
-                    
-                    <div class="control-group">
-                        <div class="control-header">Informações Básicas</div>
-                        <label>Nome do Card</label>
-                        <input type="text" id="cardName" oninput="updateText('name', this.value)" placeholder="Nome do Personagem">
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div>
-                                <label>Raridade</label>
-                                <select id="cardRarity" onchange="updateText('rarity', this.options[this.selectedIndex].text)">
-                                    <option value="common">Comum</option>
-                                    <option value="rare">Raro</option>
-                                    <option value="epic">Épico</option>
-                                    <option value="legendary">Lendário</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>Orientação</label>
-                                <select id="cardOrient" onchange="updatePreview()">
-                                    <option value="vertical">Vertical</option>
-                                    <option value="horizontal">Horizontal</option>
-                                </select>
-                            </div>
-                        </div>
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+                <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-                        <label>Origem (Anime/Jogo)</label>
-                        <input type="text" id="cardOrigin" placeholder="Ex: Naruto Shippuden" oninput="updateText('origin', this.value)">
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div>
-                                <label>Série/Coleção</label>
-                                <input type="text" id="cardSeries" placeholder="Series 1" oninput="updateText('series', this.value)">
-                            </div>
-                            <div>
-                                <label>Nº Edição</label>
-                                <input type="text" id="cardEdition" placeholder="#001" oninput="updateText('edition', this.value)">
-                            </div>
-                        </div>
-                    </div>
+            <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+                <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-                    <div class="control-group">
-                        <div class="control-header">Personagem (Camada Meio)</div>
-                        <label>URL da Imagem</label>
-                        <input type="url" id="charUrl" oninput="updatePreview()" placeholder="https://imgur.com/...">
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                            <div><label>Zoom</label><input type="number" id="charZoom" step="0.1" value="1" oninput="updatePreview()"></div>
-                            <div><label>Rotação</label><input type="number" id="charRot" value="0" oninput="updatePreview()"></div>
-                            <div><label>X (%)</label><input type="number" id="charX" value="50" oninput="updatePreview()"></div>
-                            <div><label>Y (%)</label><input type="number" id="charY" value="50" oninput="updatePreview()"></div>
-                        </div>
-                    </div>
+            <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Cards">
+                <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-                    <div class="control-group">
-                        <div class="control-header">Moldura (Frente) & Fundo (Trás)</div>
-                        <label>Moldura</label>
-                        <select id="selFrame" onchange="updatePreview()"></select>
-                        
-                        <div id="frameControls" style="margin-top: 10px; display: none;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                                <div><label>Zoom</label><input type="number" id="frameZoom" step="0.1" value="1" oninput="updatePreview()"></div>
-                                <div><label>Rotação</label><input type="number" id="frameRot" value="0" oninput="updatePreview()"></div>
-                                <div><label>X (%)</label><input type="number" id="frameX" value="50" oninput="updatePreview()"></div>
-                                <div><label>Y (%)</label><input type="number" id="frameY" value="50" oninput="updatePreview()"></div>
-                            </div>
-                        </div>
-                        
-                        <label style="margin-top: 10px;">Background</label>
-                        <select id="selBg" onchange="updatePreview()"></select>
-                        
-                        <div style="margin-top: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                            <div><label>Bg Zoom</label><input type="number" id="bgZoom" step="0.1" value="1" oninput="updatePreview()"></div>
-                            <div><label>Bg Rot</label><input type="number" id="bgRot" value="0" oninput="updatePreview()"></div>
-                            <div><label>Bg X (%)</label><input type="number" id="bgX" value="50" oninput="updatePreview()"></div>
-                            <div><label>Bg Y (%)</label><input type="number" id="bgY" value="50" oninput="updatePreview()"></div>
-                        </div>
-                    </div>
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+                <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-                    <button onclick="saveCard()" class="w-full bg-[#d4af37] text-black font-bold py-3 rounded mt-4 hover:bg-[#b5952f] transition">Salvar Card</button>
-                    <button onclick="resetForm()" class="w-full bg-[#333] text-white py-2 rounded mt-2 hover:bg-[#444] transition">Cancelar</button>
-                </form>
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+                <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+                <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+                <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+                <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="layers" class="text-accent"></i> My Cards
+                    </h2>
+                </div>
             </div>
+            
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
 
-            <div class="preview-wrapper">
-                <div id="previewContainer" class="card-preview-container vertical">
-                    <div id="layerBg" class="layer layer-bg"></div>
-                    
-                    <div id="layerChar" class="layer layer-char"></div>
-                    
-                    <div id="layerFrame" class="layer layer-frame"></div>
-                    
-                    <div id="layerText" class="layer layer-text">
+        <!-- ÁREA DE CONTEÚDO DA LISTA -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28 hidden">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- AÇÕES TOPO -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <button onclick="openModal()" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-accent/20">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Card
+                    </button>
+
+                    <button id="toggle-filter-btn" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-2.5 rounded-xl border border-white/10 transition-all font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros
+                    </button>
+                </div>
+
+                <!-- PAINEL DE FILTROS -->
+                <div id="filter-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🔍 Buscar</label>
+                            <input type="text" id="search" placeholder="Nome do card..." oninput="renderCardsList()" class="w-full rounded-xl px-4 py-2.5">
                         </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🎭 Origem</label>
+                            <select id="filterOrigin" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">⭐ Raridade</label>
+                            <select id="filterRarity" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5">
+                                <option value="">Todas</option>
+                                <option value="common">Comum</option>
+                                <option value="rare">Raro</option>
+                                <option value="epic">Épico</option>
+                                <option value="legendary">Lendário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📐 Orientação</label>
+                            <select id="filterOrient" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5">
+                                <option value="">Todas</option>
+                                <option value="vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📚 Série</label>
+                            <select id="filterSeries" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <button onclick="clearFilters()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl text-sm font-bold transition whitespace-nowrap">Limpar Filtros</button>
+                            <span id="cardCount" class="text-sm font-semibold text-gray-400"></span>
+                        </div>
+                        
+                        <!-- Novo campo de ordenação -->
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
+                            <label class="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">Ordenar por</label>
+                            <select id="sortCards" onchange="renderCardsList()" class="w-full sm:w-48 rounded-xl px-4 py-2.5 text-sm">
+                                <option value="date_desc">Data (Mais Recentes)</option>
+                                <option value="date_asc">Data (Mais Antigos)</option>
+                                <option value="name_asc">Nome (A-Z)</option>
+                                <option value="rarity">Raridade</option>
+                                <option value="origin">Origem</option>
+                                <option value="series">Série</option>
+                                <option value="edition">Edição</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- LISTA DE CARDS (GRID) -->
+                <div id="cardsGrid" class="flex flex-wrap justify-center gap-5"></div>
 
-                    <div class="layer layer-overlay"></div>
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR (MENU DE PÁGINAS FLUTUANTE) -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <a href="cards_manager.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20">
+                <i data-lucide="layers" class="w-4 h-4"></i> <span class="hidden sm:inline">Cards</span>
+            </a>
+            <a href="cards_frames.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">Molduras</span>
+            </a>
+            <a href="cards_backgrounds.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="monitor" class="w-4 h-4"></i> <span class="hidden sm:inline">Backgrounds</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- MODAL DO EDITOR DE CARDS -->
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-[100] overflow-auto p-2 sm:p-4 transition-all">
+        <div class="glass-panel rounded-2xl w-full max-w-[98vw] lg:max-w-[1400px] h-[95vh] flex flex-col shadow-2xl relative border border-white/10">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 shrink-0">
+                <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-accent"></i> <span>Novo Card</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button type="button" id="delete-btn" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="resetForm()" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </div>
 
-            <div style="height: 80vh; overflow-y: auto;">
-                <h3 style="color: #d4af37; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">🎨 Editor de Textos</h3>
-                <p style="font-size: 0.8rem; color: #888; margin-bottom: 1rem;">Clique e arraste os textos no preview para mover.</p>
-                <div id="textControls">
+            <!-- Modal Body (Editor Grid) -->
+            <div class="flex-1 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr_300px] gap-6 p-4 sm:p-6 h-full overflow-y-auto">
+                    
+                    <!-- ESQUERDA: FORMULÁRIO BÁSICO -->
+                    <div class="space-y-4 lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+                        <form id="cardForm" onsubmit="event.preventDefault();" class="space-y-4">
+                            <input type="hidden" id="cardId">
+                            
+                            <!-- Básico -->
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Info Básica</div>
+                                
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome do Card</label>
+                                        <input type="text" id="cardName" oninput="updateText('name', this.value)" placeholder="Nome" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Raridade</label>
+                                            <select id="cardRarity" onchange="updateText('rarity', this.options[this.selectedIndex].text)" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                                <option value="common">Comum</option>
+                                                <option value="rare">Raro</option>
+                                                <option value="epic">Épico</option>
+                                                <option value="legendary">Lendário</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Orientação</label>
+                                            <select id="cardOrient" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                                <option value="vertical">Vertical</option>
+                                                <option value="horizontal">Horizontal</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Origem</label>
+                                        <input type="text" id="cardOrigin" placeholder="Ex: Naruto" oninput="updateText('origin', this.value)" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Série</label>
+                                            <input type="text" id="cardSeries" placeholder="Series 1" oninput="updateText('series', this.value)" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Edição</label>
+                                            <input type="text" id="cardEdition" placeholder="#001" oninput="updateText('edition', this.value)" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personagem -->
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Personagem (Meio)</div>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">URL da Imagem</label>
+                                        <input type="url" id="charUrl" oninput="updatePreview()" placeholder="https://..." class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                        <span class="text-[10px] text-gray-500 block mt-1"><i data-lucide="image" class="w-3 h-3 inline"></i> Proporção recomendada: <b>Vertical</b> (500x700px) | <b>Horizontal</b> (700x500px)</span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Zoom</label><input type="number" id="charZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Rot</label><input type="number" id="charRot" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">X(%)</label><input type="number" id="charX" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Y(%)</label><input type="number" id="charY" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Frame e Bg -->
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="layout" class="w-4 h-4"></i> Moldura & Fundo</div>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Moldura</label>
+                                        <select id="selFrame" onchange="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm"></select>
+                                    </div>
+                                    <div id="frameControls" style="display: none;">
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Zoom</label><input type="number" id="frameZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Rot</label><input type="number" id="frameRot" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">X(%)</label><input type="number" id="frameX" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Y(%)</label><input type="number" id="frameY" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Background</label>
+                                        <select id="selBg" onchange="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm"></select>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgZm</label><input type="number" id="bgZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgRt</label><input type="number" id="bgRot" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgX</label><input type="number" id="bgX" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                        <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgY</label><input type="number" id="bgY" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
+
+                    <!-- CENTRO: PREVIEW DO CARD -->
+                    <div class="flex flex-col items-center justify-center bg-black/50 rounded-2xl border border-white/5 p-4 sm:p-6 overflow-hidden min-h-[500px]">
+                        <div id="previewContainer" class="card-preview-container vertical">
+                            <div id="layerBg" class="layer layer-bg"></div>
+                            <div id="layerChar" class="layer layer-char"></div>
+                            <div id="layerFrame" class="layer layer-frame"></div>
+                            <div id="layerText" class="layer layer-text"></div>
+                            <div class="layer layer-overlay"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-6 hidden lg:block"><i data-lucide="mouse-pointer-2" class="w-3 h-3 inline"></i> Arraste os textos no preview para mover.</p>
+                    </div>
+
+                    <!-- DIREITA: TEXTOS -->
+                    <div class="space-y-4 lg:overflow-y-auto lg:pl-2 custom-scrollbar">
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/5 h-full">
+                            <h3 class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="type" class="w-4 h-4"></i> Editor de Textos</h3>
+                            <div id="textControls" class="space-y-3"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-6 border-t border-white/10 shrink-0 flex justify-end gap-3 sm:gap-4 bg-black/20 rounded-b-2xl">
+                <button onclick="resetForm()" class="px-6 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 font-bold transition">Cancelar</button>
+                <button onclick="saveCard()" class="xbox-button bg-accent text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i> Salvar Card
+                </button>
+            </div>
+            
         </div>
     </div>
-</div>
+
+<script>
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Toggle Filters
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+    const filterContainer = document.getElementById('filter-container');
+    toggleFilterBtn.addEventListener('click', () => {
+        const isHidden = filterContainer.classList.toggle('hidden');
+        if (isHidden) {
+            toggleFilterBtn.innerHTML = '<i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros';
+        } else {
+            toggleFilterBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Esconder Filtros';
+        }
+        lucide.createIcons();
+    });
+</script>
 
 <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
     const firebaseConfig = { 
-        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91", measurementId: "G-GLM50YVLXP"
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     let userId = null;
+    let isFirstLoad = true;
 
     // Cache
     let framesList = [];
@@ -409,11 +566,21 @@
         edition: { x: 90, y: 96, size: 10, color: '#888888', font: 'Inter', label: 'Edição' }
     };
 
+    const userEmailEl = document.getElementById('user-email');
+    const loadingEl = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const modalEl = document.getElementById('modal');
+
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => window.location.href = 'index.html');
+    };
+
     onAuthStateChanged(auth, u => {
         if(u) {
             userId = u.uid;
+            if(userEmailEl) userEmailEl.textContent = u.email || u.uid;
             loadData();
-        } else window.location.href = 'home.html';
+        } else window.location.href = 'index.html';
     });
 
     function loadData() {
@@ -432,94 +599,85 @@
             snap.forEach(d => cardsList.push({id: d.id, ...d.data()}));
             updateFilterOptions();
             renderCardsList();
+            
+            if (isFirstLoad) {
+                loadingEl.classList.add('hidden');
+                appEl.classList.remove('hidden');
+                isFirstLoad = false;
+            }
         });
-        
         renderTextControls();
     }
 
-    // --- RENDERIZADORES DO PREVIEW ---
+    // --- MODAL ---
+    window.openModal = () => {
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="layers" class="w-5 h-5 text-accent"></i> <span>Novo Card</span>';
+        document.getElementById('delete-btn').classList.add('hidden');
+        lucide.createIcons();
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+        updatePreview();
+    };
 
+    window.closeModal = () => {
+        modalEl.classList.add('hidden');
+        modalEl.classList.remove('flex');
+    };
+
+    // --- RENDERIZADORES DO PREVIEW ---
     window.updatePreview = () => {
-        // 1. Orientação do Container
         const orient = document.getElementById('cardOrient').value;
         const container = document.getElementById('previewContainer');
         container.className = `card-preview-container ${orient}`;
 
-        // 2. BACKGROUND (Layer 1)
+        // BACKGROUND
         const bgId = document.getElementById('selBg').value;
         const bgZoom = parseFloat(document.getElementById('bgZoom').value) || 1;
         const bgRot = parseFloat(document.getElementById('bgRot').value) || 0;
         const bgX = parseFloat(document.getElementById('bgX').value) || 50;
         const bgY = parseFloat(document.getElementById('bgY').value) || 50;
         const layerBg = document.getElementById('layerBg');
-        
         const bgData = bgsList.find(b => b.id === bgId);
         
         if(bgData) {
             if(bgData.type === 'image') {
-                // Aplicando zoom, rotação e posição no background
                 const imgZoom = (bgData.image.zoom || 1) * bgZoom;
                 const imgRot = parseFloat(bgData.image.rotate || 0) + bgRot;
                 const imgX = parseFloat(bgData.image.posX || 0);
                 const imgY = parseFloat(bgData.image.posY || 0);
                 
-                layerBg.innerHTML = `<img src="${bgData.image.url}" style="
-                    width:100%; 
-                    height:100%; 
-                    object-fit:cover; 
-                    transform: scale(${imgZoom}) rotate(${imgRot}deg);
-                    object-position: ${bgX}% ${bgY}%;
-                ">`;
+                layerBg.innerHTML = `<img src="${bgData.image.url}" style="width:100%; height:100%; object-fit:cover; transform: scale(${imgZoom}) rotate(${imgRot}deg); object-position: ${bgX}% ${bgY}%;">`;
             } else {
                 const g = bgData.gradient;
                 const style = g.dir === 'radial' ? `radial-gradient(circle, ${g.colors.join(',')})` : `linear-gradient(${g.dir}, ${g.colors.join(',')})`;
                 layerBg.innerHTML = `<div style="width:100%; height:100%; background: ${style}"></div>`;
             }
         } else {
-            // Fundo padrão cinza escuro se não houver background selecionado
             layerBg.innerHTML = `<div style="width:100%; height:100%; background: #222;"></div>`;
         }
 
-        // 3. PERSONAGEM (Layer 2)
+        // PERSONAGEM
         const charUrl = document.getElementById('charUrl').value;
         const charZoom = parseFloat(document.getElementById('charZoom').value) || 1;
         const charRot = parseFloat(document.getElementById('charRot').value) || 0;
         const charX = parseFloat(document.getElementById('charX').value) || 50;
         const charY = parseFloat(document.getElementById('charY').value) || 50;
-        
         const layerChar = document.getElementById('layerChar');
+        
         if(charUrl) {
-            // Usamos left/top com translate(-50%, -50%) para centralizar no ponto exato
-            layerChar.innerHTML = `
-                <img src="${charUrl}" 
-                     style="
-                        position: absolute;
-                        left: ${charX}%;
-                        top: ${charY}%;
-                        width: auto; 
-                        height: 100%; /* Ajuste inicial de altura */
-                        min-width: 50%;
-                        object-fit: contain; 
-                        transform: translate(-50%, -50%) scale(${charZoom}) rotate(${charRot}deg);
-                     "
-                     onerror="this.style.display='none'; console.log('Erro ao carregar imagem');"
-                >`;
+            layerChar.innerHTML = `<img src="${charUrl}" style="position: absolute; left: ${charX}%; top: ${charY}%; width: auto; height: 100%; min-width: 50%; object-fit: contain; transform: translate(-50%, -50%) scale(${charZoom}) rotate(${charRot}deg);" onerror="this.style.display='none';">`;
         } else {
             layerChar.innerHTML = '';
         }
 
-        // 4. MOLDURA (Layer 3)
+        // MOLDURA
         const frameId = document.getElementById('selFrame').value;
         const layerFrame = document.getElementById('layerFrame');
         const frameData = framesList.find(f => f.id === frameId);
-        
-        // Mostrar/ocultar controles de moldura se for imagem
         const frameControls = document.getElementById('frameControls');
-        if(frameData && frameData.type === 'image') {
-            frameControls.style.display = 'block';
-        } else {
-            frameControls.style.display = 'none';
-        }
+        
+        if(frameData && frameData.type === 'image') frameControls.style.display = 'block';
+        else frameControls.style.display = 'none';
         
         if(frameData) {
             if(frameData.type === 'image') {
@@ -528,30 +686,16 @@
                 const frameX = parseFloat(document.getElementById('frameX').value) || 50;
                 const frameY = parseFloat(document.getElementById('frameY').value) || 50;
                 
-                layerFrame.innerHTML = `<img src="${frameData.imageUrl}" style="
-                    position: absolute;
-                    left: ${frameX}%;
-                    top: ${frameY}%;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                    transform: translate(-50%, -50%) scale(${frameZoom}) rotate(${frameRot}deg);
-                    pointer-events: none;
-                ">`;
+                layerFrame.innerHTML = `<img src="${frameData.imageUrl}" style="position: absolute; left: ${frameX}%; top: ${frameY}%; width: 100%; height: 100%; object-fit: contain; transform: translate(-50%, -50%) scale(${frameZoom}) rotate(${frameRot}deg); pointer-events: none;">`;
             } else {
-                // Renderizar Elementos Gráficos
                 const elsHTML = (frameData.elements || []).map(el => {
                     let css = `position:absolute; left:${el.x}px; top:${el.y}px; width:${el.w}px; height:${el.h}px; background:${el.color};`;
-                    
                     if(el.type === 'circle') css += 'border-radius: 50%;';
                     if(el.type === 'rect') css += `border-radius: ${el.radius}px;`;
                     if(el.type === 'star') css += 'clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);';
                     if(el.type === 'triangle') css += 'clip-path: polygon(50% 0%, 0% 100%, 100% 100%);';
-
-                    // Aplicar tema
                     if(frameData.styleTheme === 'neon') css += `box-shadow: 0 0 10px ${el.color};`;
                     if(frameData.styleTheme === 'pastel') css += `opacity: 0.8; mix-blend-mode: screen;`;
-
                     return `<div style="${css}"></div>`;
                 }).join('');
                 layerFrame.innerHTML = elsHTML;
@@ -559,16 +703,12 @@
         } else {
             layerFrame.innerHTML = '';
         }
-
         renderTextLayers();
     };
 
     // --- TEXTOS ---
-
     window.updateText = (field, val) => {
         if(field === 'rarity') val = document.getElementById('cardRarity').options[document.getElementById('cardRarity').selectedIndex].text;
-        
-        // Atualiza apenas o conteúdo do DOM se existir, senão re-renderiza tudo
         const el = document.getElementById(`text-${field}`);
         if(el) el.innerText = val;
         else renderTextLayers();
@@ -576,8 +716,6 @@
 
     function renderTextLayers() {
         const layer = document.getElementById('layerText');
-        // Não limpamos tudo para não perder referência de drag se estiver arrastando
-        // Mas como atualizamos configs, vamos reconstruir para garantir sincronia
         layer.innerHTML = '';
         
         textFields.forEach(field => {
@@ -586,7 +724,6 @@
             div.id = `text-${field}`;
             div.className = 'text-element';
             
-            // Valor
             let val = '';
             if(field === 'name') val = document.getElementById('cardName').value || 'Nome';
             else if(field === 'origin') val = document.getElementById('cardOrigin').value || 'Origem';
@@ -595,23 +732,17 @@
             else if(field === 'rarity') val = document.getElementById('cardRarity').options[document.getElementById('cardRarity').selectedIndex]?.text || 'Raridade';
 
             div.innerText = val;
-            
-            // Estilos
             div.style.left = cfg.x + '%';
             div.style.top = cfg.y + '%';
             div.style.transform = 'translate(-50%, -50%)';
             div.style.fontSize = cfg.size + 'px';
             div.style.color = cfg.color;
             div.style.fontFamily = cfg.font === 'Cinzel' ? "'Cinzel', serif" : "'Inter', sans-serif";
-            
-            // Evento de Drag
             div.onmousedown = (e) => startDragText(e, field);
-            
             layer.appendChild(div);
         });
     }
 
-    // --- LOGICA DRAG TEXTO ---
     let isDraggingText = false;
     let currentTextField = null;
 
@@ -619,11 +750,8 @@
         e.preventDefault();
         isDraggingText = true;
         currentTextField = field;
-        
-        // Ativar controles visuais desse texto
         const ctrl = document.getElementById(`ctrl-${field}`);
         if(ctrl && ctrl.style.display === 'none') toggleControl(field);
-
         document.addEventListener('mousemove', onDragText);
         document.addEventListener('mouseup', stopDragText);
     }
@@ -632,21 +760,14 @@
         if(!isDraggingText) return;
         const container = document.getElementById('previewContainer');
         const rect = container.getBoundingClientRect();
-        
         let x = ((e.clientX - rect.left) / rect.width) * 100;
         let y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        // Trava limites
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
-        
         textConfig[currentTextField].x = Math.round(x);
         textConfig[currentTextField].y = Math.round(y);
-        
-        // Atualiza inputs visuais
         document.getElementById(`inp-x-${currentTextField}`).value = Math.round(x);
         document.getElementById(`inp-y-${currentTextField}`).value = Math.round(y);
-        
         renderTextLayers();
     }
 
@@ -656,32 +777,32 @@
         document.removeEventListener('mouseup', stopDragText);
     }
 
-    // --- RENDER CONTROLS ---
-
     function renderTextControls() {
         const container = document.getElementById('textControls');
         container.innerHTML = textFields.map(field => {
             const cfg = textConfig[field];
             return `
-                <div class="control-group">
-                    <div class="control-header" onclick="toggleControl('${field}')">
-                        <span>${cfg.label}</span>
-                        <i data-lucide="settings-2" style="width:14px;"></i>
+                <div class="glass-panel rounded-xl mb-3 border border-white/5 overflow-hidden bg-black/40">
+                    <div class="flex justify-between items-center p-3 cursor-pointer hover:bg-white/5 transition" onclick="toggleControl('${field}')">
+                        <span class="font-bold text-sm text-gray-300">${cfg.label}</span>
+                        <i data-lucide="settings-2" class="w-4 h-4 text-gray-500"></i>
                     </div>
-                    <div id="ctrl-${field}" style="display:none; padding-top:10px;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                            <div><label>X (%)</label><input type="number" id="inp-x-${field}" value="${cfg.x}" oninput="updateTextConfig('${field}', 'x', this.value)"></div>
-                            <div><label>Y (%)</label><input type="number" id="inp-y-${field}" value="${cfg.y}" oninput="updateTextConfig('${field}', 'y', this.value)"></div>
+                    <div id="ctrl-${field}" class="p-3 pt-0 border-t border-white/5" style="display:none; margin-top: 10px;">
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">X (%)</label><input type="number" id="inp-x-${field}" value="${cfg.x}" oninput="updateTextConfig('${field}', 'x', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Y (%)</label><input type="number" id="inp-y-${field}" value="${cfg.y}" oninput="updateTextConfig('${field}', 'y', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
                         </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                            <div><label>Tamanho</label><input type="number" value="${cfg.size}" oninput="updateTextConfig('${field}', 'size', this.value)"></div>
-                            <div><label>Cor</label><input type="color" value="${cfg.color}" oninput="updateTextConfig('${field}', 'color', this.value)" style="height:35px;"></div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Tamanho</label><input type="number" value="${cfg.size}" oninput="updateTextConfig('${field}', 'size', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Cor</label><input type="color" value="${cfg.color}" oninput="updateTextConfig('${field}', 'color', this.value)" class="w-full h-[32px] rounded-lg p-0 cursor-pointer bg-transparent"></div>
                         </div>
-                        <label>Fonte</label>
-                        <select onchange="updateTextConfig('${field}', 'font', this.value)">
-                            <option value="Cinzel" ${cfg.font==='Cinzel'?'selected':''}>Cinzel (Título)</option>
-                            <option value="Inter" ${cfg.font==='Inter'?'selected':''}>Inter (Padrão)</option>
-                        </select>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Fonte</label>
+                            <select onchange="updateTextConfig('${field}', 'font', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60">
+                                <option value="Cinzel" ${cfg.font==='Cinzel'?'selected':''}>Cinzel (Título)</option>
+                                <option value="Inter" ${cfg.font==='Inter'?'selected':''}>Inter (Padrão)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             `;
@@ -692,9 +813,7 @@
     window.toggleControl = (id) => {
         const el = document.getElementById(`ctrl-${id}`);
         const current = el.style.display;
-        // Fecha todos
         document.querySelectorAll('[id^="ctrl-"]').forEach(d => d.style.display = 'none');
-        // Abre o clicado se estava fechado
         el.style.display = current === 'none' ? 'block' : 'none';
     };
 
@@ -703,30 +822,17 @@
         renderTextLayers();
     };
 
-    // --- FUNÇÕES GERAIS ---
-
     function updateSelects() {
         const selF = document.getElementById('selFrame');
         const selB = document.getElementById('selBg');
-        
-        // Salva valor atual para não perder na recarga
         const currF = selF.value;
         const currB = selB.value;
-
         selF.innerHTML = '<option value="">Sem Moldura</option>' + framesList.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
         selB.innerHTML = '<option value="">Padrão (Escuro)</option>' + bgsList.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-
         if(currF) selF.value = currF;
         if(currB) selB.value = currB;
-        
         updatePreview();
     }
-
-    window.toggleView = (view) => {
-        document.getElementById('viewList').style.display = view === 'list' ? 'block' : 'none';
-        document.getElementById('viewEditor').style.display = view === 'create' ? 'block' : 'none';
-        if(view === 'create') updatePreview();
-    };
 
     window.saveCard = async () => {
         const id = document.getElementById('cardId').value;
@@ -738,26 +844,11 @@
             series: document.getElementById('cardSeries').value,
             edition: document.getElementById('cardEdition').value,
             charUrl: document.getElementById('charUrl').value,
-            configChar: {
-                zoom: document.getElementById('charZoom').value,
-                rot: document.getElementById('charRot').value,
-                x: document.getElementById('charX').value,
-                y: document.getElementById('charY').value
-            },
+            configChar: { zoom: document.getElementById('charZoom').value, rot: document.getElementById('charRot').value, x: document.getElementById('charX').value, y: document.getElementById('charY').value },
             frameId: document.getElementById('selFrame').value,
-            configFrame: {
-                zoom: document.getElementById('frameZoom').value,
-                rot: document.getElementById('frameRot').value,
-                x: document.getElementById('frameX').value,
-                y: document.getElementById('frameY').value
-            },
+            configFrame: { zoom: document.getElementById('frameZoom').value, rot: document.getElementById('frameRot').value, x: document.getElementById('frameX').value, y: document.getElementById('frameY').value },
             bgId: document.getElementById('selBg').value,
-            configBg: {
-                zoom: document.getElementById('bgZoom').value,
-                rot: document.getElementById('bgRot').value,
-                x: document.getElementById('bgX').value,
-                y: document.getElementById('bgY').value
-            },
+            configBg: { zoom: document.getElementById('bgZoom').value, rot: document.getElementById('bgRot').value, x: document.getElementById('bgX').value, y: document.getElementById('bgY').value },
             textConfig: textConfig,
             updatedAt: new Date().toISOString()
         };
@@ -765,14 +856,11 @@
         try {
             if(id) {
                 await updateDoc(doc(db, 'users', userId, 'cards', id), data);
-                alert("Card Atualizado!");
             } else {
                 data.createdAt = new Date().toISOString();
                 await addDoc(collection(db, 'users', userId, 'cards'), data);
-                alert("Card Criado!");
             }
             resetForm();
-            toggleView('list');
         } catch(e) {
             alert("Erro: " + e.message);
         }
@@ -783,8 +871,8 @@
         if(!c) return;
         document.getElementById('cardId').value = c.id;
         document.getElementById('cardName').value = c.name;
-        document.getElementById('cardRarity').value = c.rarity;
-        document.getElementById('cardOrient').value = c.orient;
+        document.getElementById('cardRarity').value = c.rarity || 'common';
+        document.getElementById('cardOrient').value = c.orient || 'vertical';
         document.getElementById('cardOrigin').value = c.origin || '';
         document.getElementById('cardSeries').value = c.series || '';
         document.getElementById('cardEdition').value = c.edition || '';
@@ -806,16 +894,18 @@
 
         if(c.textConfig) textConfig = c.textConfig;
         renderTextControls();
-        toggleView('create');
+        
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> <span>Editar Card</span>';
+        document.getElementById('delete-btn').classList.remove('hidden');
+        lucide.createIcons();
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
         updatePreview();
     };
 
     window.resetForm = () => {
-        // Limpa o formulário
         document.getElementById('cardForm').reset();
         document.getElementById('cardId').value = '';
-        
-        // Reseta valores específicos que podem não ser limpos pelo reset
         document.getElementById('charZoom').value = '1';
         document.getElementById('charRot').value = '0';
         document.getElementById('charX').value = '50';
@@ -825,7 +915,6 @@
         document.getElementById('selFrame').value = '';
         document.getElementById('selBg').value = '';
         
-        // Reseta configuração de textos para valores padrão
         textConfig = {
             name: { x: 50, y: 85, size: 24, color: '#d4af37', font: 'Cinzel', label: 'Nome' },
             rarity: { x: 50, y: 92, size: 14, color: '#ffffff', font: 'Inter', label: 'Raridade' },
@@ -834,40 +923,48 @@
             edition: { x: 90, y: 96, size: 10, color: '#888888', font: 'Inter', label: 'Edição' }
         };
         
-        // Re-renderiza controles de texto e preview
         renderTextControls();
         updatePreview();
-        
-        // Volta para lista
-        toggleView('list');
+        closeModal();
     };
 
+    document.getElementById('delete-btn').onclick = async () => {
+        const id = document.getElementById('cardId').value;
+        if(!id) return;
+        if(confirm('Tem certeza que deseja excluir este card?')) {
+            try {
+                await deleteDoc(doc(db, 'users', userId, 'cards', id));
+                resetForm();
+            } catch(e) {
+                alert('Erro ao excluir: ' + e.message);
+            }
+        }
+    };
+
+    // Substitua a função window.clearFilters inteira por esta:
     window.clearFilters = () => {
         document.getElementById('search').value = '';
         document.getElementById('filterOrigin').value = '';
         document.getElementById('filterRarity').value = '';
         document.getElementById('filterOrient').value = '';
         document.getElementById('filterSeries').value = '';
+        document.getElementById('sortCards').value = 'date_desc'; // Reseta a ordenação
         renderCardsList();
     };
 
     function updateFilterOptions() {
-        // Atualizar opções de Origem
         const origins = [...new Set(cardsList.map(c => c.origin).filter(Boolean))];
         const filterOrigin = document.getElementById('filterOrigin');
         if(filterOrigin) {
             const currentOrigin = filterOrigin.value;
-            filterOrigin.innerHTML = '<option value="">Todas</option>' + 
-                origins.map(o => `<option value="${o}" ${o === currentOrigin ? 'selected' : ''}>${o}</option>`).join('');
+            filterOrigin.innerHTML = '<option value="">Todas</option>' + origins.map(o => `<option value="${o}" ${o === currentOrigin ? 'selected' : ''}>${o}</option>`).join('');
         }
         
-        // Atualizar opções de Série
         const series = [...new Set(cardsList.map(c => c.series).filter(Boolean))];
         const filterSeries = document.getElementById('filterSeries');
         if(filterSeries) {
             const currentSeries = filterSeries.value;
-            filterSeries.innerHTML = '<option value="">Todas</option>' + 
-                series.map(s => `<option value="${s}" ${s === currentSeries ? 'selected' : ''}>${s}</option>`).join('');
+            filterSeries.innerHTML = '<option value="">Todas</option>' + series.map(s => `<option value="${s}" ${s === currentSeries ? 'selected' : ''}>${s}</option>`).join('');
         }
     }
 
@@ -875,179 +972,135 @@
         const grid = document.getElementById('cardsGrid');
         if(!grid) return;
         
-        const searchInput = document.getElementById('search');
-        const filterOriginEl = document.getElementById('filterOrigin');
-        const filterRarityEl = document.getElementById('filterRarity');
-        const filterOrientEl = document.getElementById('filterOrient');
-        const filterSeriesEl = document.getElementById('filterSeries');
-        const cardCountEl = document.getElementById('cardCount');
+        const term = document.getElementById('search')?.value.toLowerCase() || '';
+        const filterOrigin = document.getElementById('filterOrigin')?.value || '';
+        const filterRarity = document.getElementById('filterRarity')?.value || '';
+        const filterOrient = document.getElementById('filterOrient')?.value || '';
+        const filterSeries = document.getElementById('filterSeries')?.value || '';
+        const sortCards = document.getElementById('sortCards')?.value || 'date_desc';
         
-        const term = searchInput ? searchInput.value.toLowerCase() : '';
-        const filterOrigin = filterOriginEl ? filterOriginEl.value : '';
-        const filterRarity = filterRarityEl ? filterRarityEl.value : '';
-        const filterOrient = filterOrientEl ? filterOrientEl.value : '';
-        const filterSeries = filterSeriesEl ? filterSeriesEl.value : '';
-        
-        // Aplicar filtros
         let filtered = cardsList.filter(c => {
-            const matchSearch = !term || (c.name && c.name.toLowerCase().includes(term));
-            const matchOrigin = !filterOrigin || (c.origin && c.origin === filterOrigin);
-            const matchRarity = !filterRarity || (c.rarity && c.rarity === filterRarity);
-            const matchOrient = !filterOrient || (c.orient && c.orient === filterOrient);
-            const matchSeries = !filterSeries || (c.series && c.series === filterSeries);
-            return matchSearch && matchOrigin && matchRarity && matchOrient && matchSeries;
+            return (!term || (c.name && c.name.toLowerCase().includes(term))) &&
+                (!filterOrigin || (c.origin && c.origin === filterOrigin)) &&
+                (!filterRarity || (c.rarity && c.rarity === filterRarity)) &&
+                (!filterOrient || (c.orient && c.orient === filterOrient)) &&
+                (!filterSeries || (c.series && c.series === filterSeries));
         });
+
+        // === NOVA LÓGICA DE ORDENAÇÃO ===
+        filtered.sort((a, b) => {
+            if (sortCards === 'date_desc') {
+                return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+            } else if (sortCards === 'date_asc') {
+                return new Date(a.updatedAt || a.createdAt || 0) - new Date(b.updatedAt || b.createdAt || 0);
+            } else if (sortCards === 'name_asc') {
+                return (a.name || '').localeCompare(b.name || '');
+            } else if (sortCards === 'rarity') {
+                const pesos = { legendary: 4, epic: 3, rare: 2, common: 1 };
+                return (pesos[b.rarity] || 0) - (pesos[a.rarity] || 0);
+            } else if (sortCards === 'origin') {
+                return (a.origin || '').localeCompare(b.origin || '');
+            } else if (sortCards === 'series') {
+                return (a.series || '').localeCompare(b.series || '');
+            } else if (sortCards === 'edition') {
+                return (a.edition || '').localeCompare(b.edition || '', undefined, { numeric: true });
+            }
+            return 0;
+        });
+        // =================================
         
-        // Atualizar contador
-        if(cardCountEl) {
-            cardCountEl.innerText = `${filtered.length} card(s) encontrado(s)`;
-        }
+        const cardCountEl = document.getElementById('cardCount');
+        if(cardCountEl) cardCountEl.innerText = `${filtered.length} card(s) encontrado(s)`;
         
         if(filtered.length === 0) {
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #666;"><p style="font-size: 3rem; margin-bottom: 1rem;">🎴</p><p>Nenhum card encontrado</p></div>';
+            grid.innerHTML = '<div class="w-full text-center py-16"><i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i><p class="text-lg text-gray-500 font-semibold">Nenhum card encontrado.</p></div>';
+            lucide.createIcons();
             return;
         }
         
         grid.innerHTML = filtered.map(c => {
-            const rarityLabels = {
-                common: 'Comum',
-                rare: 'Raro',
-                epic: 'Épico',
-                legendary: 'Lendário'
-            };
-            
-            const rarityColors = {
-                common: '#888',
-                rare: '#3b82f6',
-                epic: '#a855f7',
-                legendary: '#f59e0b'
-            };
-            
+            const rarityLabels = { common: 'Comum', rare: 'Raro', epic: 'Épico', legendary: 'Lendário' };
+            const rarityColors = { common: '#888', rare: '#3b82f6', epic: '#a855f7', legendary: '#f59e0b' };
             const orient = c.orient || 'vertical';
-            const cardClass = orient === 'horizontal' ? 'card-item horizontal-card' : 'card-item';
             
-            // Renderizar preview completo do card
+            const cardWidth = orient === 'horizontal' ? 'w-full sm:w-[420px]' : 'w-full sm:w-[260px]';
             const previewHTML = renderCardPreview(c);
             
             return `
-                <div class="${cardClass}" onclick="editCard('${c.id}')">
-                    <div class="card-item-preview ${orient}">
+                <div class="task-card rounded-2xl overflow-hidden cursor-pointer flex flex-col ${cardWidth}" onclick="editCard('${c.id}')">
+                    <div class="card-item-preview ${orient} bg-black/60 border-b border-white/5 relative">
                         ${previewHTML}
                     </div>
-                    <div class="card-item-info">
-                        <div style="font-weight: bold; font-size: 1.1rem; color: #d4af37; font-family: 'Cinzel';">${c.name || 'Sem Nome'}</div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                            <span style="font-size: 0.85rem; color: ${rarityColors[c.rarity] || '#888'}; font-weight: 600;">${rarityLabels[c.rarity] || 'Comum'}</span>
-                            ${c.series ? `<span style="font-size: 0.75rem; color: #666;">•</span><span style="font-size: 0.85rem; color: #aaa;">📚 ${c.series}</span>` : ''}
+                    <div class="p-4 flex flex-col gap-2 flex-1">
+                        <div class="font-bold text-lg text-accent font-['Cinzel'] truncate" title="${c.name || 'Sem Nome'}">${c.name || 'Sem Nome'}</div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span style="color: ${rarityColors[c.rarity] || '#888'};" class="text-[10px] font-bold uppercase px-2 py-1 rounded-md bg-white/5 border border-white/10 tracking-widest">${rarityLabels[c.rarity] || 'Comum'}</span>
+                            ${c.series ? `<span class="text-[10px] text-gray-400 font-bold uppercase px-2 py-1 rounded-md bg-white/5 border border-white/10 truncate max-w-[120px]" title="${c.series}">📚 ${c.series}</span>` : ''}
                         </div>
-                        ${c.origin ? `<div style="font-size: 0.85rem; color: #888;">📺 ${c.origin}</div>` : ''}
+                        ${c.origin ? `<div class="text-xs text-gray-500 font-semibold mt-auto truncate" title="${c.origin}">📺 ${c.origin}</div>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
+        lucide.createIcons();
     }
+
+    window.renderCardsList = renderCardsList;
     
     function renderCardPreview(card) {
-        // Buscar dados de background e frame
         const bgData = bgsList.find(b => b.id === card.bgId);
         const frameData = framesList.find(f => f.id === card.frameId);
-        
         let html = '';
         
-        // Layer 1: Background
         if(bgData) {
             if(bgData.type === 'image') {
                 const bgZoom = (bgData.image.zoom || 1) * (card.configBg?.zoom || 1);
                 const bgRot = parseFloat(bgData.image.rotate || 0) + parseFloat(card.configBg?.rot || 0);
                 const bgX = card.configBg?.x || 50;
                 const bgY = card.configBg?.y || 50;
-                
-                html += `<div class="layer" style="z-index: 1;">
-                    <img src="${bgData.image.url}" style="
-                        width: 100%; 
-                        height: 100%; 
-                        object-fit: cover; 
-                        transform: scale(${bgZoom}) rotate(${bgRot}deg);
-                        object-position: ${bgX}% ${bgY}%;
-                    " onerror="this.style.display='none';">
-                </div>`;
+                html += `<div class="layer" style="z-index: 1;"><img src="${bgData.image.url}" style="width: 100%; height: 100%; object-fit: cover; transform: scale(${bgZoom}) rotate(${bgRot}deg); object-position: ${bgX}% ${bgY}%;" onerror="this.style.display='none';"></div>`;
             } else {
                 const g = bgData.gradient;
-                const style = g.dir === 'radial' 
-                    ? `radial-gradient(circle, ${g.colors.join(',')})` 
-                    : `linear-gradient(${g.dir}, ${g.colors.join(',')})`;
+                const style = g.dir === 'radial' ? `radial-gradient(circle, ${g.colors.join(',')})` : `linear-gradient(${g.dir}, ${g.colors.join(',')})`;
                 html += `<div class="layer" style="z-index: 1; background: ${style};"></div>`;
             }
-        } else {
-            html += `<div class="layer" style="z-index: 1; background: #222;"></div>`;
-        }
+        } else html += `<div class="layer" style="z-index: 1; background: #222;"></div>`;
         
-        // Layer 2: Personagem
         if(card.charUrl) {
             const charZoom = card.configChar?.zoom || 1;
             const charRot = card.configChar?.rot || 0;
             const charX = card.configChar?.x || 50;
             const charY = card.configChar?.y || 50;
-            
-            html += `<div class="layer" style="z-index: 2;">
-                <img src="${card.charUrl}" style="
-                    position: absolute;
-                    left: ${charX}%;
-                    top: ${charY}%;
-                    width: auto;
-                    height: 100%;
-                    min-width: 50%;
-                    object-fit: contain;
-                    transform: translate(-50%, -50%) scale(${charZoom}) rotate(${charRot}deg);
-                " onerror="this.style.display='none';">
-            </div>`;
+            html += `<div class="layer" style="z-index: 2;"><img src="${card.charUrl}" style="position: absolute; left: ${charX}%; top: ${charY}%; width: auto; height: 100%; min-width: 50%; object-fit: contain; transform: translate(-50%, -50%) scale(${charZoom}) rotate(${charRot}deg);" onerror="this.style.display='none';"></div>`;
         }
         
-        // Layer 3: Moldura
         if(frameData) {
             if(frameData.type === 'image') {
                 const frameZoom = card.configFrame?.zoom || 1;
                 const frameRot = card.configFrame?.rot || 0;
                 const frameX = card.configFrame?.x || 50;
                 const frameY = card.configFrame?.y || 50;
-                
-                html += `<div class="layer" style="z-index: 3;">
-                    <img src="${frameData.imageUrl}" style="
-                        position: absolute;
-                        left: ${frameX}%;
-                        top: ${frameY}%;
-                        width: 100%;
-                        height: 100%;
-                        object-fit: contain;
-                        transform: translate(-50%, -50%) scale(${frameZoom}) rotate(${frameRot}deg);
-                        pointer-events: none;
-                    " onerror="this.style.display='none';">
-                </div>`;
+                html += `<div class="layer" style="z-index: 3;"><img src="${frameData.imageUrl}" style="position: absolute; left: ${frameX}%; top: ${frameY}%; width: 100%; height: 100%; object-fit: contain; transform: translate(-50%, -50%) scale(${frameZoom}) rotate(${frameRot}deg); pointer-events: none;" onerror="this.style.display='none';"></div>`;
             } else if(frameData.elements) {
                 const elsHTML = frameData.elements.map(el => {
                     let css = `position:absolute; left:${el.x}px; top:${el.y}px; width:${el.w}px; height:${el.h}px; background:${el.color};`;
-                    
                     if(el.type === 'circle') css += 'border-radius: 50%;';
                     if(el.type === 'rect') css += `border-radius: ${el.radius || 0}px;`;
                     if(el.type === 'star') css += 'clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);';
                     if(el.type === 'triangle') css += 'clip-path: polygon(50% 0%, 0% 100%, 100% 100%);';
-                    
                     if(frameData.styleTheme === 'neon') css += `box-shadow: 0 0 10px ${el.color};`;
                     if(frameData.styleTheme === 'pastel') css += `opacity: 0.8; mix-blend-mode: screen;`;
-                    
                     return `<div style="${css}"></div>`;
                 }).join('');
                 html += `<div class="layer" style="z-index: 3;">${elsHTML}</div>`;
             }
         }
         
-        // Layer 4: Textos
         if(card.textConfig) {
             const textFields = ['name', 'rarity', 'origin', 'series', 'edition'];
             const textsHTML = textFields.map(field => {
                 const cfg = card.textConfig[field];
                 if(!cfg) return '';
-                
                 let val = '';
                 if(field === 'name') val = card.name || 'Nome';
                 else if(field === 'origin') val = card.origin || '';
@@ -1057,26 +1110,11 @@
                     const rarityLabels = { common: 'Comum', rare: 'Raro', epic: 'Épico', legendary: 'Lendário' };
                     val = rarityLabels[card.rarity] || 'Comum';
                 }
-                
                 if(!val) return '';
-                
-                return `<div style="
-                    position: absolute;
-                    left: ${cfg.x}%;
-                    top: ${cfg.y}%;
-                    transform: translate(-50%, -50%);
-                    font-size: ${cfg.size}px;
-                    color: ${cfg.color};
-                    font-family: ${cfg.font === 'Cinzel' ? "'Cinzel', serif" : "'Inter', sans-serif"};
-                    white-space: nowrap;
-                    text-shadow: 0 2px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5);
-                    pointer-events: none;
-                ">${val}</div>`;
+                return `<div style="position: absolute; left: ${cfg.x}%; top: ${cfg.y}%; transform: translate(-50%, -50%); font-size: ${cfg.size}px; color: ${cfg.color}; font-family: ${cfg.font === 'Cinzel' ? "'Cinzel', serif" : "'Inter', sans-serif"}; white-space: nowrap; text-shadow: 0 2px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5); pointer-events: none;">${val}</div>`;
             }).join('');
-            
             html += `<div class="layer" style="z-index: 4;">${textsHTML}</div>`;
         }
-        
         return html;
     }
 </script>
