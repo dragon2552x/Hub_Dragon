@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    
+    <title>Gerenciador de Molduras — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Cards com efeito Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
+
+        /* Inputs estilo Xbox */
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            color: white;
+            color-scheme: dark;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
+        
+        input[type="color"] {
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; }
+
+        option {
+            background-color: var(--bg-panel);
+            color: #e6e6e6;
+            padding: 10px;
+        }
+
+        /* Botões com efeito Xbox */
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .xbox-button:hover::before {
+            transform: translateX(100%);
+        }
+        .xbox-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        .toggle-sidebar-btn { transition: all 0.3s; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
+
+        /* ======== ESTILOS DA MOLDURA ======== */
+        .frame-preview-container { 
+            position: relative; 
+            overflow: hidden; 
+            background: rgba(255,255,255,0.02);
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            transition: width 0.3s, height 0.3s;
+        }
+        /* Proporções iguais ao Cards_Manager */
+        .frame-preview-container.vertical { width: 340px; height: 476px; } 
+        .frame-preview-container.horizontal { width: 476px; height: 340px; }
+
+        /* Elementos Gráficos e Temas */
+        .canvas-element { position: absolute; cursor: grab; transition: box-shadow 0.2s; pointer-events: auto; }
+        .canvas-element:active { cursor: grabbing; }
+        .canvas-element.selected { outline: 2px dashed #fff; z-index: 100 !important; }
+        
+        .style-neon .canvas-element { box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .style-classic .canvas-element { border: 2px solid rgba(255,255,255,0.3); background-image: linear-gradient(45deg, rgba(255,255,255,0.1), transparent); }
+        .style-pastel .canvas-element { opacity: 0.8; mix-blend-mode: screen; border: 1px solid rgba(255,255,255,0.5); }
+        
+        .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .shape-star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+        .card-item-preview {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+        .card-item-preview.vertical { aspect-ratio: 2.5 / 3.5; }
+        .card-item-preview.horizontal { aspect-ratio: 3.5 / 2.5; }
+
+        @media (max-width: 1024px) {
+            .frame-preview-container { transform: scale(0.85); transform-origin: top center; margin-bottom: -50px; }
+        }
+        @media (max-width: 640px) {
+            .frame-preview-container { transform: scale(0.7); transform-origin: top center; margin-bottom: -100px; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- OVERLAY DE CARREGAMENTO -->
+    <div id="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
+    </div>
+
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+                <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+                <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Cards/Molduras">
+                <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+                <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+                <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+                <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+                <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+                <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="image" class="text-accent"></i> My Frames
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO DA LISTA -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28 hidden">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- AÇÕES TOPO -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <button onclick="openModal()" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-accent/20">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Nova Moldura
+                    </button>
+
+                    <button id="toggle-filter-btn" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-2.5 rounded-xl border border-white/10 transition-all font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros
+                    </button>
+                </div>
+
+                <!-- PAINEL DE FILTROS -->
+                <div id="filter-container" class="glass-panel p-6 rounded-2xl mb-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🔍 Buscar</label>
+                            <input type="text" id="search" placeholder="Nome da moldura..." oninput="renderFramesList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📐 Orientação</label>
+                            <select id="filterOrient" onchange="renderFramesList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                <option value="">Todas</option>
+                                <option value="vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🧩 Tipo</label>
+                            <select id="filterType" onchange="renderFramesList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                <option value="">Todos</option>
+                                <option value="graphic">🎨 Gráficos</option>
+                                <option value="image">🖼️ Imagem</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">✨ Estilo</label>
+                            <select id="filterStyle" onchange="renderFramesList()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                <option value="">Todos</option>
+                                <option value="solid">Sólido</option>
+                                <option value="neon">Neon</option>
+                                <option value="classic">Clássico</option>
+                                <option value="pastel">Pastel</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <button onclick="clearFilters()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl text-sm font-bold transition whitespace-nowrap">Limpar Filtros</button>
+                            <span id="frameCount" class="text-sm font-semibold text-gray-400"></span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
+                            <label class="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">Ordenar por</label>
+                            <select id="sortFrames" onchange="renderFramesList()" class="w-full sm:w-48 rounded-xl px-4 py-2.5 text-sm">
+                                <option value="date_desc">Data (Mais Recentes)</option>
+                                <option value="date_asc">Data (Mais Antigos)</option>
+                                <option value="name_asc">Nome (A-Z)</option>
+                                <option value="type">Tipo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LISTA DE FRAMES (GRID) -->
+                <div id="framesGrid" class="flex flex-wrap justify-center gap-5"></div>
+
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <a href="cards_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4"></i> <span class="hidden sm:inline">Cards</span>
+            </a>
+            <a href="cards_frames.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20">
+                <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">Molduras</span>
+            </a>
+            <a href="cards_backgrounds.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="monitor" class="w-4 h-4"></i> <span class="hidden sm:inline">Backgrounds</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- MODAL DO EDITOR DE MOLDURAS -->
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-[100] overflow-auto p-2 sm:p-4 transition-all">
+        <div class="glass-panel rounded-2xl w-full max-w-[98vw] lg:max-w-[1400px] h-[95vh] flex flex-col shadow-2xl relative border border-white/10">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 shrink-0">
+                <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="image" class="w-5 h-5 text-accent"></i> <span>Nova Moldura</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button type="button" id="delete-btn" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Editor Grid) -->
+            <div class="flex-1 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-6 p-4 sm:p-6 h-full overflow-y-auto">
+                    
+                    <!-- ESQUERDA: CONFIGURAÇÕES -->
+                    <div class="space-y-4 lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+                        <form id="frameForm" onsubmit="event.preventDefault();" class="space-y-4">
+                            <input type="hidden" id="frameId">
+                            
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-3">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Configuração Básica</div>
+                                
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome da Moldura</label>
+                                    <input type="text" id="frameName" required placeholder="Nome..." class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Orientação</label>
+                                        <select id="frameOrient" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                            <option value="vertical">Vertical</option>
+                                            <option value="horizontal">Horizontal</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Tipo</label>
+                                        <select id="frameType" onchange="toggleType()" class="w-full rounded-xl px-3 py-2.5 text-sm">
+                                            <option value="graphic">🎨 Gráficos</option>
+                                            <option value="image">🖼️ Imagem</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="globalStyleControls">
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Estilo Visual</label>
+                                    <select id="frameStyle" onchange="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                        <option value="solid">Sólido (Padrão)</option>
+                                        <option value="neon">Neon (Brilho)</option>
+                                        <option value="classic">Clássico (Borda Dupla)</option>
+                                        <option value="pastel">Pastel (Suave)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- OPÇÕES DE IMAGEM -->
+                            <div id="panelImage" class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-3" style="display: none;">
+                                <div class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> Imagem PNG</div>
+                                
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">URL da Imagem</label>
+                                    <input type="url" id="frameUrl" placeholder="https://..." oninput="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Zoom</label><input type="number" id="frameZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Rotação</label><input type="number" id="frameRot" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Posição X (%)</label><input type="number" id="frameX" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Posição Y (%)</label><input type="number" id="frameY" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                </div>
+                            </div>
+
+                            <!-- BOTÕES GRÁFICOS -->
+                            <div id="graphicButtons" class="bg-black/40 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
+                                <div class="text-accent font-bold flex items-center gap-2"><i data-lucide="shapes" class="w-4 h-4"></i> Adicionar Formas</div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="addElement('rect')" class="bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2 rounded-lg transition">+ Retângulo</button>
+                                    <button type="button" onclick="addElement('circle')" class="bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2 rounded-lg transition">+ Círculo</button>
+                                    <button type="button" onclick="addElement('star')" class="bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2 rounded-lg transition">+ Estrela</button>
+                                    <button type="button" onclick="addElement('triangle')" class="bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2 rounded-lg transition">+ Triângulo</button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- CENTRO: PREVIEW DO CARD -->
+                    <div class="flex flex-col items-center justify-center bg-black/50 rounded-2xl border border-white/5 p-4 sm:p-6 overflow-hidden min-h-[500px]">
+                        <div id="previewContainer" class="frame-preview-container vertical" onmousedown="startDrag(event)">
+                            <div id="previewContent" style="width: 100%; height: 100%; position: relative;"></div>
+                            
+                            <div style="position: absolute; inset: 15px; border: 1px dashed rgba(255,255,255,0.1); pointer-events: none; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-weight: bold; font-size: 0.8rem; letter-spacing: 2px;">
+                                ÁREA SEGURA
+                            </div>
+                        </div>
+                        <p id="dragHint" class="text-xs text-gray-500 mt-6 hidden lg:block"><i data-lucide="mouse-pointer-2" class="w-3 h-3 inline"></i> Clique e arraste as formas no preview para mover.</p>
+                    </div>
+
+                    <!-- DIREITA: LAYERS (Só aparece para gráficos) -->
+                    <div class="space-y-4 lg:overflow-y-auto lg:pl-2 custom-scrollbar" id="panelLayers">
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/5 min-h-full">
+                            <h3 class="text-accent font-bold mb-4 flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> Camadas (Layers)</h3>
+                            <div id="elementsList" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-6 border-t border-white/10 shrink-0 flex justify-end gap-3 sm:gap-4 bg-black/20 rounded-b-2xl">
+                <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 font-bold transition">Cancelar</button>
+                <button onclick="saveFrame()" class="xbox-button bg-accent text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i> Salvar Moldura
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+<script>
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Toggle Filters
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+    const filterContainer = document.getElementById('filter-container');
+    toggleFilterBtn.addEventListener('click', () => {
+        const isHidden = filterContainer.classList.toggle('hidden');
+        if (isHidden) {
+            toggleFilterBtn.innerHTML = '<i data-lucide="filter" class="w-4 h-4"></i> Mostrar Filtros';
+        } else {
+            toggleFilterBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Esconder Filtros';
+        }
+        lucide.createIcons();
+    });
+</script>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI", authDomain: "list-games-9bddd.firebaseapp.com", projectId: "list-games-9bddd", storageBucket: "list-games-9bddd.firebasestorage.app", messagingSenderId: "756898313156", appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let userId = null;
+    let framesCache = [];
+    let isFirstLoad = true;
+
+    // ESTADO DO EDITOR
+    let currentElements = [];
+    let selectedElementId = null;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let elementStart = { x: 0, y: 0 };
+
+    const userEmailEl = document.getElementById('user-email');
+    const loadingEl = document.getElementById('loading');
+    const appEl = document.getElementById('app');
+    const modalEl = document.getElementById('modal');
+
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => window.location.href = 'index.html');
+    };
+
+    onAuthStateChanged(auth, u => {
+        if(u) {
+            userId = u.uid;
+            if(userEmailEl) userEmailEl.textContent = u.email || u.uid;
+            loadFrames();
+        } else window.location.href = 'index.html';
+    });
+
+    // --- CARREGAMENTO ---
+    function loadFrames() {
+        onSnapshot(query(collection(db, 'users', userId, 'frames')), snap => {
+            framesCache = [];
+            snap.forEach(d => framesCache.push({id: d.id, ...d.data()}));
+            renderFramesList();
+            
+            if (isFirstLoad) {
+                loadingEl.classList.add('hidden');
+                appEl.classList.remove('hidden');
+                isFirstLoad = false;
+            }
+        });
+    }
+
+    // --- LISTAGEM E FILTROS ---
+    window.clearFilters = () => {
+        document.getElementById('search').value = '';
+        document.getElementById('filterOrient').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterStyle').value = '';
+        document.getElementById('sortFrames').value = 'date_desc';
+        renderFramesList();
+    };
+
+    window.renderFramesList = () => {
+        const grid = document.getElementById('framesGrid');
+        if(!grid) return;
+
+        const term = document.getElementById('search')?.value.toLowerCase() || '';
+        const filterOrient = document.getElementById('filterOrient')?.value || '';
+        const filterType = document.getElementById('filterType')?.value || '';
+        const filterStyle = document.getElementById('filterStyle')?.value || '';
+        const sortFrames = document.getElementById('sortFrames')?.value || 'date_desc';
+
+        let filtered = framesCache.filter(f => {
+            return (!term || (f.name && f.name.toLowerCase().includes(term))) &&
+                   (!filterOrient || f.orientation === filterOrient) &&
+                   (!filterType || f.type === filterType) &&
+                   (!filterStyle || (f.type === 'graphic' && f.styleTheme === filterStyle));
+        });
+
+        filtered.sort((a, b) => {
+            if (sortFrames === 'date_desc') return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+            if (sortFrames === 'date_asc') return new Date(a.updatedAt || a.createdAt || 0) - new Date(b.updatedAt || b.createdAt || 0);
+            if (sortFrames === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+            if (sortFrames === 'type') return (a.type || '').localeCompare(b.type || '');
+            return 0;
+        });
+
+        const frameCountEl = document.getElementById('frameCount');
+        if(frameCountEl) frameCountEl.innerText = `${filtered.length} moldura(s) encontrada(s)`;
+
+        if(filtered.length === 0) {
+            grid.innerHTML = '<div class="w-full text-center py-16"><i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i><p class="text-lg text-gray-500 font-semibold">Nenhuma moldura encontrada.</p></div>';
+            lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = filtered.map(f => {
+            const orient = f.orientation || 'vertical';
+            const cardWidth = orient === 'horizontal' ? 'w-full sm:w-[420px]' : 'w-full sm:w-[260px]';
+            const previewHTML = generateMiniPreview(f);
+            
+            const typeLabel = f.type === 'image' ? '🖼️ Imagem' : '🎨 GFX';
+            const styleLabel = f.type === 'graphic' && f.styleTheme ? `• ${f.styleTheme}` : '';
+
+            return `
+                <div class="task-card rounded-2xl overflow-hidden cursor-pointer flex flex-col ${cardWidth}" onclick="editFrame('${f.id}')">
+                    <div class="card-item-preview ${orient} bg-black/60 border-b border-white/5 relative">
+                        ${previewHTML}
+                    </div>
+                    <div class="p-4 flex flex-col gap-2 flex-1">
+                        <div class="font-bold text-lg text-accent font-['Cinzel'] truncate" title="${f.name || 'Sem Nome'}">${f.name || 'Sem Nome'}</div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase px-2 py-1 rounded-md bg-white/5 border border-white/10 truncate">${typeLabel} <span class="text-gray-600">${styleLabel}</span></span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase">${orient === 'vertical' ? 'Vert' : 'Horiz'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    };
+
+    function generateMiniPreview(f) {
+        const isVertical = f.orientation === 'vertical';
+        const w = isVertical ? 340 : 476;
+        const h = isVertical ? 476 : 340;
+        
+        let content = '';
+        if(f.type === 'image') {
+            content = `<img src="${f.imageUrl}" style="position: absolute; left: ${f.config?.x||0}%; top: ${f.config?.y||0}%; width: 100%; height: 100%; object-fit: contain; transform: translate(-50%, -50%) scale(${f.config?.zoom||1}) rotate(${f.config?.rot||0}deg); pointer-events: none;" onerror="this.style.display='none';">`;
+        } else {
+            const elsHTML = (f.elements || []).map(el => {
+                let css = `position:absolute; left:${el.x}px; top:${el.y}px; width:${el.w}px; height:${el.h}px; background:${el.color};`;
+                if(el.type === 'circle') css += 'border-radius: 50%;';
+                if(el.type === 'rect') css += `border-radius: ${el.radius || 0}px;`;
+                if(el.type === 'star') css += 'clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);';
+                if(el.type === 'triangle') css += 'clip-path: polygon(50% 0%, 0% 100%, 100% 100%);';
+                if(f.styleTheme === 'neon') css += `box-shadow: 0 0 10px ${el.color};`;
+                if(f.styleTheme === 'pastel') css += `opacity: 0.8; mix-blend-mode: screen;`;
+                return `<div style="${css}"></div>`;
+            }).join('');
+            content = elsHTML;
+        }
+        
+        // Simula o container com um zoom (scale) para caber na miniatura mantendo a proporção exata
+        return `
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; position: absolute; inset: 0;">
+            <div style="width: ${w}px; height: ${h}px; transform: scale(0.4); transform-origin: center; position: relative;">
+                ${content}
+            </div>
+        </div>
+        `;
+    }
+
+
+    // --- LÓGICA DO MODAL E EDITOR ---
+    window.openModal = () => {
+        resetForm();
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="image" class="w-5 h-5 text-accent"></i> <span>Nova Moldura</span>';
+        document.getElementById('delete-btn').classList.add('hidden');
+        lucide.createIcons();
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+        toggleType();
+        updatePreview();
+    };
+
+    window.closeModal = () => {
+        modalEl.classList.add('hidden');
+        modalEl.classList.remove('flex');
+        stopDrag();
+    };
+
+    window.toggleType = () => {
+        const t = document.getElementById('frameType').value;
+        document.getElementById('panelImage').style.display = t === 'image' ? 'block' : 'none';
+        document.getElementById('globalStyleControls').style.display = t === 'graphic' ? 'block' : 'none';
+        document.getElementById('graphicButtons').style.display = t === 'graphic' ? 'flex' : 'none';
+        document.getElementById('panelLayers').style.display = t === 'graphic' ? 'block' : 'none';
+        document.getElementById('dragHint').style.display = t === 'graphic' ? 'block' : 'none';
+        updatePreview();
+    };
+
+    window.addElement = (type) => {
+        const id = Date.now();
+        const colors = ['#d4af37', '#B9314F', '#00ccff', '#ffffff'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        currentElements.push({
+            id, type,
+            name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${currentElements.length + 1}`,
+            x: 50, y: 50, w: 100, h: 100,
+            color: randomColor, radius: 0
+        });
+        
+        selectElement(id);
+        renderElementsList();
+        updatePreview();
+    };
+
+    window.removeElement = (id, event) => {
+        if(event) event.stopPropagation();
+        currentElements = currentElements.filter(el => el.id !== id);
+        if(selectedElementId === id) selectedElementId = null;
+        renderElementsList();
+        updatePreview();
+    };
+
+    window.selectElement = (id) => {
+        selectedElementId = id;
+        renderElementsList();
+        updatePreview();
+    };
+
+    window.updateEl = (id, field, val) => {
+        const el = currentElements.find(e => e.id === id);
+        if(el) {
+            if (field === 'color' || field === 'name') el[field] = val;
+            else el[field] = parseInt(val) || 0;
+            updatePreview();
+            if(field === 'name') renderElementsList();
+        }
+    };
+
+    function renderElementsList() {
+        const list = document.getElementById('elementsList');
+        list.innerHTML = '';
+        
+        currentElements.forEach(el => {
+            const isActive = el.id === selectedElementId;
+            let extraControls = '';
+            
+            if(el.type === 'rect') {
+                extraControls = `<div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Border Rad.</label><input type="number" value="${el.radius}" oninput="updateEl(${el.id}, 'radius', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>`;
+            }
+
+            list.innerHTML += `
+                <div class="glass-panel rounded-xl mb-3 border ${isActive ? 'border-accent' : 'border-white/5'} overflow-hidden bg-black/40" onclick="selectElement(${el.id})">
+                    <div class="flex justify-between items-center p-3 cursor-pointer hover:bg-white/5 transition border-b border-white/5">
+                        <input type="text" value="${el.name}" oninput="updateEl(${el.id}, 'name', this.value)" onclick="event.stopPropagation()" class="bg-transparent border-b border-dashed border-gray-600 w-[70%] text-sm text-gray-200 outline-none focus:border-accent">
+                        <button onclick="removeElement(${el.id}, event)" class="text-red-500 hover:text-red-400 p-1 rounded-md hover:bg-red-500/10 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                    
+                    <div class="p-3 space-y-3" style="display: ${isActive ? 'block' : 'none'}">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Cor</label><input type="color" value="${el.color}" oninput="updateEl(${el.id}, 'color', this.value)" class="w-full h-[32px] rounded-lg p-0 cursor-pointer bg-transparent"></div>
+                            ${extraControls}
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Largura</label><input type="number" value="${el.w}" oninput="updateEl(${el.id}, 'w', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Altura</label><input type="number" value="${el.h}" oninput="updateEl(${el.id}, 'h', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Pos X</label><input type="number" value="${el.x}" oninput="updateEl(${el.id}, 'x', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                            <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Pos Y</label><input type="number" value="${el.y}" oninput="updateEl(${el.id}, 'y', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        lucide.createIcons();
+    }
+
+    // --- PREVIEW E DRAG ---
+    window.updatePreview = () => {
+        const type = document.getElementById('frameType').value;
+        const orient = document.getElementById('frameOrient').value;
+        const styleTheme = document.getElementById('frameStyle').value;
+        
+        const container = document.getElementById('previewContainer');
+        const content = document.getElementById('previewContent');
+        
+        container.className = `frame-preview-container ${orient} style-${styleTheme}`;
+        content.innerHTML = '';
+
+        if(type === 'image') {
+            const url = document.getElementById('frameUrl').value;
+            if(url) {
+                const zoom = document.getElementById('frameZoom').value;
+                const rot = document.getElementById('frameRot').value;
+                const x = document.getElementById('frameX').value;
+                const y = document.getElementById('frameY').value;
+                
+                content.innerHTML = `<img src="${url}" style="position: absolute; left: ${x}%; top: ${y}%; width: 100%; height: 100%; object-fit: contain; transform: translate(-50%, -50%) scale(${zoom}) rotate(${rot}deg); pointer-events: none;" onerror="this.style.display='none';">`;
+            }
+        } 
+        else {
+            currentElements.forEach(el => {
+                const div = document.createElement('div');
+                div.className = `canvas-element ${el.id === selectedElementId ? 'selected' : ''}`;
+                div.dataset.id = el.id;
+                
+                div.style.left = `${el.x}px`;
+                div.style.top = `${el.y}px`;
+                div.style.width = `${el.w}px`;
+                div.style.height = `${el.h}px`;
+                div.style.backgroundColor = el.color;
+                div.style.color = el.color;
+                div.style.pointerEvents = 'auto'; // Permitir Drag
+
+                if(el.type === 'circle') div.style.borderRadius = '50%';
+                else if(el.type === 'rect') div.style.borderRadius = `${el.radius}px`;
+                else if(el.type === 'triangle') div.classList.add('shape-triangle');
+                else if(el.type === 'star') div.classList.add('shape-star');
+
+                content.appendChild(div);
+            });
+        }
+    };
+
+    window.startDrag = (e) => {
+        if(document.getElementById('frameType').value !== 'graphic') return;
+        
+        const target = e.target.closest('.canvas-element');
+        if(!target) return;
+
+        e.preventDefault();
+        isDragging = true;
+        selectedElementId = parseInt(target.dataset.id);
+        
+        selectElement(selectedElementId);
+
+        const elObj = currentElements.find(el => el.id === selectedElementId);
+        if(!elObj) return;
+
+        dragStart = { x: e.clientX, y: e.clientY };
+        elementStart = { x: elObj.x, y: elObj.y };
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', stopDrag);
+    };
+
+    function onDrag(e) {
+        if(!isDragging) return;
+        
+        // Se houver scale no CSS, o calculo de Dx/Dy fica mais complicado, mas para a visão 1:1 funciona perfeitamente.
+        // Considerando que as media queries aplicam transform: scale(), o drag pode ficar mais rápido/lento que o cursor visualmente.
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        
+        const elObj = currentElements.find(el => el.id === selectedElementId);
+        if(elObj) {
+            elObj.x = Math.round(elementStart.x + dx);
+            elObj.y = Math.round(elementStart.y + dy);
+            updatePreview();
+        }
+    }
+
+    function stopDrag() {
+        if(isDragging) {
+            isDragging = false;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            renderElementsList(); // Atualiza os inputs na UI
+        }
+    }
+
+    // --- SALVAR / EDITAR / DELETAR ---
+    window.saveFrame = async () => {
+        const id = document.getElementById('frameId').value;
+        const type = document.getElementById('frameType').value;
+        
+        const data = {
+            name: document.getElementById('frameName').value,
+            orientation: document.getElementById('frameOrient').value,
+            type: type,
+            updatedAt: new Date().toISOString()
+        };
+
+        if(type === 'image') {
+            data.imageUrl = document.getElementById('frameUrl').value;
+            data.config = {
+                zoom: document.getElementById('frameZoom').value,
+                rot: document.getElementById('frameRot').value,
+                x: document.getElementById('frameX').value,
+                y: document.getElementById('frameY').value
+            };
+        } else {
+            data.styleTheme = document.getElementById('frameStyle').value;
+            data.elements = currentElements;
+        }
+
+        try {
+            if(id) {
+                await updateDoc(doc(db, 'users', userId, 'frames', id), data);
+            } else {
+                data.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'users', userId, 'frames'), data);
+            }
+            closeModal();
+        } catch(e) {
+            alert("Erro: " + e.message);
+        }
+    };
+
+    window.editFrame = (id) => {
+        const f = framesCache.find(x => x.id === id);
+        if(!f) return;
+
+        document.getElementById('frameId').value = f.id;
+        document.getElementById('frameName').value = f.name;
+        document.getElementById('frameOrient').value = f.orientation;
+        document.getElementById('frameType').value = f.type;
+
+        if(f.type === 'image') {
+            document.getElementById('frameUrl').value = f.imageUrl || '';
+            document.getElementById('frameZoom').value = f.config?.zoom || 1;
+            document.getElementById('frameRot').value = f.config?.rot || 0;
+            document.getElementById('frameX').value = f.config?.x || 0;
+            document.getElementById('frameY').value = f.config?.y || 0;
+        } else {
+            document.getElementById('frameStyle').value = f.styleTheme || 'solid';
+            currentElements = f.elements || [];
+            renderElementsList();
+        }
+
+        document.getElementById('modal-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> <span>Editar Moldura</span>';
+        document.getElementById('delete-btn').classList.remove('hidden');
+        lucide.createIcons();
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+        
+        toggleType();
+    };
+
+    document.getElementById('delete-btn').onclick = async () => {
+        const id = document.getElementById('frameId').value;
+        if(!id) return;
+        if(confirm('Tem certeza que deseja excluir esta moldura?')) {
+            try {
+                await deleteDoc(doc(db, 'users', userId, 'frames', id));
+                closeModal();
+            } catch(e) {
+                alert('Erro ao excluir: ' + e.message);
+            }
+        }
+    };
+
+    window.resetForm = () => {
+        document.getElementById('frameForm').reset();
+        document.getElementById('frameId').value = '';
+        currentElements = [];
+        renderElementsList();
+    };
+
+</script>
+</body>
+</html>
