@@ -1,386 +1,438 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Animes — Estrelas</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    body {
-      background: #0b0b0b;
-      font-family: Inter, system-ui, sans-serif;
-      color: #e6e6e6;
-      padding-bottom: 100px;
-    }
-
-    .menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #151515;
-      border-top: 1px solid #2a2a2a;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      z-index: 30;
-    }
-
-    .menu-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #b3b3b3;
-      font-size: 0.75rem;
-      transition: all 0.2s;
-    }
-
-    .menu-btn:hover,
-    .menu-btn.active {
-      color: #B9314F;
-    }
-
-    .menu-btn svg {
-      width: 22px;
-      height: 22px;
-      margin-bottom: 4px;
-    }
-
-    .filter-btn {
-      border: 1px solid #3a3a3a;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .filter-btn.active {
-      background: #B9314F;
-      border-color: #992743;
-      color: white;
-    }
-
-    .anime-card:hover {
-      transform: translateY(-6px);
-      transition: .2s;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-    }
-
-    /* Custom scrollbar for filtros */
-    #stars-filter::-webkit-scrollbar {
-        height: 6px;
-        }
-
-        #stars-filter::-webkit-scrollbar-track {
-        background: #0d0d0d; /* fundo escuro */
-        border-radius: 10px;
-        }
-
-        #stars-filter::-webkit-scrollbar-thumb {
-        background: #444; /* cinza discreto */
-        border-radius: 10px;
-        }
-
-        #stars-filter::-webkit-scrollbar-thumb:hover {
-        background: #B9314F; /* cor tema ao passar */
-        }
-
-  </style>
-</head>
-
-<body>
-
-<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
-
-  <!-- MENU SUPERIOR -->
-  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
-    <div class="flex justify-between items-center">
-      <button onclick="window.location.href='home.html'"
-              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors">
-        My Hub
-      </button>
-      <h1 class="text-2xl font-bold text-white">My Animes</h1>
-    </div>
-
-    <div class="text-sm text-gray-300 mt-2">
-      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">...</span>
-    </div>
-  </header>
-
-
-  <!-- FILTRO ROLÁVEL -->
-  <section class="overflow-x-auto whitespace-nowrap pb-3 mb-6 flex gap-2" id="stars-filter">
-    <!-- Botões criados dinamicamente -->
-  </section>
-
-
-  <!-- GRID DE ANIMES -->
-  <main id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></main>
-
-
-  <p id="empty-msg" class="text-center text-gray-400 mt-8">
-    👆 Escolha uma categoria acima!
-    </p>
-
-</div>
-
-
-<!-- MENU INFERIOR -->
-<nav class="menu fixed bottom-0 left-0 w-full bg-[#151515] border-t border-[#2a2a2a] flex justify-around py-2 z-40">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer">
     
-    <button class="menu-btn" onclick="window.location.href='animes_manager.html'">
-        <i data-lucide="home" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Início</span>
-    </button>
+    <title>Class Animes — Estrelas — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    <button class="menu-btn" onclick="window.location.href='animes_cadastro.html'">
-        <i data-lucide="file-edit" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Gestão</span>
-    </button>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+            user-select: none;
+        }
 
-    <button class="menu-btn" onclick="window.location.href='anime_lista.html'">
-        <i data-lucide="list" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Lista</span>
-    </button>
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-    <div class="relative flex">
-        <button id="more-options-btn" class="menu-btn active" onclick="toggleMoreOptions(event)">
-            <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">Mais</span>
-        </button>
+        /* Cards com efeito Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
 
-        <div id="more-options-dropdown"
-             class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50 flex flex-col">
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
 
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_classificacoes.html'">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Classificação</span>
-            </button>
-            
-            <button class="w-full text-left px-4 py-3 text-sm bg-[#2a2a2a] text-white rounded-lg transition-colors flex items-center gap-3 border border-[#333]" 
-                    onclick="window.location.href='animes_estrelas.html'">
-                <i data-lucide="star" class="w-4 h-4 text-[#B9314F] fill-current"></i> 
-                <span class="font-bold">Estrelas</span>
-            </button>
-            
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_torneio.html'">
-                <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Torneio</span>
-            </button>
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        .toggle-sidebar-btn { transition: all 0.3s; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
 
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_serie.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Serie</span>
-            </button>
+        /* ======== FILTROS MODERNOS (PILL BUTTONS) ======== */
+        .filter-btn {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #a3a3a3;
+            padding: 10px 22px;
+            border-radius: 9999px; /* Formato pílula */
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            outline: none;
+        }
+        .filter-btn:hover {
+            background: rgba(50, 50, 50, 0.8);
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .filter-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: rgba(185, 49, 79, 0.6);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.5), inset 0 0 10px rgba(0,0,0,0.2);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
 
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_database.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>DataBase</span>
-            </button>
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
         </div>
-    </div>
-</nav>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+                <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="animes_manager.html" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Animes">
+                <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards/Molduras/Bg">
+                <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+                <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+                <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+                <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+                <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+                <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="tv" class="text-accent"></i> My Animes
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO (SCROLL) -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28">
+            <div class="max-w-7xl mx-auto space-y-6">
+                
+                <!-- FILTROS DE ESTRELAS -->
+                <section class="overflow-x-auto whitespace-nowrap pb-4 flex gap-3 custom-scrollbar px-1 py-2 items-center" id="stars-filter">
+                    <!-- Botões criados dinamicamente via JS -->
+                </section>
+
+                <!-- GRID DE ANIMES -->
+                <main id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5"></main>
+
+                <!-- MENSAGEM VAZIA -->
+                <div id="empty-msg" class="text-center text-gray-500 mt-12 text-sm sm:text-lg font-semibold bg-white/5 py-8 sm:py-12 rounded-2xl border border-white/5 border-dashed">
+                    <i data-lucide="mouse-pointer-click" class="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-3 opacity-50 text-accent"></i>
+                    Escolha uma categoria de estrelas acima para visualizar!
+                </div>
+
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR (FLUTUANTE) -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            
+            <a href="animes_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="home" class="w-4 h-4"></i> <span class="hidden sm:inline">Início</span>
+            </a>
+
+            <a href="animes_cadastro.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Cadastro</span></a>
+            <a href="animes_edicao.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Edição</span></a>
+
+            <a href="animes_lista.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="list" class="w-4 h-4"></i> <span class="hidden sm:inline">Lista</span>
+            </a>
+
+            <!-- DROPDOWN "MAIS" -->
+            <div class="relative flex">
+                <button id="more-options-btn" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20" onclick="toggleMoreOptions(event)">
+                    <i data-lucide="more-horizontal" class="w-4 h-4"></i> <span class="hidden sm:inline">Mais</span>
+                </button>
+
+                <div id="more-options-dropdown" class="absolute bottom-full mb-3 right-0 w-48 glass-panel border border-white/10 rounded-2xl shadow-2xl p-2 hidden z-50 flex-col gap-1">
+                    <a href="animes_classificacoes.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-accent"></i> Classificação
+                    </a>
+                    <a href="animes_estrelas.html" class="w-full text-left px-4 py-2.5 text-sm bg-white/10 text-white rounded-xl transition-colors flex items-center gap-3 font-bold border border-white/5">
+                        <i data-lucide="star" class="w-4 h-4 text-accent fill-current"></i> Estrelas
+                    </a>
+                    <a href="animes_torneio.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="trophy" class="w-4 h-4 text-accent"></i> Torneio
+                    </a>
+                    <a href="animes_serie.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="layers" class="w-4 h-4 text-accent"></i> Série
+                    </a>
+                    <a href="animes_database.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="database" class="w-4 h-4 text-accent"></i> DataBase
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
 <script>
-  lucide.createIcons();
-  function abrirPagina(p) { window.location.href = p }
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Dropdown Logic
+    window.toggleMoreOptions = (event) => {
+        event.stopPropagation();
+        document.getElementById('more-options-dropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('more-options-dropdown');
+        const btn = document.getElementById('more-options-btn');
+        if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
 </script>
 
-
-<!-- FIREBASE + FILTRO EM MEMÓRIA -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-    authDomain: "list-games-9bddd.firebaseapp.com",
-    projectId: "list-games-9bddd",
-    storageBucket: "list-games-9bddd.firebasestorage.app",
-    messagingSenderId: "756898313156",
-    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-    measurementId: "G-GLM50YVLXP"
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const userEmailEl = document.getElementById("user-email");
-  const gridEl = document.getElementById("anime-grid");
-  const emptyMsg = document.getElementById("empty-msg");
-  const starsFilterEl = document.getElementById("stars-filter");
+    const userEmailEl = document.getElementById("user-email");
+    const gridEl = document.getElementById("anime-grid");
+    const emptyMsg = document.getElementById("empty-msg");
+    const starsFilterEl = document.getElementById("stars-filter");
 
-  let allAnimes = [];
-  let selectedStars = null; // null = mostrar todos
+    let allAnimes =[];
+    let selectedStars = null; // null = mostrar a mensagem padrão
 
-  const starOptions = [
-    { label: "🥇 R1", value: "✶" },
-    { label: "🥈 R2", value: "✶ ✶" },
-    { label: "🥉 R3", value: "✶ ✶ ✶" },
-    { label: "5 ⭐", value: 5 },
-    { label: "4 ⭐", value: 4 },
-    { label: "3 ⭐", value: 3 },
-    { label: "2 ⭐", value: 2 },
-    { label: "1 ⭐", value: 1 },
-    { label: "0 ⭐", value: 0 },
-    { label: "Sem ⭐", value: "" }
+    const starOptions =[
+        { label: "🥇 R1", value: "✶" },
+        { label: "🥈 R2", value: "✶ ✶" },
+        { label: "🥉 R3", value: "✶ ✶ ✶" },
+        { label: "5 ⭐", value: 5 },
+        { label: "4 ⭐", value: 4 },
+        { label: "3 ⭐", value: 3 },
+        { label: "2 ⭐", value: 2 },
+        { label: "1 ⭐", value: 1 },
+        { label: "0 ⭐", value: 0 },
+        { label: "Sem ⭐", value: "" }
     ];
 
-
-  function toggleMoreOptions(event) {
-      event.stopPropagation(); // Previne que o clique feche imediatamente
-      const dropdown = document.getElementById('more-options-dropdown');
-      dropdown.classList.toggle('hidden');
-  }
-
-  // Função para fechar o dropdown se o usuário clicar fora dele
-  document.addEventListener('click', (e) => {
-      const dropdown = document.getElementById('more-options-dropdown');
-      const button = document.getElementById('more-options-btn');
-      if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.classList.add('hidden');
-      }
-  });
-  
-  window.toggleMoreOptions = toggleMoreOptions;
-
-  function renderStarsFilter() {
-    starsFilterEl.innerHTML = starOptions.map(opt => `
-      <button class="filter-btn ${selectedStars === opt.value ? "active" : ""}"
-              data-value="${opt.value}">
-        ${opt.label}
-      </button>
-    `).join("");
-
-    starsFilterEl.querySelectorAll("button").forEach(btn => {
-      btn.onclick = () => {
-        let value = btn.dataset.value;
-
-        if (value == "") {
-            // SEM AVALIAÇÃO
-            selectedStars = "";
+    document.getElementById('logout-btn').onclick = () => {
+        if (auth.currentUser) {
+            localStorage.removeItem(`animes_${auth.currentUser.uid}`);
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        } else {
+            window.location.href = 'index.html';
         }
-        else if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(value)) {
-            // TIERS ESPECIAIS
-            selectedStars = value;
+    };
+
+    function renderStarsFilter() {
+        starsFilterEl.innerHTML = starOptions.map(opt => `
+            <button class="filter-btn ${selectedStars === opt.value ? "active" : ""}"
+                    data-value="${opt.value}">
+                ${opt.label}
+            </button>
+        `).join("");
+
+        starsFilterEl.querySelectorAll("button").forEach(btn => {
+            btn.onclick = () => {
+                let value = btn.dataset.value;
+
+                if (value === "") {
+                    selectedStars = "";
+                }
+                else if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(value)) {
+                    selectedStars = value;
+                }
+                else {
+                    selectedStars = Number(value);
+                }
+
+                renderStarsFilter();
+                renderGrid();
+            };
+        });
+    }
+
+    function animeCard(anime) {
+        const defaultImg = 'https://via.placeholder.com/300x450?text=Sem+Imagem';
+        return `
+            <div class="task-card rounded-2xl overflow-hidden flex flex-col relative group h-full">
+                <!-- Badge de Estrelas -->
+                <div class="absolute top-2 right-2 z-10 text-xs px-2.5 py-1 rounded-lg bg-accent text-white font-bold shadow-lg border border-white/20">
+                    ${anime.STARS || "-"}
+                </div>
+                
+                <!-- Imagem com Overlay -->
+                <div class="w-full aspect-[2/3] bg-black/50 relative overflow-hidden border-b border-white/5 shrink-0">
+                    <img src="${anime.IMAGEM || defaultImg}" alt="${anime.NOME}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                
+                <!-- Dados Inferiores -->
+                <div class="p-3 sm:p-4 flex-1 flex flex-col gap-2">
+                    <h3 class="font-bold text-white text-sm sm:text-base line-clamp-1" title="${anime.NOME}">${anime.NOME}</h3>
+                    
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] sm:text-xs">
+                        <div class="text-gray-400"><span class="font-semibold text-gray-500">Nota:</span> <span class="text-white">${Number(anime.NOTA_F).toFixed(2)}</span></div>
+                        <div class="text-gray-400"><span class="font-semibold text-gray-500">MAL:</span> <span class="text-white">${anime.N_MAL || "-"}</span></div>
+                        <div class="text-gray-400 truncate"><span class="font-semibold text-gray-500">Estado:</span> <span class="text-white">${anime.ESTADO || "-"}</span></div>
+                        <div class="text-gray-400"><span class="font-semibold text-gray-500">Ano:</span> <span class="text-white">${anime.ANO || "-"}</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderGrid() {
+        let filtered = [...allAnimes];
+
+        if (selectedStars === null) {
+            gridEl.innerHTML = "";
+            emptyMsg.classList.remove("hidden");
+            return;
         }
+
+        if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(selectedStars)) {
+            filtered = filtered.filter(a => a.STARS === selectedStars);
+        } else if (selectedStars === "") {
+            filtered = filtered.filter(a => a.STARS === "" || a.STARS == null);
+        } else if (selectedStars === 0) {
+            filtered = filtered.filter(a => a.STARS === 0 || a.STARS === "0");
+        } else if (!isNaN(selectedStars)) {
+            filtered = filtered.filter(a => Number(a.STARS) === Number(selectedStars));
+        }
+
+        gridEl.innerHTML = filtered.map(animeCard).join("");
+        emptyMsg.classList.toggle("hidden", filtered.length > 0);
+        lucide.createIcons();
+    }
+
+    async function loadAnimes(userId) {
+        const cacheKey = `animes_${userId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            allAnimes = JSON.parse(cachedData);
+            gridEl.innerHTML = "";
+            emptyMsg.classList.remove("hidden");
+        } 
         else {
-            // ESTRELAS NUMÉRICAS
-            selectedStars = Number(value);
+            const ref = collection(db, "users", userId, "animes");
+            const snap = await getDocs(ref);
+            
+            allAnimes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+            
+            gridEl.innerHTML = "";
+            emptyMsg.classList.remove("hidden");
         }
+    }
 
-        renderStarsFilter();
-        renderGrid();
-        };
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            userEmailEl.textContent = user.email || user.uid;
+            renderStarsFilter();
+            loadAnimes(user.uid);
+        } else {
+            window.location.href = "index.html";
+        }
     });
-  }
-
-  function animeCard(anime) {
-    return `
-        <div class="bg-[#181818] rounded-lg shadow-lg overflow-hidden hover:scale-105 transition-transform duration-200 relative">
-
-        <!-- Badge no topo (Tier ou estrelas) -->
-        <div class="absolute top-2 right-2 text-xs px-2 py-1 rounded-md bg-[#B9314F] text-white font-bold">
-            ${anime.STARS || "-"}
-        </div>
-
-        <!-- Imagem do anime -->
-        <img 
-            src="${anime.IMAGEM || 'https://via.placeholder.com/300x450?text=Sem+Imagem'}" 
-            alt="${anime.NOME}"
-            class="w-full object-cover"
-            style="aspect-ratio: 2/3;"
-        >
-
-        <!-- Conteúdo do Card -->
-        <div class="p-3 text-gray-300 text-sm">
-            <h3 class="text-lg font-bold text-white mb-1 truncate">${anime.NOME}</h3>
-
-            <p><span class="font-semibold text-white">Nota:</span> ${Number(anime.NOTA_F).toFixed(2)}</p>
-            <p><span class="font-semibold text-white">Nota M.A.L.:</span> ${anime.N_MAL || "-"}</p>
-            <p><span class="font-semibold text-white">Estado:</span> ${anime.ESTADO || "-"}</p>
-            <p><span class="font-semibold text-white">Estilo:</span> ${anime.ESTILO || "-"}</p>
-            <p><span class="font-semibold text-white">Ano:</span> ${anime.ANO || "-"}</p>
-            <p><span class="font-semibold text-white">Temporada:</span> ${anime.TEMPORADA || "-"}</p>
-        </div>
-
-        </div>
-    `;
-    }
-
-
-  function renderGrid() {
-    let filtered = [...allAnimes];
-
-    // Tier especial: ✶, ✶ ✶, ✶ ✶ ✶
-    if (["✶", "✶ ✶", "✶ ✶ ✶"].includes(selectedStars)) {
-        filtered = filtered.filter(a => a.STARS === selectedStars);
-
-    // Sem estrela ("-")
-    } else if (selectedStars === "") {
-        filtered = filtered.filter(a =>
-        a.STARS === "" || a.STARS == null
-        );
-
-    // Zero estrela (0)
-    } else if (selectedStars === 0) {
-        filtered = filtered.filter(a =>
-        a.STARS === 0 || a.STARS === "0"
-        );
-
-    // Estrelas numéricas
-    } else if (!isNaN(selectedStars)) {
-        filtered = filtered.filter(a =>
-        Number(a.STARS) === Number(selectedStars)
-        );
-    }
-
-    gridEl.innerHTML = filtered.map(animeCard).join("");
-    emptyMsg.classList.toggle("hidden", filtered.length > 0);
-    }
-
-  async function loadAnimes(userId) {
-    const cacheKey = `animes_${userId}`;
-    const cachedData = localStorage.getItem(cacheKey);
-
-    // 1. Tenta pegar do Cache Local
-    if (cachedData) {
-        console.log("📦 Carregando animes do Cache Local (0 leituras)");
-        allAnimes = JSON.parse(cachedData);
-    } 
-    // 2. Se não tiver cache (fallback), busca do Firebase e salva
-    else {
-        console.log("⚠️ Cache não encontrado. Baixando do Firebase...");
-        const ref = collection(db, "users", userId, "animes");
-        const snap = await getDocs(ref);
-        
-        allAnimes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Salva no cache para a próxima vez
-        localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
-    }
-
-    // Reseta a visualização
-    gridEl.innerHTML = "";
-    emptyMsg.classList.remove("hidden");
-  }
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      userEmailEl.textContent = user.email;
-      renderStarsFilter();
-      loadAnimes(user.uid);
-    }
-  });
 </script>
 
 </body>
