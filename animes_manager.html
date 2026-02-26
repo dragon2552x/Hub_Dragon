@@ -1,326 +1,417 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Animes - Manager</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    body {
-      background: #0b0b0b;
-      font-family: Inter, system-ui, sans-serif;
-      color: #e6e6e6;
-      padding-bottom: 100px; /* espaço para menu inferior */
-    }
-
-    .menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #151515;
-      border-top: 1px solid #2a2a2a;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-
-    .menu-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #b3b3b3;
-      font-size: 0.75rem;
-      transition: all 0.2s;
-    }
-
-    .menu-btn:hover,
-    .menu-btn.active {
-      color: #B9314F;
-    }
-
-    .menu-btn svg {
-      width: 22px;
-      height: 22px;
-      margin-bottom: 4px;
-    }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer">
     
-    /* Animação de Loading */
-    .spin {
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
+    <title>Gerenciador de Animes — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
-
-  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
-    
-    <div class="flex justify-between items-center">
-      <button onclick="sairParaHub()"
-              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
-        My Hub
-      </button>
-
-      <h1 class="text-2xl font-bold text-white">My Animes</h1>
-    </div>
-
-    <div class="text-sm text-gray-300 mt-1">
-      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
-    </div>
-
-  </header>
-
-
-  <main class="flex flex-col items-center justify-center mt-10 space-y-6">
-
-    <div id="stats-container" class="hidden bg-[#151515] p-5 rounded-xl border border-[#2a2a2a] w-full max-w-md shadow-lg transition-all duration-500">
-        <h3 class="text-white font-bold mb-4 flex items-center">
-            <i data-lucide="bar-chart" class="w-5 h-5 mr-2 text-[#B9314F]"></i>
-            Resumo da Coleção
-        </h3>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
         
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Total na Lista</p>
-                <p id="stat-total" class="text-2xl font-bold text-white">0</p>
-            </div>
-            
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Completos</p>
-                <p id="stat-completo" class="text-2xl font-bold text-green-400">0</p>
-            </div>
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+            user-select: none;
+        }
 
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Vendo / Andamento</p>
-                <p id="stat-vendo" class="text-2xl font-bold text-blue-400">0</p>
-            </div>
+        /* Utilitários de Estilo */
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-            <div class="bg-[#1f1f1f] p-3 rounded-lg border border-[#2a2a2a]">
-                <p class="text-xs text-gray-400">Outros</p>
-                <p id="stat-outros" class="text-2xl font-bold text-gray-500">0</p>
-            </div>
+        /* Cards com efeito Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
+
+        /* Botões com efeito Xbox */
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .xbox-button:hover::before {
+            transform: translateX(100%);
+        }
+        .xbox-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        .toggle-sidebar-btn { transition: all 0.3s; }
+        .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
+
+        /* Animação de Loading */
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
         </div>
-    </div>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+                <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
 
-    <div id="container-ultimo-anime" class="hidden mx-4 mt-6">
-        <h2 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Último Atualizado</h2>
-        <div id="card-ultimo" class="bg-[#151515] border border-[#2a2a2a] rounded-xl overflow-hidden flex items-center shadow-lg">
-            <img id="ultimo-img" src="" class="w-24 h-32 object-cover" alt="Capa">
-            <div class="p-4 flex-1">
-                <h3 id="ultimo-nome" class="font-bold text-white text-lg truncate w-40">Nome do Anime</h3>
-                <p id="ultimo-data" class="text-xs text-[#B9314F] font-semibold mt-1">Hoje às 14:00</p>
-                <div class="flex items-center mt-3">
-                    <span id="ultimo-episodios" class="bg-[#222] text-gray-300 text-[10px] px-2 py-1 rounded">Ep: 00/00</span>
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+                <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Animes">
+                <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards/Molduras/Bg">
+                <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+                <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+                <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+                <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia">
+                <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+                <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+            </a>
+        </nav>
+
+        <button onclick="sairParaHub()" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="tv" class="text-accent"></i> My Animes
+                    </h2>
                 </div>
             </div>
-            <button onclick="window.location.href='anime_lista.html'" class="p-4 text-gray-500">
-                <i data-lucide="chevron-right"></i>
-            </button>
-        </div>
-    </div>
-    
-    <div class="bg-[#151515] p-6 rounded-xl border border-[#2a2a2a] w-full max-w-md text-center shadow-lg">
-        <h2 class="text-xl font-bold text-white mb-2">Status dos Dados</h2>
-        <p id="status-msg" class="text-gray-400 mb-4">Verificando...</p>
-        
-        <button id="btn-refresh" onclick="forcarAtualizacao()" 
-                class="flex items-center justify-center w-full bg-[#B9314F] hover:bg-[#992743] text-white font-bold py-3 px-4 rounded-lg transition-all">
-            <i data-lucide="refresh-cw" class="mr-2 w-5 h-5" id="icon-refresh"></i>
-            Forçar Atualização do Banco
-        </button>
-        <p class="text-xs text-gray-500 mt-2">Use isso se os dados estiverem desatualizados.</p>
-    </div>
-
-    <div class="opacity-70 text-center">
-        <p>Selecione uma das opções do menu abaixo 👇</p>
-    </div>
-
-  </main>
-
-</div>
-
-<!-- MENU INFERIOR -->
-<nav class="menu fixed bottom-0 left-0 w-full bg-[#151515] border-t border-[#2a2a2a] flex justify-around py-2 z-40">
-    
-    <button class="menu-btn active" onclick="window.location.href='animes_manager.html'">
-        <i data-lucide="home" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Início</span>
-    </button>
-
-    <button class="menu-btn" onclick="window.location.href='animes_cadastro.html'">
-        <i data-lucide="file-edit" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Gestão</span>
-    </button>
-
-    <button class="menu-btn" onclick="window.location.href='anime_lista.html'">
-        <i data-lucide="list" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Lista</span>
-    </button>
-
-    <div class="relative flex">
-        <button id="more-options-btn" class="menu-btn" onclick="toggleMoreOptions(event)">
-            <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">Mais</span>
-        </button>
-
-        <div id="more-options-dropdown"
-             class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50 flex flex-col">
-
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_classificacoes.html'">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Classificação</span>
-            </button>
             
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_estrelas.html'">
-                <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Estrelas</span>
-            </button>
-            
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_torneio.html'">
-                <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Torneio</span>
-            </button>
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
 
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_serie.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Serie</span>
-            </button>
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_database.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>DataBase</span>
-            </button>
+        <!-- ÁREA DE CONTEÚDO (SCROLL) -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28">
+            <div class="max-w-6xl mx-auto space-y-8">
+                
+                <!-- TOPO: AÇÕES E MENSAGEM -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/40 p-4 rounded-2xl border border-white/5">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Dashboard de Animes</h2>
+                        <p id="status-msg" class="text-xs text-gray-500 mt-1">Verificando dados...</p>
+                    </div>
+                    <button id="btn-refresh" onclick="forcarAtualizacao()" class="flex items-center gap-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2.5 rounded-xl transition-all border border-white/10 font-bold whitespace-nowrap">
+                        <i data-lucide="refresh-cw" id="icon-refresh" class="w-4 h-4"></i> Forçar Atualização
+                    </button>
+                </div>
+
+                <!-- CARDS DE STATUS -->
+                <div id="stats-container" class="hidden">
+                    <h3 class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="bar-chart" class="w-4 h-4 text-accent"></i> Resumo da Coleção
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="task-card p-5 rounded-2xl">
+                            <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Total na Lista</p>
+                            <p id="stat-total" class="text-3xl font-bold text-white">0</p>
+                        </div>
+                        
+                        <div class="task-card p-5 rounded-2xl">
+                            <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Completos</p>
+                            <p id="stat-completo" class="text-3xl font-bold text-green-400">0</p>
+                        </div>
+
+                        <div class="task-card p-5 rounded-2xl">
+                            <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Em Andamento</p>
+                            <p id="stat-vendo" class="text-3xl font-bold text-blue-400">0</p>
+                        </div>
+
+                        <div class="task-card p-5 rounded-2xl">
+                            <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Outros</p>
+                            <p id="stat-outros" class="text-3xl font-bold text-gray-400">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ÚLTIMO ATUALIZADO -->
+                <div id="container-ultimo-anime" class="hidden">
+                    <h3 class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="clock" class="w-4 h-4 text-accent"></i> Último Atualizado
+                    </h3>
+                    
+                    <div id="card-ultimo" class="task-card rounded-2xl overflow-hidden flex items-center cursor-pointer max-w-xl group relative" onclick="">
+                        <div class="w-28 h-40 bg-black/50 shrink-0 relative overflow-hidden">
+                            <img id="ultimo-img" src="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Capa">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                        </div>
+                        <div class="p-5 flex-1 min-w-0">
+                            <h3 id="ultimo-nome" class="font-bold text-white text-xl truncate mb-1">Nome do Anime</h3>
+                            <p id="ultimo-data" class="text-xs text-gray-400 font-semibold mb-3">Hoje às 14:00</p>
+                            
+                            <div class="flex items-center gap-2">
+                                <span class="bg-accent/20 text-accent text-[10px] font-bold uppercase px-3 py-1 rounded-lg border border-accent/20" id="ultimo-episodios">
+                                    Ep: 00/00
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5 text-gray-500 group-hover:text-white transition-colors">
+                            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
-</nav>
 
+        <!-- NAV INFERIOR (FLUTUANTE) -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            
+            <a href="animes_manager.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20">
+                <i data-lucide="home" class="w-4 h-4"></i> <span class="hidden sm:inline">Início</span>
+            </a>
+
+            <a href="animes_cadastro.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Cadastro</span></a>
+            <a href="animes_edicao.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Edição</span></a>
+
+            <a href="animes_lista.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="list" class="w-4 h-4"></i> <span class="hidden sm:inline">Lista</span>
+            </a>
+
+            <!-- DROPDOWN "MAIS" -->
+            <div class="relative flex">
+                <button id="more-options-btn" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2" onclick="toggleMoreOptions(event)">
+                    <i data-lucide="more-horizontal" class="w-4 h-4"></i> <span class="hidden sm:inline">Mais</span>
+                </button>
+
+                <div id="more-options-dropdown" class="absolute bottom-full mb-3 right-0 w-48 glass-panel border border-white/10 rounded-2xl shadow-2xl p-2 hidden z-50 flex-col gap-1">
+                    <a href="animes_classificacoes.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-accent"></i> Classificação
+                    </a>
+                    <a href="animes_estrelas.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="star" class="w-4 h-4 text-accent"></i> Estrelas
+                    </a>
+                    <a href="animes_torneio.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="trophy" class="w-4 h-4 text-accent"></i> Torneio
+                    </a>
+                    <a href="animes_serie.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="layers" class="w-4 h-4 text-accent"></i> Série
+                    </a>
+                    <a href="animes_database.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="database" class="w-4 h-4 text-accent"></i> DataBase
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
 <script>
-  lucide.createIcons();
-  function abrirPagina(pagina) {
-    window.location.href = pagina;
-  }
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Dropdown Logic
+    window.toggleMoreOptions = (event) => {
+        event.stopPropagation();
+        document.getElementById('more-options-dropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('more-options-dropdown');
+        const btn = document.getElementById('more-options-btn');
+        if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
 </script>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-    authDomain: "list-games-9bddd.firebaseapp.com",
-    projectId: "list-games-9bddd",
-    storageBucket: "list-games-9bddd.firebasestorage.app",
-    messagingSenderId: "756898313156",
-    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-    measurementId: "G-GLM50YVLXP"
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
 
-  const firebaseApp = initializeApp(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const db = getFirestore(firebaseApp);
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
 
-  const userEmailEl = document.getElementById("user-email");
-  const statusMsgEl = document.getElementById("status-msg");
-  const iconRefresh = document.getElementById("icon-refresh");
+    const userEmailEl = document.getElementById("user-email");
+    const statusMsgEl = document.getElementById("status-msg");
+    const iconRefresh = document.getElementById("icon-refresh");
 
-  // --- FUNÇÃO PARA CARREGAR DADOS ---
-  // --- FUNÇÃO AUXILIAR PARA CALCULAR E EXIBIR STATS ---
-  function atualizarEstatisticas(listaAnimes) {
-      if (!listaAnimes) return;
+    // --- FUNÇÃO AUXILIAR PARA CALCULAR E EXIBIR STATS ---
+    function atualizarEstatisticas(listaAnimes) {
+        if (!listaAnimes) return;
 
-      const total = listaAnimes.length;
-      // Filtra contando os estados (ajuste as strings conforme você salva no banco)
-      const completos = listaAnimes.filter(a => a.ESTADO === "Completo" || a.ESTADO === "Assistido").length;
-      const vendo = listaAnimes.filter(a => a.ESTADO === "Andamento" || a.ESTADO === "Vendo").length;
-      const outros = total - (completos + vendo);
+        const total = listaAnimes.length;
+        const completos = listaAnimes.filter(a => a.ESTADO === "Completo" || a.ESTADO === "Assistido").length;
+        const vendo = listaAnimes.filter(a => a.ESTADO === "Andamento" || a.ESTADO === "Vendo").length;
+        const outros = total - (completos + vendo);
 
-      // Atualiza HTML
-      document.getElementById("stat-total").textContent = total;
-      document.getElementById("stat-completo").textContent = completos;
-      document.getElementById("stat-vendo").textContent = vendo;
-      document.getElementById("stat-outros").textContent = outros;
+        document.getElementById("stat-total").textContent = total;
+        document.getElementById("stat-completo").textContent = completos;
+        document.getElementById("stat-vendo").textContent = vendo;
+        document.getElementById("stat-outros").textContent = outros;
 
-      // Mostra o card com animação suave
-      const statsContainer = document.getElementById("stats-container");
-      statsContainer.classList.remove("hidden");
-      
-      // Recarrega ícones (caso o lucide não tenha pego o novo ícone do card)
-      lucide.createIcons();
-  }
+        document.getElementById("stats-container").classList.remove("hidden");
+        lucide.createIcons();
+    }
 
-  // --- FUNÇÃO PARA CARREGAR DADOS (ATUALIZADA) ---
-  async function carregarDados(force = false) {
-      if (!auth.currentUser) return;
-      
-      const uid = auth.currentUser.uid;
-      const cacheKey = `animes_${uid}`;
-      
-      // 1. Tentar ler do Cache Local
-      if (!force) {
-          const cachedData = localStorage.getItem(cacheKey);
-          if (cachedData) {
-              const animes = JSON.parse(cachedData);
-              statusMsgEl.innerHTML = `<span class="text-green-400">✅ ${animes.length} animes carregados do Cache.</span>`;
-              
-              // CHAMA A ATUALIZAÇÃO DO CARD AQUI
-              atualizarEstatisticas(animes);
-              
-              console.log("📦 Dados do Cache + Stats atualizados.");
-              return; 
-          }
-      }
+    // --- FUNÇÃO PARA CARREGAR DADOS ---
+    async function carregarDados(force = false) {
+        if (!auth.currentUser) return;
+        
+        const uid = auth.currentUser.uid;
+        const cacheKey = `animes_${uid}`;
+        
+        // 1. Tentar ler do Cache Local
+        if (!force) {
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                const animes = JSON.parse(cachedData);
+                statusMsgEl.innerHTML = `<span class="text-green-400">✅ ${animes.length} animes carregados do Cache.</span>`;
+                atualizarEstatisticas(animes);
+                carregarUltimoAnimeAcessado(uid);
+                return; 
+            }
+        }
 
-      // 2. Busca no Firebase se necessário
-      try {
-          statusMsgEl.textContent = "Baixando dados do servidor...";
-          iconRefresh.classList.add("spin");
-          
-          const animesRef = collection(db, "users", uid, "animes");
-          const snapshot = await getDocs(animesRef);
-          
-          const listaAnimes = [];
-          snapshot.forEach(doc => {
-              listaAnimes.push(doc.data());
-          });
+        // 2. Busca no Firebase se necessário
+        try {
+            statusMsgEl.textContent = "Baixando dados do servidor...";
+            iconRefresh.classList.add("spin");
+            
+            const animesRef = collection(db, "users", uid, "animes");
+            const snapshot = await getDocs(animesRef);
+            
+            const listaAnimes =[];
+            snapshot.forEach(doc => {
+                listaAnimes.push(doc.data());
+            });
 
-          // 3. Salva no Cache
-          localStorage.setItem(cacheKey, JSON.stringify(listaAnimes));
-          
-          statusMsgEl.innerHTML = `<span class="text-blue-400">🔥 ${listaAnimes.length} animes baixados e salvos!</span>`;
-          
-          // CHAMA A ATUALIZAÇÃO DO CARD AQUI TAMBÉM
-          atualizarEstatisticas(listaAnimes);
-          
-          console.log("🔥 Dados baixados + Stats atualizados.");
+            // 3. Salva no Cache
+            localStorage.setItem(cacheKey, JSON.stringify(listaAnimes));
+            
+            statusMsgEl.innerHTML = `<span class="text-blue-400">🔥 ${listaAnimes.length} animes baixados e salvos!</span>`;
+            atualizarEstatisticas(listaAnimes);
+            carregarUltimoAnimeAcessado(uid);
 
-      } catch (error) {
-          console.error("Erro ao baixar dados:", error);
-          statusMsgEl.innerHTML = `<span class="text-red-500">Erro ao baixar dados.</span>`;
-      } finally {
-          iconRefresh.classList.remove("spin");
-      }
-  }
+        } catch (error) {
+            console.error("Erro ao baixar dados:", error);
+            statusMsgEl.innerHTML = `<span class="text-red-500">Erro ao baixar dados.</span>`;
+        } finally {
+            iconRefresh.classList.remove("spin");
+        }
+    }
 
-  // --- EXPOR FUNÇÃO DE REFRESH PARA O HTML ---
-  window.forcarAtualizacao = () => {
-      carregarDados(true); // true = Força a ida ao Firebase
-  };
+    // --- EXPOR FUNÇÃO DE REFRESH PARA O HTML ---
+    window.forcarAtualizacao = () => {
+        carregarDados(true); 
+    };
 
     function carregarUltimoAnimeAcessado(uid) {
         const cacheKey = `animes_${uid}`;
@@ -329,69 +420,55 @@
         if (cachedData) {
             const animes = JSON.parse(cachedData);
             
-            // 1. Ordenar por data de atualização (do mais novo para o mais antigo)
             const listaOrdenada = animes
-                .filter(a => a.ultima_atualizacao) // Garante que tem data
+                .filter(a => a.ultima_atualizacao)
                 .sort((a, b) => new Date(b.ultima_atualizacao) - new Date(a.ultima_atualizacao));
 
             if (listaOrdenada.length > 0) {
                 const ultimo = listaOrdenada[0];
 
-                // 2. Preencher o Card
                 document.getElementById("container-ultimo-anime").classList.remove("hidden");
-                document.getElementById("ultimo-nome").textContent = ultimo.NOME;
-                document.getElementById("ultimo-img").src = ultimo.IMAGEM;
-                document.getElementById("ultimo-episodios").textContent = `Ep: ${ultimo.ASSIS}/${ultimo.TOTAIS}`;
+                document.getElementById("ultimo-nome").textContent = ultimo.NOME || "Sem Nome";
+                document.getElementById("ultimo-img").src = ultimo.IMAGEM || "";
+                document.getElementById("ultimo-episodios").textContent = `Episódios: ${ultimo.ASSIS || 0}/${ultimo.TOTAIS || 0}`;
                 
-                // 3. Formatar a Data (Ex: "24 de dez.")
                 const dataObj = new Date(ultimo.ultima_atualizacao);
                 const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
                 const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 
                 document.getElementById("ultimo-data").textContent = `Atualizado em ${dataFormatada} às ${horaFormatada}`;
                 
-                // Re-inicializa ícones do Lucide se necessário
+                // Evento de clique com redirecionamento para a lista e busca automática
+                document.getElementById("card-ultimo").onclick = () => {
+                    window.location.href = `animes_lista.html?search=${encodeURIComponent(ultimo.NOME)}`;
+                };
+
                 if (window.lucide) lucide.createIcons();
             }
         }
     }
 
-  // --- FUNÇÃO SAIR (MY HUB) ---
-  window.sairParaHub = () => {
-      if (auth.currentUser) {
-          // Limpa o cache específico desse usuário
-          localStorage.removeItem(`animes_${auth.currentUser.uid}`);
-          console.log("🗑️ Cache limpo no logout.");
-      }
-      // Redireciona
-      window.location.href = 'home.html';
-  };
+    // --- FUNÇÃO SAIR (MY HUB) ---
+    window.sairParaHub = () => {
+        if (auth.currentUser) {
+            localStorage.removeItem(`animes_${auth.currentUser.uid}`);
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        } else {
+            window.location.href = 'index.html';
+        }
+    };
 
-  // --- DROPDOWN MENU ---
-  window.toggleMoreOptions = (event) => {
-      event.stopPropagation();
-      document.getElementById('more-options-dropdown').classList.toggle('hidden');
-  }
-
-  document.addEventListener('click', (e) => {
-      const dropdown = document.getElementById('more-options-dropdown');
-      const btn = document.getElementById('more-options-btn');
-      if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
-          dropdown.classList.add('hidden');
-      }
-  });
-
-  // --- AUTH STATE ---
-  onAuthStateChanged(auth, user => {
-    if (user) {
-        userEmailEl.textContent = user.email;
-        // Assim que loga, tenta carregar (do cache ou do banco)
-        carregarDados(false);
-        carregarUltimoAnimeAcessado(user.uid);
-    } else {
-        window.location.href = "login.html"; // Opcional: proteção de rota
-    }
-  });
+    // --- AUTH STATE ---
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            userEmailEl.textContent = user.email || user.uid;
+            carregarDados(false);
+        } else {
+            window.location.href = "index.html";
+        }
+    });
 </script>
 
 </body>
