@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer">
+    
+    <title>Class Animes — Lista — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+        }
+
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s; z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s; }
+        .main-content.sidebar-hidden { margin-left: 0; }
+
+        /* Animações do Pop-up (Toast) */
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOutUp {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateY(-20px); opacity: 0; }
+        }
+        .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        .toast-exit { animation: fadeOutUp 0.3s ease-in forwards; }
+
+        /* Estilo Dropdown Moderno */
+        .filter-dropdownMenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            width: 100%;
+            background: rgba(25, 25, 25, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-top: 6px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .filter-option {
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%; 
+            text-align: left; 
+            color: #d1d5db;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .filter-option:last-child { border-bottom: none; }
+        .filter-option:hover { background-color: rgba(255, 255, 255, 0.08); color: white; padding-left: 22px; }
+        .filter-option.selected { background-color: var(--accent-color); color: white; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home"><i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games"><i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="animes_manager.html" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Animes"><i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards/Molduras/Bg"><i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs"><i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás"><i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas"><i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia"><i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do"><i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair"><i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i></button>
+    </aside>
+
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition"><i data-lucide="menu" class="w-5 h-5"></i></button>
+                <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3"><i data-lucide="tv" class="text-accent"></i> My Animes</h2>
+            </div>
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28">
+            <div class="max-w-7xl mx-auto space-y-6">
+                
+                <!-- DROPDOWN DE FILTRO -->
+                <div class="relative w-full mb-6">
+                    <button id="dropdown-toggle"
+                            class="w-full flex justify-between items-center px-5 py-3.5 bg-black/40 text-white font-bold
+                                   border border-white/10 rounded-xl shadow-lg hover:bg-black/60 hover:border-white/20 transition-all backdrop-blur-md"
+                            onclick="toggleFilterDropdown()">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="filter" class="w-4 h-4 text-accent"></i>
+                            <span id="selected-filter-text">Todos inacabados</span>
+                        </div>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="dropdownMenu" class="filter-dropdownMenu hidden">
+                        <div class="filter-option selected" onclick="selecionarOpcaoMenu('inacabados', this)">Todos inacabados</div>
+                        <div class="filter-option" onclick="selecionarOpcaoMenu('temporada', this)">Temporada Atual</div>
+                        <div class="filter-option" onclick="selecionarOpcaoMenu('ult_temporada', this)">Última Temporada</div>
+                        <div class="filter-option" onclick="selecionarOpcaoMenu('andamento', this)">Andamento</div>
+                        <div class="filter-option" onclick="selecionarOpcaoMenu('selecionar_anime', this)">Selecionar Anime</div>
+                        <div class="filter-option" onclick="selecionarOpcaoMenu('selecionar_temporada', this)">Selecionar Temporada</div>
+                    </div>
+                </div>
+
+                <!-- CARREGAMENTO/ERRO -->
+                <div id="loading-indicator" class="text-center p-12 hidden">
+                    <i data-lucide="loader-2" class="w-10 h-10 mx-auto animate-spin text-accent"></i>
+                    <p class="mt-3 text-sm text-gray-400 font-semibold tracking-wider uppercase">Carregando animes...</p>
+                </div>
+                <div id="error-message" class="text-center p-8 hidden task-card rounded-2xl border-red-500/30">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto text-red-500 mb-2"></i>
+                    <p class="text-red-400 text-sm font-semibold">Ocorreu um erro ao carregar os dados. Verifique sua conexão.</p>
+                </div>
+
+                <!-- GRID DE CARDS -->
+                <div id="anime-list-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+                    <!-- Cards de animes serão injetados aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR FLUTUANTE -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <a href="animes_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i> <span class="hidden sm:inline">Início</span></a>
+            <a href="animes_cadastro.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Cadastro</span></a>
+            <a href="animes_edicao.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Edição</span></a>
+            <a href="animes_lista.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20"><i data-lucide="list" class="w-4 h-4"></i> <span class="hidden sm:inline">Lista</span></a>
+            
+            <div class="relative flex">
+                <button id="more-options-btn" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2" onclick="toggleMoreOptions(event)">
+                    <i data-lucide="more-horizontal" class="w-4 h-4"></i> <span class="hidden sm:inline">Mais</span>
+                </button>
+                <div id="more-options-dropdown" class="absolute bottom-full mb-3 right-0 w-48 glass-panel border border-white/10 rounded-2xl shadow-2xl p-2 hidden z-50 flex-col gap-1">
+                    <a href="animes_classificacoes.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold"><i data-lucide="bar-chart-2" class="w-4 h-4 text-accent"></i> Classificação</a>
+                    <a href="animes_estrelas.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold"><i data-lucide="star" class="w-4 h-4 text-accent"></i> Estrelas</a>
+                    <a href="animes_torneio.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold"><i data-lucide="trophy" class="w-4 h-4 text-accent"></i> Torneio</a>
+                    <a href="animes_serie.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold"><i data-lucide="layers" class="w-4 h-4 text-accent"></i> Série</a>
+                    <a href="animes_database.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold"><i data-lucide="database" class="w-4 h-4 text-accent"></i> DataBase</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- MODAL DE ANIME -->
+    <div id="anime-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md transition-all">
+        <div class="task-card w-full max-w-lg sm:rounded-2xl border-t sm:border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-10 duration-300">
+            
+            <div class="relative h-40 bg-black/50 shrink-0 border-b border-white/5">
+                <img id="modal-bg-blur" src="" class="absolute inset-0 w-full h-full object-cover opacity-30 blur-md">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#151515] to-transparent"></div>
+                
+                <button onclick="fecharModalAnime()" 
+                    class="absolute top-4 right-4 z-[60] w-9 h-9 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-accent hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10"
+                    aria-label="Fechar Modal">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+                <div class="absolute -bottom-4 left-5 flex items-end gap-4 z-10 w-full pr-5">
+                    <img id="modal-imagem" src="" class="w-24 h-36 object-cover rounded-xl border-2 border-[#2a2a2a] shadow-lg bg-[#111]">
+                    <div class="pb-6 flex-1 min-w-0">
+                        <h2 id="modal-nome" class="text-xl sm:text-2xl font-bold text-white truncate leading-tight drop-shadow-md">
+                            Nome do Anime
+                        </h2>
+                        
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2">
+                            <span id="modal-tag-estilo" class="text-[10px] uppercase font-black px-2 py-1 rounded-lg bg-accent text-white tracking-wider shadow-sm">
+                                Anime
+                            </span>
+                            <div class="flex items-center gap-2 text-xs text-gray-400 font-semibold">
+                                <span id="modal-ano" class="font-mono">2024</span>
+                                <span class="text-white/20">|</span>
+                                <div class="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-md border border-white/5">
+                                    <i data-lucide="play-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                                    <span id="modal-epsa" class="text-gray-200">0</span>
+                                    <span class="text-gray-500">/</span>
+                                    <span id="modal-epst">0</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-md border border-white/5">
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Nota</span>
+                                <span id="modal-tag-nota-f" class="text-xs font-black text-accent">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 pt-8 overflow-y-auto custom-scroll flex-1">
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Estado</label>
+                        <select id="modal-estado" class="w-full bg-black/40 border border-white/10 text-gray-200 text-xs rounded-xl p-2.5 focus:border-accent outline-none transition-colors appearance-none">
+                            <option class="bg-[#151515]" value="Completo">Completo</option>
+                            <option class="bg-[#151515]" value="Andamento">Andamento</option>
+                            <option class="bg-[#151515]" value="Incompleto">Incompleto</option>
+                            <option class="bg-[#151515]" value="Assistido">Assistido</option>
+                            <option class="bg-[#151515]" value="Desistência">Desistência</option>
+                            <option class="bg-[#151515]" value="N. Começado">N. Começado</option>
+                            <option class="bg-[#151515]" value="N. Assistido">N. Assistido</option>
+                            <option class="bg-[#151515]" value="N. Lançado">N. Lançado</option>
+                            <option class="bg-[#151515]" value="N. Sei">N. Sei</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Nota MAL</label>
+                        <div class="relative">
+                            <input id="modal-mal" type="number" step="0.01" 
+                                class="w-full bg-black/40 border border-white/10 text-gray-200 text-xs rounded-xl p-2.5 pl-3 pr-9 focus:border-accent outline-none transition-colors" 
+                                placeholder="0.0">
+                            <button type="button" onclick="pegarDoMAL()" 
+                                class="absolute right-1 top-1 bottom-1 px-2.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg flex items-center justify-center transition-colors">
+                                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Stars</label>
+                        <div class="relative">
+                            <select id="modal-stars" type="number" step="0.5" max="5" class="w-full bg-black/40 border border-white/10 text-gray-200 text-xs rounded-xl p-2.5 focus:border-accent outline-none transition-colors appearance-none">
+                                <option class="bg-[#151515]" value="">-</option>
+                                <option class="bg-[#151515]" value="✶">🥇 R1</option>
+                                <option class="bg-[#151515]" value="✶ ✶">🥈 R2</option>
+                                <option class="bg-[#151515]" value="✶ ✶ ✶">🥉 R3</option>
+                                <option class="bg-[#151515]" value="5">5 ⭐</option>
+                                <option class="bg-[#151515]" value="4">4 ⭐</option>
+                                <option class="bg-[#151515]" value="3">3 ⭐</option>
+                                <option class="bg-[#151515]" value="2">2 ⭐</option>
+                                <option class="bg-[#151515]" value="1">1 ⭐</option>
+                                <option class="bg-[#151515]" value="0">0 ⭐</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-[1px] bg-white/5 w-full mb-5"></div>
+                <div id="notas_content"></div>
+            </div>
+
+            <div class="p-4 bg-black/60 border-t border-white/5 flex gap-3 backdrop-blur-md">
+                <button id="btn-mais-um-ep" class="flex-1 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-3 rounded-xl flex items-center justify-center gap-3 transition group">
+                    <div class="bg-accent rounded-full p-1.5 group-hover:scale-110 transition shadow-lg shadow-accent/20">
+                        <i data-lucide="plus" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <div class="text-left leading-none">
+                        <span class="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Progresso</span>
+                        <span class="text-sm font-bold">+1 Episódio</span>
+                    </div>
+                </button>
+
+                <button id="btn-salvar-tudo" class="flex-[2] bg-accent hover:bg-[#992743] text-white font-bold py-3 rounded-xl shadow-lg shadow-accent/20 transition flex items-center justify-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>Salvar Alterações</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PESQUISA / FILTRO -->
+    <div id="modal-selecao" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="task-card w-full max-w-md rounded-2xl border border-white/10 flex flex-col max-h-[80vh] overflow-hidden">
+            <div class="p-5 bg-black/40 border-b border-white/5 flex justify-between items-center">
+                <h3 id="titulo-modal-selecao" class="text-lg font-bold text-white flex items-center gap-2"><i data-lucide="search" class="w-5 h-5 text-accent"></i> Selecionar</h3>
+                <button onclick="fecharModalSelecao()" class="text-gray-400 hover:text-white bg-white/5 p-1.5 rounded-lg hover:bg-white/10 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-4 bg-black/20 border-b border-white/5">
+                <input type="text" id="input-busca-selecao" placeholder="Buscar..." 
+                       class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition">
+            </div>
+            <div id="lista-selecao" class="overflow-y-auto p-3 space-y-1 custom-scroll bg-black/10"></div>
+        </div>
+    </div>
+
+<script>
+    lucide.createIcons();
+
+    // Controle da Sidebar e Header
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    document.getElementById('toggle-sidebar').addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    window.toggleMoreOptions = (event) => {
+        event.stopPropagation();
+        document.getElementById('more-options-dropdown').classList.toggle('hidden');
+    }
+    
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('more-options-dropdown');
+        const btn = document.getElementById('more-options-btn');
+        if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) dropdown.classList.add('hidden');
+        
+        const filterMenu = document.getElementById("dropdownMenu");
+        const filterBtn = document.getElementById("dropdown-toggle");
+        if(filterMenu && !filterMenu.contains(e.target) && !filterBtn.contains(e.target)) filterMenu.classList.add('hidden');
+    });
+
+    // Função Global de Toasts
+    window.showToast = (message, type = 'success') => {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let styleClasses = '';
+        let iconName = '';
+
+        if (type === 'success') {
+            styleClasses = 'bg-green-500/20 border-green-500/30 text-green-400';
+            iconName = 'check-circle';
+        } else if (type === 'error') {
+            styleClasses = 'bg-red-500/20 border-red-500/30 text-red-400';
+            iconName = 'alert-circle';
+        } else if (type === 'warning') {
+            styleClasses = 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400';
+            iconName = 'alert-triangle';
+        }
+
+        toast.className = `flex items-center gap-3 px-5 py-3.5 rounded-xl border backdrop-blur-md shadow-2xl toast-enter pointer-events-auto ${styleClasses}`;
+        toast.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i> <span class="font-bold text-sm">${message}</span>`;
+
+        container.appendChild(toast);
+        lucide.createIcons({ root: toast });
+
+        setTimeout(() => {
+            toast.classList.remove('toast-enter');
+            toast.classList.add('toast-exit');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    };
+
+    window.exibirMensagem = (msg, type = 'success') => {
+        window.showToast(msg, type);
+    };
+
+    window.abrirPagina = (pagina) => { window.location.href = pagina; };
+    window.toggleFilterDropdown = () => document.getElementById("dropdownMenu").classList.toggle("hidden");
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+
+    document.getElementById('logout-btn').onclick = () => {
+        if (auth.currentUser) {
+            localStorage.removeItem(`animes_${auth.currentUser.uid}`);
+            signOut(auth).then(() => window.location.href = 'index.html');
+        } else {
+            window.location.href = 'index.html';
+        }
+    };
+
+    window.animeCache = [];
+    window._notasAnime = { ep1: "", eps:[], epf: "" }; 
+
+    async function carregarAnimesParaCache() {
+        const user = auth.currentUser;
+        if (!user) return[];
+        try {
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            const ref = collection(db, "users", user.uid, "animes");
+            const snapshot = await getDocs(ref);
+            const dados = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+            window.animeCache = dados;
+            localStorage.setItem(`animes_${user.uid}`, JSON.stringify(dados));
+            document.getElementById('loading-indicator').classList.add('hidden');
+            return dados;
+        } catch (e) {
+            document.getElementById('loading-indicator').classList.add('hidden');
+            document.getElementById('error-message').classList.remove('hidden');
+            return[];
+        }
+    }
+
+    async function loadAnimeList(filtro = "inacabados") {        
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!window.animeCache || window.animeCache.length === 0) {
+            const cachedData = localStorage.getItem(`animes_${user.uid}`);
+            if (cachedData) window.animeCache = JSON.parse(cachedData);
+            else await carregarAnimesParaCache();
+        }
+
+        let lista = [...window.animeCache];
+
+        if (filtro === "andamento") {
+            lista = lista.filter(a => a.ESTADO === "Andamento");
+        } else if (filtro === "inacabados") {
+            lista = lista.filter(a => !["Completo", "Assistido", "Desistência"].includes(a.ESTADO));
+        } else if (filtro === "temporada" || filtro === "ult_temporada") {
+            let anoAlvo = new Date().getFullYear();
+            let tempAlvo = getTemporadaAtual();
+            if (filtro === "ult_temporada") {
+                if (tempAlvo === 1) { tempAlvo = 10; anoAlvo--; }
+                else tempAlvo -= 3;
+            }
+            lista = lista.filter(anime => {
+                const t = (anime.TEMPORADA || "").toLowerCase();
+                const a = Number(anime.ANO);
+                if (!t || a !== anoAlvo || t.includes("outra")) return false;
+                return t.includes(`(${tempAlvo})`);
+            });
+        } else {
+            lista = lista.filter(a => (a.ESTADO || "").toLowerCase() === String(filtro).toLowerCase());
+        }
+
+        lista.sort((a, b) => (Number(a.N) || 0) - (Number(b.N) || 0));
+        renderAnimeCards(lista);
+    }
+    window.loadAnimeList = loadAnimeList;
+
+    function getTemporadaAtual() {
+        const mes = new Date().getMonth() + 1;
+        if (mes <= 3) return 1;
+        if (mes <= 6) return 4;
+        if (mes <= 9) return 7;
+        return 10;
+    }
+
+    function renderAnimeCards(lista) {        
+        const grid = document.getElementById("anime-list-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        if (lista.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12 font-semibold bg-white/5 rounded-2xl border border-white/5 border-dashed"><i data-lucide="list-x" class="w-10 h-10 mx-auto mb-3 opacity-50 text-accent"></i>Nenhum anime encontrado.</div>`;
+            lucide.createIcons();
+            return;
+        }
+        
+        lista.forEach(anime => {            
+            const div = document.createElement("div");
+            div.className = "task-card rounded-2xl overflow-hidden flex flex-col relative group h-full cursor-pointer";
+            div.onclick = () => abrirModalAnime(anime.NOME);
+
+            const defaultImg = 'https://via.placeholder.com/300x450?text=Sem+Imagem';
+            
+            div.innerHTML = `
+                <div class="absolute top-2 left-2 z-10 text-[10px] px-2 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 text-white font-bold shadow-lg flex items-center gap-1">
+                    <i data-lucide="play-circle" class="w-3 h-3 text-accent"></i>
+                    ${anime.ASSIS || 0}/${anime.TOTAIS || '?'}
+                </div>
+                
+                ${anime.STARS ? `
+                <div class="absolute top-2 right-2 z-10 text-[10px] px-2 py-1 rounded-lg bg-accent text-white font-bold shadow-lg border border-white/20">
+                    ${anime.STARS}
+                </div>
+                ` : ''}
+
+                <div class="w-full aspect-[2/3] bg-black/50 relative overflow-hidden border-b border-white/5 shrink-0">
+                    <img src="${anime.IMAGEM || defaultImg}" alt="${anime.NOME}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='${defaultImg}'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="bg-accent/80 p-3 rounded-full backdrop-blur-sm transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 shadow-xl shadow-accent/30">
+                            <i data-lucide="edit-3" class="w-6 h-6 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 sm:p-4 flex-1 flex flex-col gap-2">
+                    <h3 class="font-bold text-white text-sm sm:text-base line-clamp-1" title="${anime.NOME}">${anime.NOME}</h3>
+                    
+                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                        <span class="text-gray-400 font-semibold truncate max-w-[60%]">${anime.ESTILO || "Anime"} • ${anime.ANO || "?"}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] sm:text-xs">
+                        <span class="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-300 font-bold tracking-wider">${anime.ESTADO || "-"}</span>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(div);
+        });
+        lucide.createIcons();
+    }
+
+    function abrirModalAnime(nome) {
+        const anime = window.animeCache.find(a => a.NOME === nome);
+        if (!anime) return;
+
+        const ref = doc(db, "users", auth.currentUser.uid, "animes", nome);
+        const modal = document.getElementById("anime-modal");
+        modal.classList.remove("hidden");
+
+        const btnSalvar = document.getElementById("btn-salvar-tudo");
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>`;
+        
+        document.getElementById("modal-nome").textContent = anime.NOME;
+        document.getElementById("modal-nome").dataset.tempTotalEps = ""; 
+        document.getElementById("modal-imagem").src = anime.IMAGEM || "https://placehold.co/150x200/111/333?text=?";
+        document.getElementById("modal-bg-blur").src = anime.IMAGEM || "";
+        document.getElementById("modal-tag-estilo").textContent = anime.ESTILO || "Anime";
+        document.getElementById("modal-ano").textContent = anime.ANO || "????";
+        document.getElementById("modal-epsa").textContent = anime.ASSIS || "0";
+        document.getElementById("modal-epst").textContent = anime.TOTAIS || "0";
+        document.getElementById("modal-tag-nota-f").textContent = (anime.NOTA_F !== undefined && anime.NOTA_F !== null && anime.NOTA_F !== '') ? Number(anime.NOTA_F).toFixed(2) : "0.00";
+
+        document.getElementById("modal-estado").value = anime.ESTADO || "Andamento";
+        document.getElementById("modal-mal").value = anime.N_MAL || ""; 
+        document.getElementById("modal-stars").value = anime.STARS || ""; 
+
+        const estilo = anime.ESTILO || "Anime";
+        window._arcosAnime = {};
+        window._openingsAnime = {};
+        window._notasAnime = { ep1: "", eps:[], epf: "" };
+
+        if (estilo === "Anime Inf.") {
+            try {
+                if (anime["N. A+ e INFT."]) window._arcosAnime = JSON.parse(anime["N. A+ e INFT."]);
+                if (anime["OPENINGS_INFT"]) window._openingsAnime = JSON.parse(anime["OPENINGS_INFT"]);
+            } catch (e) {}
+        } else if (estilo === "Anime" || estilo === "Anime Inf") {
+            const rawEps = anime.EPS || anime.N_Eps || "";
+            window._notasAnime = {
+                ep1: anime.EP1 || anime.N_Ep_1 || "",
+                eps: rawEps ? rawEps.split(",") : new Array(16).fill(""),
+                epf: anime.EPF || anime.N_Ep_F || ""
+            };
+        }
+
+        renderizarFormularioNotas(estilo, anime);
+
+        let epAtual = parseInt(anime.ASSIS || 0);
+        document.getElementById("btn-mais-um-ep").onclick = () => {
+            epAtual++;
+            document.getElementById("modal-epsa").textContent = epAtual;
+        };
+
+        btnSalvar.onclick = async () => {
+            btnSalvar.disabled = true;
+            btnSalvar.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> PROCESSANDO...`;
+
+            const ESTILO = document.getElementById("modal-tag-estilo").textContent;
+            const MAL = parseFloat(document.getElementById("modal-mal").value) || 0;
+            const STARS = parseFloat(document.getElementById("modal-stars").value) || 0;
+            const nomeAnime = document.getElementById("modal-nome").textContent;
+            const totalEps = document.getElementById("modal-nome").dataset.tempTotalEps || anime.TOTAIS;
+
+            let payloadNotas = {};
+            let dadosNotas = { notasAnime: null, notasOpening: null, notaFilme: null, notaEspecial: null, notaInf: null };
+
+            if (ESTILO === "Anime") {
+                const notas = window._notasAnime;
+                const OP_FORMATADA = (parseFloat(anime.OP) || 0).toFixed(2);
+                dadosNotas.notasAnime = notas;
+                dadosNotas.notaOp = OP_FORMATADA;
+                payloadNotas = { N_Ep_1: notas.ep1, N_Ep_F: notas.epf, N_Eps: notas.eps.join(",") };
+            } else if (ESTILO === "Filme") {
+                const val = document.getElementById("edit_nota_unica")?.value || "";
+                dadosNotas.notaFilme = val;
+                payloadNotas = { "N. FILME ESP.": val };
+            } else if (ESTILO === "Especial") {
+                const val = document.getElementById("edit_nota_unica")?.value || "";
+                dadosNotas.notaEspecial = val;
+                payloadNotas = { "N. FILME ESP.": val };
+            } else if (ESTILO === "Anime Inf.") {
+                const arcos = window._arcosAnime || {};
+                let sA = 0, cA = 0;
+                Object.values(arcos).forEach(arco => {
+                    const vals =[arco.i, arco.m, arco.f].map(n => parseFloat(n) || 0).filter(n => n > 0);
+                    if (vals.length > 0) { sA += (vals.reduce((a, b) => a + b, 0) / vals.length); cA++; }
+                });
+                const MEDIA_ARCOS = cA > 0 ? (sA / cA).toFixed(2) : "";
+                
+                const ops = window._openingsAnime || {};
+                let sO = 0, cO = 0;
+                Object.values(ops).forEach(op => {
+                    const score = (parseFloat(op.musica) || 0) + (parseFloat(op.animacao) || 0);
+                    if (score > 0) { sO += score; cO++; }
+                });
+                const MEDIA_OPENINGS = cO > 0 ? (sO / cO).toFixed(2) : "";
+
+                dadosNotas.notaInf = MEDIA_ARCOS;
+                dadosNotas.notaInfOpenings = MEDIA_OPENINGS;
+                payloadNotas = { "N_INFT": MEDIA_ARCOS, "OP": MEDIA_OPENINGS, "N. A+ e INFT.": JSON.stringify(arcos), "OPENINGS_INFT": JSON.stringify(ops) };
+            }
+
+            const NOTA_F = calcularNotaFinal(ESTILO, MAL, STARS, dadosNotas);
+            let payload = {
+                ESTADO: document.getElementById("modal-estado").value, STARS: STARS, N_MAL: MAL,
+                TOTAIS: parseInt(totalEps) || 0, ASSIS: epAtual, ultima_atualizacao: new Date().toISOString(),
+                NOTA_F: NOTA_F, ...payloadNotas
+            };
+
+            try {
+                await setDoc(ref, payload, { merge: true });
+                const idx = window.animeCache.findIndex(a => a.NOME === nomeAnime);
+                if (idx !== -1) {
+                    window.animeCache[idx] = { ...window.animeCache[idx], ...payload };
+                    localStorage.setItem(`animes_${auth.currentUser.uid}`, JSON.stringify(window.animeCache));
+                }
+                btnSalvar.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> SALVO!`;
+                window.showToast("Alterações salvas com sucesso!", "success");
+                setTimeout(() => { fecharModalAnime(); loadAnimeList(); }, 1000);
+            } catch (err) {
+                window.showToast("Erro ao salvar notas.", "error");
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = `Tentar Novamente`;
+            }
+        };
+        lucide.createIcons();
+    }
+
+    function calcularNotaFinal(estilo, mal, stars, dadosNotas) {
+        let nota_f = "";
+        const n_mal_d = (parseFloat(mal) || 0) / 2;
+        const star_map = { "": 0, "0": 3, "1": 7, "2": 8, "3": 9, "4": 10, "5": 10.2, "✶ ✶ ✶": 10.3, "✶ ✶": 10.4, "✶": 10.5 };
+        const star_n = star_map[stars] !== undefined ? star_map[stars] : 0;
+        const mal_star_d = (n_mal_d + star_n) / 1.5;
+
+        if (estilo === "Anime") {
+            const notas = dadosNotas.notasAnime;
+            const ep_tot = parseInt(dadosNotas.TOTAIS) || 0;
+            const n_eps_list = notas.eps.map(n => parseFloat(n)).filter(n => !isNaN(n) && n > 0);
+            const notas_para_media =[...n_eps_list];
+            if (parseFloat(notas.ep1) > 0) notas_para_media.push(parseFloat(notas.ep1));
+            if (parseFloat(notas.epf) > 0) notas_para_media.push(parseFloat(notas.epf));
+            if (parseFloat(dadosNotas.notaOp) > 0) notas_para_media.push(parseFloat(dadosNotas.notaOp));
+            let n_f_1 = notas_para_media.length > 0 ? notas_para_media.reduce((a, b) => a + b, 0) / notas_para_media.length : 0;
+            let bonus_ep = 0.00;
+            if (ep_tot > 0) {
+                if (ep_tot <= 15) bonus_ep = 0.01;
+                else if (ep_tot <= 26) bonus_ep = 0.02;
+                else bonus_ep = 0.03;
+            }
+            if (n_f_1 > 0 || mal_star_d > 0) nota_f = (((n_f_1 + mal_star_d) / 2) + bonus_ep).toFixed(2);
+        } else if (estilo === "Anime Inf.") {
+            const nA = parseFloat(dadosNotas.notaInf) || 0, nO = parseFloat(dadosNotas.notaInfOpenings) || 0;
+            let n_f_1 = (nA > 0 && nO > 0) ? (nA + nO) / 2 : (nA > 0 ? nA : (nO > 0 ? nO : 0));
+            if (n_f_1 > 0 || mal_star_d > 0) nota_f = (((n_f_1 + mal_star_d) / 2) + 0.04).toFixed(2);
+        } else if (estilo === "Filme" || estilo === "Especial") {
+            const n_f_e = parseFloat(dadosNotas.notaFilme || dadosNotas.notaEspecial) || 0;
+            if (n_f_e > 0 || mal_star_d > 0) nota_f = ((n_f_e + mal_star_d) / 2).toFixed(2);
+        }
+        return nota_f !== "" ? parseFloat(nota_f) : "";
+    }
+
+    function renderizarFormularioNotas(estilo, anime) {
+        const container = document.getElementById("notas_content");
+        const header = `<div class="mb-4 flex items-center gap-2"><i data-lucide="notebook-pen" class="w-4 h-4 text-accent"></i><h3 class="text-xs font-bold text-white uppercase tracking-wider">Notas</h3></div>`;
+
+        if (estilo === "Filme" || estilo === "Especial") {
+            container.innerHTML = `
+                ${header}
+                <div class="bg-black/30 p-4 rounded-xl border border-white/10">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Nota Geral (${estilo})</label>
+                    <input id="edit_nota_unica" type="number" step="0.1" value="${anime["N. FILME ESP."] || ''}" 
+                        class="w-full bg-black/40 border border-white/10 text-white p-3 rounded-xl mt-2 focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all text-lg font-mono">
+                </div>`;
+        } else if (estilo === "Anime Inf.") {
+            container.innerHTML = `
+                ${header}
+                <div class="space-y-5 bg-black/30 p-4 rounded-xl border border-white/10">
+                    <div class="border-b border-white/10 pb-5">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-green-400 text-xs uppercase flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> Notas por Arco</h3>
+                            <span id="ai_media_arcos" class="text-[10px] font-mono font-bold text-gray-400 bg-black/50 px-2 py-1 rounded-md border border-white/5">Média: --</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="font-bold text-[10px] text-gray-500 uppercase mb-1.5 block">Selecionar Arco</label>
+                            <select id="ai_arco_select" class="w-full px-3 py-2.5 bg-black/40 border border-white/10 text-white text-xs rounded-xl focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none transition-all appearance-none"></select>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1.5">Início</label>
+                                <input id="ai_nota_i" type="number" min="0" max="10" step="0.5" placeholder="-" class="w-full px-2 py-2.5 bg-black/40 border border-white/10 text-white rounded-xl text-center text-xs focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1.5">Meio</label>
+                                <input id="ai_nota_m" type="number" min="0" max="10" step="0.5" placeholder="-" class="w-full px-2 py-2.5 bg-black/40 border border-white/10 text-white rounded-xl text-center text-xs focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1.5">Fim</label>
+                                <input id="ai_nota_f" type="number" min="0" max="10" step="0.5" placeholder="-" class="w-full px-2 py-2.5 bg-black/40 border border-white/10 text-white rounded-xl text-center text-xs focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none transition-all">
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-4">
+                            <button class="flex-[2] bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition flex justify-center items-center gap-2" onclick="aiAdicionarArco()"><i data-lucide="save" class="w-3.5 h-3.5"></i> Salvar Arco</button>
+                            <button class="flex-1 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition flex justify-center items-center gap-2" onclick="aiExcluirArco()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir</button>
+                        </div>
+                        <div id="ai_arco_lista" class="bg-black/20 border border-white/5 rounded-xl p-2 h-32 overflow-y-auto custom-scroll text-xs mt-4 flex flex-col gap-1.5"></div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-accent text-xs uppercase flex items-center gap-2"><i data-lucide="music" class="w-4 h-4"></i> Openings</h3>
+                            <span id="ai_media_ops" class="text-[10px] font-mono font-bold text-gray-400 bg-black/50 px-2 py-1 rounded-md border border-white/5">Média: --</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="font-bold text-[10px] text-gray-500 uppercase mb-1.5 block">Opening (Op)</label>
+                            <select id="ai_op_select" class="w-full px-3 py-2.5 bg-black/40 border border-white/10 text-white text-xs rounded-xl focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all appearance-none"><option class="bg-[#151515]" value="">-- Nova Opening --</option></select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1.5">Música</label>
+                                <input id="ai_op_musica" type="number" min="0" max="5" step="0.5" placeholder="0-5" class="w-full px-2 py-2.5 bg-black/40 border border-white/10 text-white rounded-xl text-center text-xs focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="font-bold text-[9px] text-gray-500 uppercase text-center block mb-1.5">Animação</label>
+                                <input id="ai_op_animacao" type="number" min="0" max="5" step="0.5" placeholder="0-5" class="w-full px-2 py-2.5 bg-black/40 border border-white/10 text-white rounded-xl text-center text-xs focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all">
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-4">
+                            <button class="flex-[2] bg-accent/10 border border-accent/30 text-accent hover:bg-accent hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition flex justify-center items-center gap-2" onclick="aiAdicionarOpening()"><i data-lucide="save" class="w-3.5 h-3.5"></i> Salvar OP</button>
+                            <button class="flex-1 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition flex justify-center items-center gap-2" onclick="aiExcluirOpening()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir</button>
+                        </div>
+                        <div id="ai_op_lista" class="bg-black/20 border border-white/5 rounded-xl p-2 h-32 overflow-y-auto custom-scroll text-xs mt-4 flex flex-col gap-1.5"></div>
+                    </div>
+                </div>`;
+            renderizarListaArcos();     
+            renderizarListaOpenings();
+            atualizarVisualizacaoArcos();
+            atualizarVisualizacaoOpenings();
+        } else {
+            let opts = `<option class="bg-[#151515]" value="1">Episódio 1</option>`;
+            for(let i=1; i<=16; i++) {
+                if(i==1) opts += `<option class="bg-[#151515]" value="2-3">Eps 2-3</option>`;
+                else {
+                    let start = 4 + (i-2)*3;
+                    opts += `<option class="bg-[#151515]" value="${start}-${start+2}">Eps ${start}-${start+2}</option>`;
+                }
+            }
+            opts += `<option class="bg-[#151515]" value="Final">Episódio Final</option>`;
+
+            container.innerHTML = `
+                ${header}
+                <div class="bg-black/30 p-4 rounded-xl border border-white/10">
+                    <div class="flex gap-3 mb-4">
+                        <div class="flex-[2]">
+                            <label class="text-[10px] text-gray-500 font-bold uppercase mb-1.5 block tracking-wider">Selecionar Faixa</label>
+                            <select id="nota_faixa" class="w-full bg-black/40 border border-white/10 text-white p-2.5 rounded-xl text-xs focus:border-accent focus:ring-1 focus:ring-accent outline-none appearance-none transition-all">${opts}</select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-[10px] text-gray-500 font-bold uppercase mb-1.5 block tracking-wider">Nota</label>
+                            <input id="nota_valor" type="number" step="0.1" class="w-full bg-black/40 border border-white/10 text-white p-2.5 rounded-xl text-xs font-bold text-center focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-5">
+                        <button onclick="addNotaAnime()" class="bg-green-500/10 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition">Adicionar</button>
+                        <button onclick="editNotaAnime()" class="bg-blue-500/10 text-blue-500 border border-blue-500/30 hover:bg-blue-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition">Atualizar</button>
+                        <button onclick="deleteNotaAnime()" class="bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition">Apagar</button>
+                    </div>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Resumo das Notas</div>
+                    <div id="anime_notas_visualizacao" class="flex flex-wrap gap-2 min-h-[50px] p-3 bg-black/40 rounded-xl border border-white/5"></div>
+                </div>`;
+            atualizarVisualizacaoNotasAnime();
+        }
+        lucide.createIcons();
+    }
+
+    function atualizarVisualizacaoArcos() {
+        const lista = document.getElementById("ai_arco_lista");
+        const mediaEl = document.getElementById("ai_media_arcos");
+        const dados = Object.entries(window._arcosAnime || {}).map(([key, val]) => ({ nome: key, ...val }));
+        
+        if (dados.length === 0) {
+            mediaEl.textContent = "Média: --";
+            lista.innerHTML = `<span class="text-gray-500 italic text-[10px] p-2 text-center block">Sem arcos</span>`;
+            return;
+        }
+
+        const somaTotal = dados.reduce((acc, curr) => acc + ((parseFloat(curr.i)+parseFloat(curr.m)+parseFloat(curr.f))/3), 0);
+        mediaEl.textContent = `Média: ${(somaTotal / dados.length).toFixed(2)}`;
+
+        lista.innerHTML = dados.map((arco) => {
+            const mediaArco = ((parseFloat(arco.i) + parseFloat(arco.m) + parseFloat(arco.f)) / 3).toFixed(1);
+            return `
+            <div class="group flex items-center justify-between bg-black/40 hover:bg-white/5 py-2 px-3 rounded-lg border-l-4 border-green-500 transition-all gap-2">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-[11px] font-bold text-gray-300 truncate">${arco.nome}</span>
+                    <span class="text-[9px] font-black text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">${mediaArco}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center text-[10px] font-mono text-gray-400 gap-2">
+                        <span class="text-[9px] font-bold text-green-400">I<span class="text-white ml-1">${arco.i}</span></span>
+                        <div class="w-px h-3 bg-white/20"></div>
+                        <span class="text-[9px] font-bold text-green-400">M<span class="text-white ml-1">${arco.m}</span></span>
+                        <div class="w-px h-3 bg-white/20"></div>
+                        <span class="text-[9px] font-bold text-green-400">F<span class="text-white ml-1">${arco.f}</span></span>
+                    </div>
+                    <button onclick="aiExcluirArco('${arco.nome}')" class="text-gray-500 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-all"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            </div>`;
+        }).join("");
+        lucide.createIcons();
+    }
+
+    function atualizarVisualizacaoOpenings() {
+        const lista = document.getElementById("ai_op_lista");
+        const mediaEl = document.getElementById("ai_media_ops");
+        const dados = Object.entries(window._openingsAnime || {}).map(([key, val]) => ({ nome: key, ...val }));
+
+        if (dados.length === 0) {
+            mediaEl.textContent = "Média: --";
+            lista.innerHTML = `<span class="text-gray-500 italic text-[10px] p-2 text-center block">Sem openings</span>`;
+            return;
+        }
+
+        const somaTotal = dados.reduce((acc, curr) => acc + ((parseFloat(curr.musica)+parseFloat(curr.animacao))), 0);
+        mediaEl.textContent = `Média: ${(somaTotal / dados.length).toFixed(2)}`;
+
+        lista.innerHTML = dados.map((op, index) => {
+            const totalOp = (parseFloat(op.musica) + parseFloat(op.animacao)).toFixed(1);
+            return `
+            <div class="group flex items-center justify-between bg-black/40 hover:bg-white/5 p-2 px-3 rounded-lg border-l-4 border-accent transition-all gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">OP ${index + 1}</span>
+                    <span class="text-[11px] font-medium text-gray-300 truncate max-w-[80px]">${op.nome}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1"><i data-lucide="music-2" class="w-3 h-3 text-gray-500"></i><span class="text-[10px] font-bold text-white">${op.musica}</span></div>
+                        <div class="flex items-center gap-1"><i data-lucide="film" class="w-3 h-3 text-gray-500"></i><span class="text-[10px] font-bold text-white">${op.animacao}</span></div>
+                    </div>
+                    <div class="h-3 w-px bg-white/10"></div>
+                    <span class="text-[10px] font-mono font-bold text-accent w-6 text-right">${totalOp}</span>
+                    <button onclick="aiExcluirOpening('${op.nome}')" class="text-gray-500 hover:text-red-500 transition-colors opacity-60 group-hover:opacity-100 ml-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            </div>`;
+        }).join("");
+        lucide.createIcons();
+    }
+        
+    function faixaParaIndice(faixa) {
+        if (faixa === "2-3") return 0;
+        const [ini] = faixa.split("-").map(n => parseInt(n));
+        return Math.floor((ini - 4) / 3) + 1;
+    }
+
+    window.addNotaAnime = () => {
+        const faixa = document.getElementById("nota_faixa").value;
+        const valor = document.getElementById("nota_valor").value;
+        if (!valor) return window.showToast("Digite uma nota válida!", "warning");
+        if (faixa === "1") window._notasAnime.ep1 = valor;
+        else if (faixa === "Final") window._notasAnime.epf = valor;
+        else window._notasAnime.eps[faixaParaIndice(faixa)] = valor;
+        atualizarVisualizacaoNotasAnime();
+        document.getElementById("nota_valor").value = "";
+    }
+    window.editNotaAnime = window.addNotaAnime;
+
+    window.deleteNotaAnime = () => {
+        const faixa = document.getElementById("nota_faixa").value;
+        if (faixa === "1") window._notasAnime.ep1 = "";
+        else if (faixa === "Final") window._notasAnime.epf = "";
+        else window._notasAnime.eps[faixaParaIndice(faixa)] = "";
+        atualizarVisualizacaoNotasAnime();
+    }
+
+    function atualizarVisualizacaoNotasAnime() {
+        const box = document.getElementById("anime_notas_visualizacao");
+        if (!box) return;
+        const { ep1, eps, epf } = window._notasAnime;
+        let html = "";
+        if (ep1) html += `<div class="bg-accent/20 border border-accent/50 text-accent px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm whitespace-nowrap"><b>Ep 1:</b> <span class="text-white">${ep1}</span></div>`;
+        eps.forEach((nota, idx) => {
+            if (!nota) return;
+            let label = (idx === 0) ? "2-3" : `${4 + (idx-1)*3}-${4 + (idx-1)*3 + 2}`;
+            html += `<div class="bg-black/60 border border-white/10 text-gray-300 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm whitespace-nowrap"><b>${label}:</b> <span class="text-white">${nota}</span></div>`;
+        });
+        if (epf) html += `<div class="bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm whitespace-nowrap"><b>Final:</b> <span class="text-white">${epf}</span></div>`;
+        box.innerHTML = html || `<span class="text-xs text-gray-500 italic p-1">Sem notas registradas.</span>`;
+    }
+
+    window.selecionarOpcaoMenu = (filtro, elemento) => {
+        document.getElementById("selected-filter-text").textContent = elemento.textContent.trim();
+        document.querySelectorAll("#dropdownMenu .filter-option").forEach(opt => opt.classList.remove("selected"));
+        elemento.classList.add("selected");
+        document.getElementById("dropdownMenu").classList.add("hidden");
+        if (filtro === 'selecionar_anime') abrirModalSelecao('anime');
+        else if (filtro === 'selecionar_temporada') abrirModalSelecao('temporada');
+        else loadAnimeList(filtro);
+    };
+
+    window.abrirModalSelecao = (tipo) => {
+        const modal = document.getElementById('modal-selecao');
+        const titulo = document.getElementById('titulo-modal-selecao');
+        const listaHtml = document.getElementById('lista-selecao');
+        const inputBusca = document.getElementById('input-busca-selecao');
+        
+        document.getElementById("dropdownMenu").classList.add("hidden");
+        listaHtml.innerHTML = ""; inputBusca.value = "";
+        modal.classList.remove('hidden'); inputBusca.focus();
+        
+        let itens =[];
+        if (tipo === 'anime') {
+            titulo.innerHTML = '<i data-lucide="tv" class="w-5 h-5 text-accent"></i> Selecionar Anime';
+            itens = window.animeCache.map(a => ({
+                idUnico: a.Num || a.id || a.NOME, textoPrincipal: a.NOME, labelExibicao: `${a.Num ? a.Num + '. ' : ''}${a.NOME}`
+            })).sort((a, b) => a.textoPrincipal.localeCompare(b.textoPrincipal));
+        } else {
+            titulo.innerHTML = '<i data-lucide="calendar" class="w-5 h-5 text-accent"></i> Selecionar Temporada';
+            const temps =[...new Set(window.animeCache.map(a => {
+                const t = (a.TEMPORADA || "").trim(); const ano = String(a.ANO || "").trim(); return (t && ano) ? `${t} ${ano}` : null;
+            }).filter(x => x))];
+            itens = temps.map(t => ({ idUnico: t, textoPrincipal: t, labelExibicao: t })).sort((a, b) => b.textoPrincipal.localeCompare(a.textoPrincipal));
+        }
+
+        const render = (busca = "") => {
+            listaHtml.innerHTML = "";
+            const filtrados = itens.filter(item => item.textoPrincipal.toLowerCase().includes(busca.toLowerCase()) || String(item.idUnico).toLowerCase().includes(busca.toLowerCase()));
+            if (filtrados.length === 0) {
+                listaHtml.innerHTML = `<div class="p-4 text-center text-gray-500 text-sm">Nenhum resultado.</div>`; return;
+            }
+            filtrados.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-black/20 hover:bg-white/5 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-white/10 text-white font-semibold text-sm";
+                div.textContent = item.labelExibicao;
+                div.onclick = () => window.aplicarFiltroSelecao(tipo, item.idUnico, item.labelExibicao);
+                listaHtml.appendChild(div);
+            });
+        };
+        inputBusca.oninput = (e) => render(e.target.value);
+        render();
+        lucide.createIcons();
+    };
+
+    window.aplicarFiltroSelecao = (tipo, idAlvo, textoExibicao) => {
+        const filtrados = window.animeCache.filter(a => {
+            if (tipo === 'anime') return (a.Num == idAlvo) || (a.id == idAlvo) || (a.NOME == idAlvo);
+            else return `${(a.TEMPORADA || "").trim()} ${String(a.ANO || "").trim()}` === idAlvo;
+        });
+        renderAnimeCards(filtrados);
+        const btn = document.getElementById("selected-filter-text");
+        if (btn) btn.textContent = (tipo === 'anime' && textoExibicao.length > 25) ? textoExibicao.substring(0, 25) + "..." : textoExibicao;
+        window.fecharModalSelecao();
+    };
+
+    window.fecharModalSelecao = () => document.getElementById('modal-selecao').classList.add('hidden');
+
+    window.pegarDoMAL = async () => {
+        const nomeAnime = document.getElementById("modal-nome").textContent;
+        const campoMAL = document.getElementById("modal-mal");
+        const disp = document.getElementById("modal-epst"); 
+        if (!nomeAnime || nomeAnime === "Nome do Anime") return;
+
+        campoMAL.placeholder = "Buscando...";
+        try {
+            const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(nomeAnime)}&limit=1`);
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                const info = data.data[0];
+                campoMAL.value = info.score || 0;
+                if (disp) {
+                    disp.textContent = info.episodes || 0;
+                    disp.classList.add("text-blue-400", "scale-110", "transition-all");
+                    setTimeout(() => disp.classList.remove("text-blue-400", "scale-110"), 2000);
+                }
+                document.getElementById("modal-nome").dataset.tempTotalEps = info.episodes || 0;
+                window.showToast("Dados encontrados no MAL!", "success");
+            } else { window.showToast("Anime não encontrado.", "warning"); }
+        } catch (error) { window.showToast("Erro ao buscar no MAL.", "error"); } 
+        finally { campoMAL.placeholder = "0.0"; }
+    }
+
+    window.renderizarListaArcos = () => {
+        const selectEl = document.getElementById('ai_arco_select');
+        if (!selectEl) return;
+        selectEl.innerHTML = '<option class="bg-[#151515]" value="">-- Novo Arco --</option>';
+        Object.keys(window._arcosAnime).forEach(nome => {
+            const opt = document.createElement('option'); opt.className = 'bg-[#151515]'; opt.value = nome; opt.textContent = nome; selectEl.appendChild(opt);
+        });
+        selectEl.onchange = () => {
+            const arco = window._arcosAnime[selectEl.value];
+            document.getElementById('ai_nota_i').value = arco ? arco.i : '';
+            document.getElementById('ai_nota_m').value = arco ? arco.m : '';
+            document.getElementById('ai_nota_f').value = arco ? arco.f : '';
+        };
+    }
+
+    window.aiAdicionarArco = () => {
+        const selectEl = document.getElementById('ai_arco_select');
+        const notas = ['i','m','f'].map(id => parseFloat(document.getElementById(`ai_nota_${id}`).value));
+        if (!notas.some(n => !isNaN(n) && n >= 0)) return window.showToast('Preencha pelo menos uma nota (0-10).', 'warning');
+        
+        let nome = selectEl.value;
+        if (!nome) {
+            let max = 0; Object.keys(window._arcosAnime).forEach(k => { const m = k.match(/Arco (\d+)/); if (m) max = Math.max(max, parseInt(m[1])); });
+            nome = `Arco ${max + 1}`; window.showToast('Arco adicionado!', 'success');
+        } else { window.showToast('Arco atualizado!', 'success'); }
+
+        window._arcosAnime[nome] = { i: isNaN(notas[0]) ? 0 : notas[0], m: isNaN(notas[1]) ? 0 : notas[1], f: isNaN(notas[2]) ? 0 : notas[2] };
+        window.renderizarListaArcos(); atualizarVisualizacaoArcos();
+        selectEl.value = nome; selectEl.dispatchEvent(new Event('change'));
+    }
+
+    window.aiExcluirArco = (nomeP = null) => {
+        const selectEl = document.getElementById('ai_arco_select');
+        const nome = nomeP || selectEl.value;
+        if (!nome) return window.showToast('Selecione um arco.', 'error');
+        if (!confirm(`Excluir "${nome}"?`)) return;
+        delete window._arcosAnime[nome];
+        window.renderizarListaArcos(); atualizarVisualizacaoArcos();
+        selectEl.value = ""; selectEl.dispatchEvent(new Event('change')); 
+        window.showToast('Arco excluído.', 'warning');
+    }
+
+    window.renderizarListaOpenings = () => {
+        const selectEl = document.getElementById('ai_op_select');
+        if (!selectEl) return;
+        selectEl.innerHTML = '<option class="bg-[#151515]" value="">-- Nova Opening --</option>';
+        Object.keys(window._openingsAnime).forEach(nome => {
+            const opt = document.createElement('option'); opt.className = 'bg-[#151515]'; opt.value = nome; opt.textContent = nome; selectEl.appendChild(opt);
+        });
+        selectEl.onchange = () => {
+            const op = window._openingsAnime[selectEl.value];
+            document.getElementById('ai_op_musica').value = op ? op.musica : '';
+            document.getElementById('ai_op_animacao').value = op ? op.animacao : '';
+        };
+    }
+
+    window.aiAdicionarOpening = () => {
+        const selectEl = document.getElementById('ai_op_select');
+        const [nM, nA] =['musica','animacao'].map(id => parseFloat(document.getElementById(`ai_op_${id}`).value));
+        const val = n => !isNaN(n) && n >= 0 && n <= 5;
+        if (!val(nM) && !val(nA)) return window.showToast('Preencha Música ou Animação (0-5).', 'warning');
+        
+        let nome = selectEl.value;
+        if (!nome) {
+            let max = 0; Object.keys(window._openingsAnime).forEach(k => { const m = k.match(/Op. (\d+)/); if (m) max = Math.max(max, parseInt(m[1])); });
+            nome = `Op. ${max + 1}`; window.showToast('Opening adicionada!', 'success');
+        } else { window.showToast('Opening atualizada!', 'success'); }
+
+        window._openingsAnime[nome] = { musica: val(nM) ? nM : 0, animacao: val(nA) ? nA : 0 };
+        window.renderizarListaOpenings(); atualizarVisualizacaoOpenings();
+        selectEl.value = nome; selectEl.dispatchEvent(new Event('change'));
+    }
+
+    window.aiExcluirOpening = (nomeP = null) => {
+        const selectEl = document.getElementById('ai_op_select');
+        const nome = nomeP || selectEl.value;
+        if (!nome) return window.showToast('Selecione uma OP.', 'error');
+        if (!confirm(`Excluir "${nome}"?`)) return;
+        delete window._openingsAnime[nome];
+        window.renderizarListaOpenings(); atualizarVisualizacaoOpenings();
+        selectEl.value = ""; selectEl.dispatchEvent(new Event('change')); 
+        window.showToast('Opening excluída.', 'warning');
+    }
+
+    window.fecharModalAnime = () => document.getElementById("anime-modal").classList.add("hidden");
+    
+    onAuthStateChanged(auth, (user) => {
+        if (!user) return window.location.href = "login.html";
+        document.getElementById("user-email").textContent = user.email;
+        loadAnimeList("inacabados");
+    });
+</script>
+</body>
+</html>
