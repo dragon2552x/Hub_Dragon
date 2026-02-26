@@ -1,538 +1,600 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Animes</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer">
+    
+    <title>Class Animes — Classificações — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- TailwindCSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        /* Configurações Base */
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+        }
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        /* Painéis translúcidos */
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-  <style>
-    body {
-      background: #0b0b0b;
-      font-family: Inter, system-ui, sans-serif;
-      color: #e6e6e6;
-      padding-bottom: 100px; /* espaço para menu inferior */
-    }
+        /* Cards estilo Xbox */
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+        }
+        .task-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(185, 49, 79, 0.3);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+        }
 
-    .menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #151515;
-      border-top: 1px solid #2a2a2a;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
 
-    .menu-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #b3b3b3;
-      font-size: 0.75rem;
-      transition: all 0.2s;
-    }
+        /* Sidebar retrátil */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .main-content.sidebar-hidden { margin-left: 0; }
 
-    .menu-btn:hover,
-    .menu-btn.active {
-      color: #B9314F;
-    }
+        /* Pill Buttons (Abas) */
+        .filter-btn {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #a3a3a3;
+            padding: 10px 22px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            outline: none;
+        }
+        .filter-btn:hover {
+            background: rgba(50, 50, 50, 0.8);
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .filter-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: rgba(185, 49, 79, 0.6);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.5), inset 0 0 10px rgba(0,0,0,0.2);
+            transform: scale(1.05);
+        }
 
-    .menu-btn svg {
-      width: 22px;
-      height: 22px;
-      margin-bottom: 4px;
-    }
-  </style>
+        /* Animações do Pop-up (Toast) */
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOutUp {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateY(-20px); opacity: 0; }
+        }
+        .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        .toast-exit { animation: fadeOutUp 0.3s ease-in forwards; }
+    </style>
 </head>
-<body>
+<body class="flex h-screen overflow-hidden">
 
-<div id="app" class="container mx-auto max-w-6xl px-4 pt-4">
-
-  <!-- MENU SUPERIOR -->
-  <header class="bg-[#1f1f1f] p-2 mb-3 shadow-xl rounded-xl border border-[#2a2a2a]">
-    
-    <!-- Linha 1 -->
-    <div class="flex justify-between items-center">
-      <button onclick="window.location.href='home.html'"
-              class="text-2xl font-bold text-[#B9314F] hover:text-[#992743] transition-colors duration-200">
-        My Hub
-      </button>
-
-      <h1 class="text-2xl font-bold text-white">My Animes</h1>
-    </div>
-
-    <!-- Linha 2 -->
-    <div class="text-sm text-gray-300 mt-1">
-      Usuário: <span id="user-email" class="text-[#B9314F] font-mono">Carregando...</span>
-    </div>
-
-  </header>
-
-
-  <!-- CONTEÚDO DA PÁGINA -->
-  <main class="mt-4">
-    <!-- Menu das Visualizações -->
-    <div id="view-menu" class="flex overflow-x-auto gap-3 p-2 bg-[#141414] border border-[#222] rounded-xl text-sm mb-4">
-      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="detalhada">
-        Detalhada
-      </button>
-      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="lista">
-        Lista
-      </button>
-      <button class="view-btn bg-[#333] px-3 py-1 rounded-lg" data-view="ano">
-        Temporada
-      </button>
-    </div>
-
-    <section id="main-content" class="text-center text-gray-400 p-4">
-      <p>Carregando dados...</p>
-    </section>
-  </main>
-
-
-</div>
-
-<!-- MENU INFERIOR -->
-<nav class="menu fixed bottom-0 left-0 w-full bg-[#151515] border-t border-[#2a2a2a] flex justify-around py-2 z-40">
-    
-    <button class="menu-btn" onclick="window.location.href='animes_manager.html'">
-        <i data-lucide="home" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Início</span>
-    </button>
-
-    <button class="menu-btn" onclick="window.location.href='animes_cadastro.html'">
-        <i data-lucide="file-edit" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Gestão</span>
-    </button>
-
-    <button class="menu-btn" onclick="window.location.href='anime_lista.html'">
-        <i data-lucide="list" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">Lista</span>
-    </button>
-
-    <div class="relative flex">
-        <button id="more-options-btn" class="menu-btn active" onclick="toggleMoreOptions(event)">
-            <i data-lucide="more-horizontal" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">Mais</span>
-        </button>
-
-        <div id="more-options-dropdown"
-             class="absolute bottom-full mb-3 right-0 w-48 bg-[#1f1f1f] border border-[#333] rounded-xl shadow-2xl p-1 hidden z-50 flex flex-col">
-
-            <button class="w-full text-left px-4 py-3 text-sm bg-[#2a2a2a] text-white rounded-lg transition-colors flex items-center gap-3 border border-[#333]" 
-                    onclick="window.location.href='animes_classificacoes.html'">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#B9314F] fill-current"></i> 
-                <span class="font-bold">Classificação</span>
-            </button>
-            
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_estrelas.html'">
-                <i data-lucide="star" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Estrelas</span>
-            </button>
-            
-           <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_torneio.html'">
-                <i data-lucide="trophy" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Torneio</span>
-            </button>
-
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_serie.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>Serie</span>
-            </button>
-
-            <button class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg transition-colors flex items-center gap-3" 
-                    onclick="window.location.href='animes_database.html'">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B9314F]"></i> 
-                <span>DataBase</span>
-            </button>
+    <!-- SIDEBAR RETRÁTIL -->
+    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+        <div class="text-accent mb-8">
+            <i data-lucide="sparkle" class="w-10 h-10"></i>
         </div>
-    </div>
-</nav>
+        
+        <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home"><i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games"><i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="animes_manager.html" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Animes"><i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards/Molduras/Bg"><i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs"><i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás"><i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas"><i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Academia"><i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do"><i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i></a>
+        </nav>
+
+        <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+            <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+        </button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="bar-chart-2" class="text-accent"></i> My Animes
+                    </h2>
+                </div>
+            </div>
+            <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+            </div>
+        </header>
+
+        <!-- ÁREA DE CONTEÚDO (SCROLL) -->
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-28">
+            <div class="max-w-4xl mx-auto space-y-6">
+                
+                <!-- MENU DAS VISUALIZAÇÕES (ABAS) -->
+                <section class="overflow-x-auto whitespace-nowrap pb-4 flex gap-3 custom-scrollbar px-1 py-2 items-center" id="view-menu">
+                    <button class="filter-btn view-btn active" data-view="detalhada">
+                        <i data-lucide="layout-list" class="w-4 h-4 inline-block mr-1.5 -mt-0.5"></i> Detalhada
+                    </button>
+                    <button class="filter-btn view-btn" data-view="lista">
+                        <i data-lucide="list" class="w-4 h-4 inline-block mr-1.5 -mt-0.5"></i> Lista Simples
+                    </button>
+                    <button class="filter-btn view-btn" data-view="ano">
+                        <i data-lucide="calendar" class="w-4 h-4 inline-block mr-1.5 -mt-0.5"></i> Temporada
+                    </button>
+                </section>
+
+                <!-- CONTEÚDO DINÂMICO INJETADO PELO JS -->
+                <section id="classifications-content" class="text-center text-gray-400 p-4">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-accent mb-3"></i>
+                        <p class="text-sm font-semibold tracking-wider uppercase text-gray-400">Carregando classificações...</p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- NAV INFERIOR (FLUTUANTE) -->
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            
+            <a href="animes_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="home" class="w-4 h-4"></i> <span class="hidden sm:inline">Início</span>
+            </a>
+
+            <a href="animes_cadastro.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Cadastro</span></a>
+            
+            <a href="anime_lista.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+                <i data-lucide="list" class="w-4 h-4"></i> <span class="hidden sm:inline">Lista</span>
+            </a>
+
+            <!-- DROPDOWN "MAIS" -->
+            <div class="relative flex">
+                <button id="more-options-btn" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20" onclick="toggleMoreOptions(event)">
+                    <i data-lucide="more-horizontal" class="w-4 h-4"></i> <span class="hidden sm:inline">Mais</span>
+                </button>
+
+                <div id="more-options-dropdown" class="absolute bottom-full mb-3 right-0 w-48 glass-panel border border-white/10 rounded-2xl shadow-2xl p-2 hidden z-50 flex-col gap-1">
+                    <a href="animes_classificacoes.html" class="w-full text-left px-4 py-2.5 text-sm bg-white/10 text-white rounded-xl transition-colors flex items-center gap-3 font-bold border border-white/5">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-accent fill-current"></i> Classificação
+                    </a>
+                    <a href="animes_estrelas.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="star" class="w-4 h-4 text-accent"></i> Estrelas
+                    </a>
+                    <a href="animes_torneio.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="trophy" class="w-4 h-4 text-accent"></i> Torneio
+                    </a>
+                    <a href="animes_serie.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="layers" class="w-4 h-4 text-accent"></i> Série
+                    </a>
+                    <a href="animes_database.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-3 font-semibold">
+                        <i data-lucide="database" class="w-4 h-4 text-accent"></i> DataBase
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
 <script>
-  lucide.createIcons();
-  function abrirPagina(pagina) {
-    window.location.href = pagina;
-  }
+    lucide.createIcons();
+    
+    // Toggle Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Dropdown Logic
+    window.toggleMoreOptions = (event) => {
+        event.stopPropagation();
+        document.getElementById('more-options-dropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('more-options-dropdown');
+        const btn = document.getElementById('more-options-btn');
+        if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    // Função Global de Toasts (Pop-ups)
+    window.showToast = (message, type = 'success') => {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let styleClasses = '';
+        let iconName = '';
+
+        if (type === 'success') {
+            styleClasses = 'bg-green-500/20 border-green-500/30 text-green-400';
+            iconName = 'check-circle';
+        } else if (type === 'error') {
+            styleClasses = 'bg-red-500/20 border-red-500/30 text-red-400';
+            iconName = 'alert-circle';
+        } else if (type === 'warning') {
+            styleClasses = 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400';
+            iconName = 'alert-triangle';
+        }
+
+        toast.className = `flex items-center gap-3 px-5 py-3.5 rounded-xl border backdrop-blur-md shadow-2xl toast-enter pointer-events-auto ${styleClasses}`;
+        toast.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i> <span class="font-bold text-sm">${message}</span>`;
+
+        container.appendChild(toast);
+        lucide.createIcons({ root: toast });
+
+        // Remove após 3.5 segundos
+        setTimeout(() => {
+            toast.classList.remove('toast-enter');
+            toast.classList.add('toast-exit');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    };
 </script>
 
 <!-- FIRESTORE + CLASSIFICAÇÃO -->
 <script type="module">
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-    authDomain: "list-games-9bddd.firebaseapp.com",
-    projectId: "list-games-9bddd",
-    storageBucket: "list-games-9bddd.firebasestorage.app",
-    messagingSenderId: "756898313156",
-    appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-    measurementId: "G-GLM50YVLXP"
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+        authDomain: "list-games-9bddd.firebaseapp.com",
+        projectId: "list-games-9bddd",
+        storageBucket: "list-games-9bddd.firebasestorage.app",
+        messagingSenderId: "756898313156",
+        appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
+        measurementId: "G-GLM50YVLXP"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const mainContent = document.getElementById("main-content");
-  const viewButtons = document.querySelectorAll(".view-btn");
-  let allAnimes = [];
-  let currentView = "detalhada";
-  let lastOpenedSeason = null;
+    const contentArea = document.getElementById("classifications-content");
+    const viewButtons = document.querySelectorAll(".view-btn");
+    let allAnimes =[];
+    let currentView = "detalhada";
+    let lastOpenedSeason = null;
 
-  const views = {
-    detalhada() {
-      const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
+    document.getElementById('logout-btn').onclick = () => {
+        if (auth.currentUser) {
+            localStorage.removeItem(`animes_${auth.currentUser.uid}`);
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        } else {
+            window.location.href = 'index.html';
+        }
+    };
 
-      const html = sorted.map((anime, index) => `
-        <div 
-          class="flex items-center gap-3 mb-3 bg-[#181818] p-3 rounded-lg shadow cursor-pointer hover:bg-[#222] transition-all"
-          onclick="showAnime(${index})"
-        >
-          <!-- Imagem quadrada -->
-          <div class="w-20 h-20 flex-shrink-0">
-            <img src="${anime.IMAGEM}" 
-                class="w-full h-full object-cover rounded-lg"
-                alt="${anime.NOME}">
-          </div>
+    const views = {
+        detalhada() {
+            const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
 
-          <!-- Informações -->
-          <div class="flex-1 text-left overflow-hidden">
+            const html = sorted.map((anime, index) => `
+                <div class="task-card flex items-stretch gap-4 mb-4 p-3 sm:p-4 rounded-2xl cursor-pointer hover:-translate-y-1 transition-transform group" onclick="showAnime(${index})">
+                    <div class="relative w-20 h-28 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-black/50">
+                        <img src="${anime.IMAGEM || 'https://via.placeholder.com/150x200?text=Sem+Img'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${anime.NOME}" onerror="this.src='https://via.placeholder.com/150x200?text=Sem+Img'">
+                        <div class="absolute top-0 left-0 bg-accent text-white text-[10px] font-black px-2 py-1 rounded-br-xl shadow-lg border-b border-r border-white/20">${index + 1}</div>
+                    </div>
 
-            <!-- Numeração + Nome -->
-            <div class="flex items-center gap-2">
-              <span class="bg-[#B9314F] text-white text-xs font-bold px-2 py-1 rounded-md">${index + 1}</span>
+                    <div class="flex-1 min-w-0 flex flex-col justify-center text-left">
+                        <h3 class="font-bold text-lg text-white truncate mb-2" title="${anime.NOME}">${anime.NOME}</h3>
+                        <div class="flex items-center gap-2.5 text-xs text-gray-400">
+                            <span class="bg-black/50 px-2.5 py-1 rounded-lg border border-white/10 font-mono text-accent font-black shadow-inner shadow-black">
+                                ${Number(anime.NOTA_F).toFixed(2)}
+                            </span>
+                            <div class="w-px h-4 bg-white/10"></div>
+                            <span class="truncate font-semibold tracking-wide">${anime.ESTILO || "Anime"} • ${anime.ANO || "?"}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center pl-2">
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 group-hover:text-accent transition-colors"></i>
+                    </div>
+                </div>
+            `).join("");
 
-              <!-- Nome com limite maior antes de truncar -->
-              <h3 class="font-bold text-lg truncate max-w-[350px]">
-                ${anime.NOME}
-              </h3>
+            contentArea.innerHTML = html;
+            lucide.createIcons();
+        },
+        
+        lista() {
+            const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
+
+            const html = sorted.map((anime, index) => `
+                <div class="flex items-center justify-between p-3.5 mb-2 bg-black/40 border border-white/5 rounded-xl cursor-pointer hover:bg-white/5 hover:border-white/10 transition-all group" onclick="showAnime(${index})">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-accent font-black text-sm w-7 text-right">${index + 1}.</span>
+                        <span class="font-bold text-gray-300 group-hover:text-white truncate transition-colors text-left">${anime.NOME}</span>
+                    </div>
+                    <span class="font-mono text-sm font-bold text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-lg shrink-0 shadow-sm">${Number(anime.NOTA_F).toFixed(2)}</span>
+                </div>
+            `).join("");
+
+            contentArea.innerHTML = html;
+            lucide.createIcons();
+        },
+        
+        ano() {
+            if (!allAnimes.length) return;
+
+            let searchHTML = `
+                <div class="w-full mb-6 relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                    <input id="search-season-input" type="text" placeholder="Pesquisar temporada..." class="w-full pl-12 pr-4 py-3.5 bg-black/40 border border-white/10 rounded-xl text-white placeholder-gray-500 font-semibold focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner shadow-black/50" />
+                </div>
+            `;
+
+            const grouped = {};
+
+            allAnimes.forEach(anime => {
+                const ano = anime.ANO;
+                const tempStr = anime.TEMPORADA || "";
+                let seasonName = "Outro";
+
+                if (tempStr.includes("Inverno")) seasonName = "Inverno";
+                else if (tempStr.includes("Primavera")) seasonName = "Primavera";
+                else if (tempStr.includes("Verão")) seasonName = "Verão";
+                else if (tempStr.includes("Outono")) seasonName = "Outono";
+
+                const groupKey = (seasonName !== "Outro" && ano) ? `${seasonName} ${ano}` : "Outro";
+
+                if (!grouped[groupKey]) grouped[groupKey] = { total: 0, count: 0 };
+                grouped[groupKey].total += anime.NOTA_F;
+                grouped[groupKey].count++;
+            });
+
+            const ranked = Object.entries(grouped)
+                .map(([nome, info]) => ({ nome, media: info.total / info.count, qtd: info.count }))
+                .sort((a, b) => b.media - a.media);
+
+            const renderRanked = (list) => list.map((t, index) => `
+                <div class="task-card flex items-center justify-between p-4 mb-3 rounded-2xl cursor-pointer hover:-translate-y-1 transition-transform group" onclick="showSeason('${t.nome}')">
+                    <div class="flex items-center gap-4">
+                        <span class="text-accent font-black text-lg w-7 text-right">${index + 1}.</span>
+                        <div class="flex flex-col text-left">
+                            <span class="font-bold text-white text-base">${t.nome}</span>
+                            <span class="text-xs text-gray-400 font-semibold flex items-center gap-1 mt-0.5"><i data-lucide="tv" class="w-3 h-3 text-accent"></i> ${t.qtd} animes</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-mono text-sm font-bold text-accent bg-accent/10 border border-accent/20 px-3 py-1.5 rounded-xl shadow-sm">${t.media.toFixed(2)}</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 group-hover:text-accent transition-colors hidden sm:block"></i>
+                    </div>
+                </div>
+            `).join("");
+
+            contentArea.innerHTML = `
+                ${searchHTML}
+                <div id="season-list">${renderRanked(ranked)}</div>
+            `;
+            lucide.createIcons();
+
+            const searchInput = document.getElementById("search-season-input");
+            const listContainer = document.getElementById("season-list");
+
+            searchInput.addEventListener("input", () => {
+                const text = searchInput.value.toLowerCase().trim();
+                const filtered = ranked.filter(s => s.nome.toLowerCase().includes(text));
+                listContainer.innerHTML = filtered.length > 0 ? renderRanked(filtered) : `<div class="p-8 border border-white/5 border-dashed rounded-2xl mt-4"><i data-lucide="search-x" class="w-8 h-8 text-gray-600 mx-auto mb-3"></i><p class="text-gray-400 font-semibold text-sm">Nenhuma temporada encontrada.</p></div>`;
+                lucide.createIcons();
+            });
+        },
+    };
+
+    function switchView(view) {
+        currentView = view;
+        window.currentView = view;
+        
+        if (view !== 'ano') lastOpenedSeason = null;
+        
+        viewButtons.forEach(btn => btn.classList.remove("active"));
+        document.querySelector(`[data-view="${view}"]`).classList.add("active");
+        
+        views[view]();
+    }
+
+    function showAnime(index) {
+        const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
+        const anime = sorted[index];
+
+        let backAction = `window.switchView('${currentView}')`;
+        if (currentView === 'ano' && lastOpenedSeason) backAction = `window.showSeason('${lastOpenedSeason}')`;
+
+        const defaultImg = 'https://via.placeholder.com/300x450?text=Sem+Imagem';
+
+        contentArea.innerHTML = `
+            <div class="task-card max-w-md mx-auto rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl animate-in slide-in-from-bottom-5 duration-300">
+                <button onclick="${backAction}" class="absolute top-4 left-4 z-[20] w-10 h-10 flex items-center justify-center bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-accent hover:scale-110 transition-all border border-white/10 shadow-lg">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Área da Imagem Blur Background -->
+                <div class="relative w-full aspect-[4/3] bg-[#0b0b0b]">
+                    <img src="${anime.IMAGEM || defaultImg}" class="absolute inset-0 w-full h-full object-cover opacity-30 blur-md">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#151515] via-[#151515]/60 to-transparent"></div>
+                    
+                    <div class="absolute inset-x-0 bottom-[-15%] flex justify-center z-10">
+                        <img src="${anime.IMAGEM || defaultImg}" class="w-32 h-48 object-cover rounded-xl border-2 border-[#2a2a2a] shadow-2xl">
+                    </div>
+                </div>
+
+                <div class="pt-20 pb-6 px-6 text-center">
+                    <h2 class="text-2xl font-bold text-white mb-6 leading-tight drop-shadow-md">${anime.NOME}</h2>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-left">
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-white/5 flex flex-col justify-center items-center">
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-wider">Nota Final</span>
+                            <span class="text-accent font-mono font-black text-xl">${Number(anime.NOTA_F).toFixed(2)}</span>
+                        </div>
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-white/5 flex flex-col justify-center items-center">
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-wider">Nota MAL</span>
+                            <span class="text-white font-mono font-bold text-lg">${anime.N_MAL || "-"}</span>
+                        </div>
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-white/5 flex flex-col justify-center items-center">
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-wider">Estrelas</span>
+                            <span class="text-yellow-400 font-bold text-lg drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]">${anime.STARS || "-"}</span>
+                        </div>
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-white/5 flex flex-col justify-center items-center text-center">
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-wider">Lançamento</span>
+                            <span class="text-gray-200 font-semibold text-xs leading-tight">${anime.TEMPORADA || "-"} <br> ${anime.ANO || ""}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    window.showAnime = showAnime;
+    window.currentView = currentView;
+    window.switchView = switchView;
+
+    window.showSeason = function(seasonName) {
+        lastOpenedSeason = seasonName;
+
+        const animesDaTemporada = allAnimes.filter(a => {
+            const year = a.ANO;
+            const temp = a.TEMPORADA || "";
+            if (seasonName === "Outro") {
+                return (!year || !temp || (!temp.includes("Inverno") && !temp.includes("Primavera") && !temp.includes("Verão") && !temp.includes("Outono")));
+            }
+            return `${temp.split(" (")[0]} ${year}` === seasonName;
+        });
+
+        animesDaTemporada.sort((a, b) => b.NOTA_F - a.NOTA_F);
+
+        window.showAnimeByNum = function(num) {
+            const globalSorted = [...allAnimes].sort((a, b) => b.NOTA_F - a.NOTA_F);
+            const targetIndex = globalSorted.findIndex(a => Number(a.Num) === Number(num));
+            if (targetIndex !== -1) showAnime(targetIndex);
+            else window.showToast("Anime não encontrado.", "error");
+        };
+
+        const html = `
+            <div class="flex items-center gap-4 mb-5 pb-3 border-b border-white/10">
+                <button onclick="window.switchView('ano')" class="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="text-left flex-1">
+                    <h2 class="text-xl font-bold text-white tracking-wide">${seasonName}</h2>
+                </div>
             </div>
 
-            <!-- Nota -->
-            <p class="text-gray-300 text-sm mt-1">
-              Nota: <span class="text-white font-semibold">${Number(anime.NOTA_F).toFixed(2)}</span>
-            </p>
+            <div class="space-y-2">
+                ${animesDaTemporada.map((anime, index) => `
+                <div class="flex items-center justify-between p-3.5 bg-black/40 border border-white/5 rounded-xl cursor-pointer hover:bg-white/5 hover:border-white/10 transition-all group" onclick="showAnimeByNum(${anime.Num})">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="font-bold text-accent w-6 text-right">${index + 1}.</span>
+                        <span class="font-bold text-gray-300 group-hover:text-white truncate transition-colors text-left">${anime.NOME}</span>
+                    </div>
+                    <span class="font-mono text-sm font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg shrink-0 shadow-sm">${Number(anime.NOTA_F).toFixed(2)}</span>
+                </div>
+                `).join("")}
+            </div>
+        `;
 
-          </div>
-        </div>
-      `).join("");
+        contentArea.innerHTML = html;
+        lucide.createIcons();
+    };
 
-      mainContent.innerHTML = html;
-    },
-    lista() {
-      const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
+    async function loadAll() {
+        const user = auth.currentUser;
+        if (!user) return;
 
-      const html = sorted.map((anime, index) => `
-        <div class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] p-2 rounded-md"
-            onclick="showAnime(${index})">
-          <span class="text-[#B9314F] font-bold">${index + 1}.</span>
-          <strong class="ml-2">${anime.NOME}</strong>
-          <span class="opacity-70 ml-3">(${Number(anime.NOTA_F).toFixed(2)})</span>
-        </div>
-      `).join("");
+        const cacheKey = `animes_${user.uid}`;
+        const cachedData = localStorage.getItem(cacheKey);
 
-      mainContent.innerHTML = html;
-    },
-    ano() {
-      if (!allAnimes.length) return;
-
-      let searchHTML = `
-        <div class="w-full mb-4 mt-2">
-          <input
-            id="search-season-input"
-            type="text"
-            placeholder="Pesquisar temporada..."
-            class="w-full px-3 py-2 bg-[#151515] border border-[#333] rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-[#B9314F]"
-          />
-        </div>
-      `;
-
-      const grouped = {};
-
-      allAnimes.forEach(anime => {
-        const ano = anime.ANO;
-        const tempStr = anime.TEMPORADA || "";
-        let seasonName = "Outro";
-
-        if (tempStr.includes("Inverno")) seasonName = "Inverno";
-        else if (tempStr.includes("Primavera")) seasonName = "Primavera";
-        else if (tempStr.includes("Verão")) seasonName = "Verão";
-        else if (tempStr.includes("Outono")) seasonName = "Outono";
-
-        const groupKey = (seasonName !== "Outro" && ano) ?
-          `${seasonName} ${ano}` : "Outro";
-
-        if (!grouped[groupKey]) {
-          grouped[groupKey] = { total: 0, count: 0 };
+        if (cachedData) {
+            allAnimes = JSON.parse(cachedData);
+            switchView("detalhada");
+        } else {
+            try {
+                const ref = collection(db, "users", user.uid, "animes");
+                const docs = await getDocs(ref);
+                allAnimes = docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
+                switchView("detalhada");
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+                window.showToast("Erro ao carregar dados do banco.", "error");
+            }
         }
-
-        grouped[groupKey].total += anime.NOTA_F;
-        grouped[groupKey].count++;
-      });
-
-      const ranked = Object.entries(grouped)
-        .map(([nome, info]) => ({
-          nome,
-          media: info.total / info.count,
-          qtd: info.count
-        }))
-        .sort((a, b) => b.media - a.media);
-
-      const html = ranked.map((t, index) => `
-        <div 
-          onclick="showSeason('${t.nome}')"
-          class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] transition-all"
-        >
-          <span class="text-[#B9314F] font-bold">${index + 1}.</span>
-          <strong class="ml-2">${t.nome}</strong>
-          <span class="opacity-70 ml-3">(${t.media.toFixed(2)})</span>
-          <span class="opacity-50 ml-2 text-xs">${t.qtd} animes</span>
-        </div>
-      `).join("");
-
-      mainContent.innerHTML = `
-        ${searchHTML}
-        <div id="season-list">${html}</div>
-      `;
-
-      mainContent.innerHTML = `
-        ${searchHTML}
-        <div id="season-list">${html}</div>
-      `;
-
-      const searchInput = document.getElementById("search-season-input");
-      const listContainer = document.getElementById("season-list");
-
-      searchInput.addEventListener("input", () => {
-        const text = searchInput.value.toLowerCase().trim();
-
-        const filtered = ranked.filter(s =>
-          s.nome.toLowerCase().includes(text)
-        );
-
-        const filteredHTML = filtered.map((t, index) => `
-          <div 
-            onclick="showSeason('${t.nome}')"
-            class="border-b border-[#222] py-2 text-left cursor-pointer hover:bg-[#222] transition-all"
-          >
-            <span class="text-[#B9314F] font-bold">${index + 1}.</span>
-            <strong class="ml-2">${t.nome}</strong>
-            <span class="opacity-70 ml-3">(${t.media.toFixed(2)})</span>
-            <span class="opacity-50 ml-2 text-xs">${t.qtd} animes</span>
-          </div>
-        `).join("");
-
-        listContainer.innerHTML = filteredHTML || `<p class="text-gray-400 mt-4">Nenhuma temporada encontrada.</p>`;
-      });
-    },
-  };
-
-  function toggleMoreOptions(event) {
-      event.stopPropagation(); // Previne que o clique feche imediatamente
-      const dropdown = document.getElementById('more-options-dropdown');
-      dropdown.classList.toggle('hidden');
-  }
-
-  // Função para fechar o dropdown se o usuário clicar fora dele
-  document.addEventListener('click', (e) => {
-      const dropdown = document.getElementById('more-options-dropdown');
-      const button = document.getElementById('more-options-btn');
-      if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.classList.add('hidden');
-      }
-  });
-  
-  window.toggleMoreOptions = toggleMoreOptions;
-  function switchView(view) {
-    currentView = view;
-    window.currentView = view;
-    
-    // NOVO: Se mudar de aba principal, esquece a temporada anterior
-    if (view !== 'ano') {
-        lastOpenedSeason = null;
-    }
-    
-    viewButtons.forEach(btn => btn.classList.remove("bg-[#B9314F]", "font-bold"));
-    document.querySelector(`[data-view="${view}"]`)
-      .classList.add("bg-[#B9314F]", "font-bold");
-    views[view]();
-  }
-
-  function showAnime(index) {
-    const sorted = [...allAnimes].sort((a,b) => b.NOTA_F - a.NOTA_F);
-    const anime = sorted[index];
-
-    // LÓGICA INTELIGENTE DO BOTÃO VOLTAR
-    // Se estivermos na aba 'ano' e tivermos uma temporada salva, volta para ela.
-    // Caso contrário, volta para a visualização padrão.
-    let backAction = `window.switchView('${currentView}')`;
-    if (currentView === 'ano' && lastOpenedSeason) {
-        backAction = `window.showSeason('${lastOpenedSeason}')`;
     }
 
-    mainContent.innerHTML = `
-      <div class="bg-[#181818] p-4 rounded-lg shadow-lg max-w-md mx-auto text-center">
+    onAuthStateChanged(auth, (user) => {
+        const userEmailEl = document.getElementById("user-email");
+        if (user) {
+            if (userEmailEl) userEmailEl.textContent = user.email;
+            loadAll();
+        } else {
+            window.location.href = "index.html";
+        }
+    });
 
-        <img src="${anime.IMAGEM}"
-          alt="${anime.NOME}"
-          class="mx-auto object-cover rounded-md mb-3"
-          style="width: 60%; aspect-ratio: 2/3;"
-        >
-
-        <h2 class="text-xl text-white font-bold mb-3">${anime.NOME}</h2>
-
-        <div class="text-left text-sm text-gray-300 space-y-1">
-          <p><span class="font-semibold text-white">Nota:</span> ${Number(anime.NOTA_F).toFixed(2)}</p>
-          <p><span class="font-semibold text-white">Nota MAL:</span> ${anime.N_MAL || "-"}</p>
-          <p><span class="font-semibold text-white">Stars:</span> ${anime.STARS || "-"}</p>
-          <p><span class="font-semibold text-white">Temporada:</span> ${anime.TEMPORADA || "-"}</p>
-          <p><span class="font-semibold text-white">Ano:</span> ${anime.ANO || "-"}</p>
-        </div>
-
-        <button onclick="${backAction}"
-          class="mt-4 px-4 py-1 bg-[#B9314F] rounded-md font-bold text-sm text-white hover:bg-[#992743]">
-          Voltar
-        </button>
-
-      </div>
-    `;
-  }
-
-  // Torna acessível no HTML:
-  window.showAnime = showAnime;
-  window.currentView = currentView;
-  window.switchView = switchView;
-
-  window.showSeason = function(seasonName) {
-      lastOpenedSeason = seasonName;
-
-      // 1. Filtra os animes da temporada
-      const animesDaTemporada = allAnimes.filter(a => {
-          const year = a.ANO;
-          const temp = a.TEMPORADA || "";
-          if (seasonName === "Outro") {
-              return (!year || !temp ||
-                  (!temp.includes("Inverno") &&
-                  !temp.includes("Primavera") &&
-                  !temp.includes("Verão") &&
-                  !temp.includes("Outono")));
-          }
-          const tempGroup = `${temp.split(" (")[0]} ${year}`;
-          return tempGroup === seasonName;
-      });
-
-      // 2. Ordena a lista da temporada para exibição
-      animesDaTemporada.sort((a, b) => b.NOTA_F - a.NOTA_F);
-
-      // 3. NOVA FUNÇÃO DE BUSCA: Garante que o showAnime receba o index da lista GLOBAL ORDENADA
-      window.showAnimeByNum = function(num) {
-          // Criamos a lista global exatamente como o showAnime(index) espera receber
-          const globalSorted = [...allAnimes].sort((a, b) => b.NOTA_F - a.NOTA_F);
-          
-          // Procuramos o index baseado no NUM (que é único)
-          const targetIndex = globalSorted.findIndex(a => Number(a.Num) === Number(num));
-          
-          if (targetIndex !== -1) {
-              showAnime(targetIndex);
-          } else {
-              console.error("Anime não encontrado no cache global:", um);
-          }
-      };
-
-      const html = `
-        <div class="text-left mb-3">
-          <h2 class="text-xl font-bold text-white">${seasonName}</h2>
-        </div>
-
-        ${animesDaTemporada.map((anime, index) => {
-          return `
-          <div 
-            class="flex justify-between items-center border-b border-[#222] py-2 cursor-pointer hover:bg-[#222]"
-            onclick="showAnimeByNum(${anime.Num})"
-          >
-            <span class="font-bold text-[#B9314F]">${index + 1}.</span>
-            <span class="flex-1 ml-3 truncate text-left">${anime.NOME}</span>
-            <span class="opacity-70 ml-3 font-semibold">${Number(anime.NOTA_F).toFixed(2)}</span>
-          </div>
-        `}).join("")}
-
-        <button onclick="window.switchView('ano')"
-          class="mt-4 px-4 py-1 bg-[#B9314F] rounded-md font-bold text-sm text-white hover:bg-[#992743]">
-          Voltar
-        </button>
-      `;
-
-      mainContent.innerHTML = html;
-  };
-
-  // --- FUNÇÃO CARREGAR TUDO (OTIMIZADA COM CACHE) ---
-  async function loadAll() {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const cacheKey = `animes_${user.uid}`;
-    const cachedData = localStorage.getItem(cacheKey);
-
-    if (cachedData) {
-      // 📦 Carrega do Cache Local (Economiza leituras no Firebase)
-      console.log("📦 Classificações: Carregando dados do Cache.");
-      allAnimes = JSON.parse(cachedData);
-    } else {
-      // 🔥 Fallback: Busca no Firebase se o cache estiver vazio
-      console.log("🔥 Classificações: Cache vazio, buscando no Firebase...");
-      try {
-        const ref = collection(db, "users", user.uid, "animes");
-        const docs = await getDocs(ref);
-        allAnimes = docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Salva para as próximas páginas não precisarem ler do banco
-        localStorage.setItem(cacheKey, JSON.stringify(allAnimes));
-      } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-      }
-    }
-
-    // Inicia a visualização após carregar os dados (seja do cache ou banco)
-    switchView("detalhada");
-  }
-
-  window.switchView = switchView;
-
-  // --- ESCUTADOR DE AUTENTICAÇÃO ---
-  onAuthStateChanged(auth, (user) => {
-    const userEmailEl = document.getElementById("user-email");
-
-    if (user) {
-      if (userEmailEl) userEmailEl.textContent = user.email;
-      // Só chama o loadAll se o usuário estiver logado
-      loadAll();
-    } else {
-      // Se não estiver autenticado volta para Login
-      window.location.href = "index.html";
-    }
-  });
-
-  window.switchView = switchView;
-
-  viewButtons.forEach(btn => {
-    btn.addEventListener("click", () => switchView(btn.dataset.view));
-  });
+    viewButtons.forEach(btn => {
+        btn.addEventListener("click", () => switchView(btn.dataset.view));
+    });
 </script>
-
 
 </body>
 </html>
