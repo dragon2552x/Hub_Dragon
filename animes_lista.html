@@ -114,7 +114,7 @@
         .filter-option.selected { background-color: var(--accent-color); color: white; }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-[100dvh] overflow-hidden">
 
     <!-- SIDEBAR RETRÁTIL -->
     <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
@@ -194,8 +194,7 @@
         </div>
 
         <!-- NAV INFERIOR FLUTUANTE -->
-        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/80 backdrop-blur-xl border-t border-white/5 p-4 flex justify-center gap-2 sm:gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-            <a href="animes_manager.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i> <span class="hidden sm:inline">Início</span></a>
+        <div class="absolute bottom-0 left-0 right-0 bg-[#0b0b0b]/90 backdrop-blur-xl border-t border-white/5 p-3 sm:p-4 flex justify-evenly sm:justify-center gap-1 sm:gap-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
             <a href="animes_cadastro.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Cadastro</span></a>
             <a href="animes_edicao.html" class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"><i data-lucide="file-edit" class="w-4 h-4"></i> <span class="hidden sm:inline">Edição</span></a>
             <a href="animes_lista.html" class="bg-accent text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-accent/20"><i data-lucide="list" class="w-4 h-4"></i> <span class="hidden sm:inline">Lista</span></a>
