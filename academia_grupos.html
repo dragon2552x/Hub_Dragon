@@ -1,70 +1,348 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gerenciador — Grupos</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grupos — My Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    .card { background:#151515; border:1px solid #2a2a2a; transition:all 0.2s; }
-    .card:hover { border-color:#16a34a; transform:translateY(-4px); }
+      /* Configurações Base */
+      :root {
+          --accent-color: #B9314F;
+          --bg-dark: #0b0b0b;
+          --bg-panel: #151515;
+      }
+      body {
+          background-color: var(--bg-dark);
+          color: #e6e6e6;
+          font-family: 'Inter', system-ui, sans-serif;
+          /* Gradiente de fundo sutil estilo Xbox */
+          background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+          min-height: 100vh;
+      }
+
+      /* Utilitários de Estilo */
+      .text-accent { color: var(--accent-color); }
+      .bg-accent { background-color: var(--accent-color); }
+      
+      /* Painéis translúcidos */
+      .glass-panel {
+          background: rgba(21, 21, 21, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      /* Cards com efeito Xbox */
+      .task-card {
+          background: rgba(30, 30, 30, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+      }
+      .task-card:hover {
+          transform: translateY(-4px);
+          background: rgba(40, 40, 40, 0.6);
+          border-color: rgba(185, 49, 79, 0.3);
+          box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+      }
+
+      /* Inputs estilo Xbox */
+      input, select, textarea {
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s;
+          color: white;
+          color-scheme: dark;
+      }
+      input:focus, select:focus, textarea:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+          outline: none;
+      }
+
+      option {
+          background-color: var(--bg-panel);
+          color: #e6e6e6;
+          padding: 10px;
+      }
+
+      /* Botões com efeito Xbox */
+      .xbox-button {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s;
+      }
+      .xbox-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.6s;
+      }
+      .xbox-button:hover::before {
+          transform: translateX(100%);
+      }
+      .xbox-button:hover {
+          transform: scale(1.02);
+          box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+      }
+
+      /* Scrollbar customizada */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg-dark); }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+      /* Sidebar retrátil */
+      .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          transform: translateX(0);
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: 50;
+      }
+      .sidebar.hidden {
+          transform: translateX(-100%);
+      }
+      
+      /* Ajustar conteúdo quando sidebar está visível */
+      .main-content {
+          margin-left: 80px;
+          transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .main-content.sidebar-hidden {
+          margin-left: 0;
+      }
+
+      /* Botão toggle */
+      .toggle-sidebar-btn {
+          transition: all 0.3s;
+      }
+      .toggle-sidebar-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(185, 49, 79, 0.4);
+      }
   </style>
 </head>
-<body class="min-h-screen">
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-green-500 rounded-full"></div>
+<body class="flex h-screen overflow-hidden">
+
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
   </div>
 
-  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold">Minha Academia</h1>
-        <div class="text-sm text-gray-400 mt-1">Usuário: <span id="user-email" class="text-green-300 font-mono"></span></div>
+  <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+      <div class="text-accent mb-8">
+          <i data-lucide="sparkle" class="w-10 h-10"></i>
       </div>
-      <div class="flex items-center gap-3">
-        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+      
+      <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+          <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+              <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+              <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+              <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards">
+              <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+              <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+              <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+              <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Academia">
+              <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+              <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+      </nav>
+
+      <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+          <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+      </button>
+  </aside>
+
+  <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+      
+      <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+          <div class="flex items-center gap-3">
+              <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                  <i data-lucide="menu" class="w-5 h-5"></i>
+              </button>
+              
+              <div>
+                  <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                      <i data-lucide="layers" class="text-accent"></i> Grupos de Treino
+                  </h2>
+              </div>
+          </div>
+          
+          <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+          </div>
+      </header>
+
+      <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 hidden">
+          <div class="max-w-6xl mx-auto">
+              
+              <div class="flex flex-wrap gap-3 mb-8 border-b border-white/10 pb-4">
+                  <a href="academia_exercicios.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                      <i data-lucide="activity" class="w-4 h-4"></i> Exercícios
+                  </a>
+                  <a href="academia_grupos.html" class="text-white font-bold px-5 py-2.5 bg-accent rounded-xl shadow-[0_0_15px_rgba(185,49,79,0.3)] flex items-center gap-2">
+                      <i data-lucide="layers" class="w-4 h-4"></i> Grupos
+                  </a>
+                  <a href="academia_diario.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                      <i data-lucide="calendar" class="w-4 h-4"></i> Diário
+                  </a>
+              </div>
+
+              <div class="flex justify-end mb-6">
+                  <button id="add-group" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                      <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Grupo
+                  </button>
+              </div>
+
+              <div id="group-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+              
+              <div id="group-empty" class="text-center py-16 hidden">
+                  <i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i>
+                  <p class="text-lg text-gray-500 font-semibold">Nenhum Grupo de Treino cadastrado.</p>
+              </div>
+
+          </div>
       </div>
-    </header>
+  </main>
 
-    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3">
-      <button class="text-lg font-medium" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
-      <button class="text-lg font-medium text-green-300" onclick="window.location.href='academia_grupos.html'">Grupos</button>
-      <button class="text-lg font-medium" onclick="window.location.href='academia_diario.html'">Diário</button>
-    </nav>
-
-    <section id="tab-groups">
-      <div class="flex justify-end mb-4">
-        <button id="add-group" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700">+ Novo Grupo</button>
+  <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 overflow-hidden p-4 transition-all">
+    <div class="glass-panel rounded-2xl w-full max-w-2xl shadow-2xl relative border border-white/10 max-h-[90vh] flex flex-col">
+      
+      <div class="flex justify-between items-center p-6 border-b border-white/5 shrink-0">
+        <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5 text-accent"></i> Novo Grupo
+        </h2>
+        <button id="modal-cancel-top" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-      <div id="group-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <p id="group-empty" class="text-center text-gray-500 hidden">Nenhum grupo cadastrado.</p>
-    </section>
-  </div>
 
-  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50">
-    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-5">
-      <h2 id="modal-title" class="text-xl font-semibold text-white mb-3">Modal</h2>
-      <form id="modal-form" class="space-y-3"></form>
-      <div class="flex justify-end gap-3 mt-4">
-        <button id="modal-save" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
-        <button id="modal-delete" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
-        <button id="modal-cancel" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+      <div class="p-6 overflow-y-auto flex-1 space-y-6">
+          <div>
+              <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome do Grupo</label>
+              <input id="f-name" type="text" class="w-full rounded-xl px-4 py-3 text-sm font-bold" placeholder="Ex: Treino A (Peito e Tríceps)" required>
+          </div>
+
+          <div class="bg-black/30 p-4 rounded-xl border border-white/5">
+              <h3 class="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2">
+                  <i data-lucide="plus" class="w-4 h-4 text-accent"></i> Adicionar Exercício ao Grupo
+              </h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-3">
+                  <div class="sm:col-span-3">
+                      <select id="exercise-select" class="w-full rounded-xl px-4 py-2.5 text-sm"></select>
+                  </div>
+                  <div class="sm:col-span-1">
+                      <input id="exercise-order" type="number" min="1" placeholder="Ordem (Ex: 1)" class="w-full rounded-xl px-4 py-2.5 text-sm">
+                  </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                  <div>
+                      <input id="ex-series" type="number" min="1" placeholder="Séries (Ex: 3)" class="w-full rounded-xl px-3 py-2 text-sm bg-black/50 border-white/10">
+                  </div>
+                  <div>
+                      <input id="ex-reps" type="number" min="1" placeholder="Reps (Ex: 12)" class="w-full rounded-xl px-3 py-2 text-sm bg-black/50 border-white/10">
+                  </div>
+                  <div>
+                      <input id="ex-weight" type="text" placeholder="Peso (Ex: 20kg)" class="w-full rounded-xl px-3 py-2 text-sm bg-black/50 border-white/10">
+                  </div>
+                  <div>
+                      <input id="ex-time" type="text" placeholder="Tempo (Ex: 60s)" class="w-full rounded-xl px-3 py-2 text-sm bg-black/50 border-white/10">
+                  </div>
+              </div>
+
+              <div class="flex justify-end">
+                  <button type="button" id="add-exercise-btn" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                      <i data-lucide="check-circle" class="w-4 h-4"></i> Incluir na Lista
+                  </button>
+              </div>
+          </div>
+
+          <div>
+              <h3 class="text-xs text-gray-500 uppercase font-semibold mb-2">Exercícios no Grupo</h3>
+              <div id="exercise-list" class="flex flex-col gap-2">
+                  <div class="text-center py-4 text-gray-600 text-sm italic bg-black/20 rounded-xl border border-dashed border-white/10">
+                      Nenhum exercício adicionado ainda.
+                  </div>
+              </div>
+          </div>
+      </div>
+      
+      <div class="flex items-center gap-3 p-6 border-t border-white/5 shrink-0 bg-[#151515]">
+          <button id="modal-delete" type="button" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir Grupo">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+          </button>
+          
+          <div class="flex-1 flex gap-3 justify-end">
+              <button id="modal-cancel" type="button" class="px-4 py-3 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white font-bold transition">
+                  Cancelar
+              </button>
+              <button id="modal-save" type="button" class="xbox-button flex-1 sm:flex-none bg-accent text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                  <i data-lucide="save" class="w-5 h-5"></i> Salvar Grupo
+              </button>
+          </div>
       </div>
     </div>
   </div>
+
+  <script>
+      lucide.createIcons();
+      
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      
+      toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('hidden');
+          mainContent.classList.toggle('sidebar-hidden');
+      });
+  </script>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
     import { getFirestore, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
       authDomain: "list-games-9bddd.firebaseapp.com",
       projectId: "list-games-9bddd",
-      storageBucket: "list-games-9bddd.appspot.com",
+      storageBucket: "list-games-9bddd.firebasestorage.app",
       messagingSenderId: "756898313156",
       appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
       measurementId: "G-GLM50YVLXP"
@@ -85,132 +363,283 @@
 
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
-    const modalForm = document.getElementById('modal-form');
     const modalSave = document.getElementById('modal-save');
     const modalDelete = document.getElementById('modal-delete');
     const modalCancel = document.getElementById('modal-cancel');
+    const modalCancelTop = document.getElementById('modal-cancel-top');
+
+    const nameInput = document.getElementById('f-name');
+    const exerciseSelect = document.getElementById('exercise-select');
+    const orderInput = document.getElementById('exercise-order');
+    const seriesInput = document.getElementById('ex-series');
+    const repsInput = document.getElementById('ex-reps');
+    const weightInput = document.getElementById('ex-weight');
+    const timeInput = document.getElementById('ex-time');
+    
+    const exerciseListEl = document.getElementById('exercise-list');
+    const addExerciseBtn = document.getElementById('add-exercise-btn');
 
     let uid = null;
-    let editingId = null;
     let allGroups = [];
     let allExercises = [];
+    let editingId = null;
+    let selectedExercises = [];
 
-    async function carregarExercicios() {
-      const coll = collection(db, 'users', uid, 'academia_exercicios');
-      const snap = await getDocs(coll);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Carregar Exercícios para o Select
+    async function loadExercises() {
+      if (!uid) return;
+      try {
+        const snap = await getDocs(collection(db, 'users', uid, 'academia_exercicios'));
+        allExercises = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Ordena exercícios alfabeticamente no select
+        allExercises.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+        
+        exerciseSelect.innerHTML = '<option value="">Selecione um exercício...</option>';
+        allExercises.forEach(ex => {
+          const opt = document.createElement('option');
+          opt.value = ex.id;
+          opt.textContent = ex.name || 'Sem nome';
+          exerciseSelect.appendChild(opt);
+        });
+      } catch(error) {
+        console.error("Erro ao carregar exercícios:", error);
+      }
     }
 
+    // Renderizar Card do Grupo na Tela Principal
     function renderGroupCard(g) {
-      const exNames = (g.exercises || []).map(e => e.name).join(', ') || 'Nenhum exercício';
+      const sortedExercises = (g.exercises || []).sort((a,b) => a.order - b.order);
+      
+      let exercisesHtml = '';
+      if(sortedExercises.length > 0) {
+          exercisesHtml = sortedExercises.map(e => `
+              <li class="text-sm text-gray-400 border-l-2 border-accent/50 pl-2 mb-1 truncate">
+                  <span class="font-bold text-gray-300">${e.order}. ${e.name}</span>
+                  <span class="text-xs ml-1 opacity-70">(${e.series || '-'}x${e.reps || '-'})</span>
+              </li>
+          `).join('');
+      } else {
+          exercisesHtml = `<li class="text-sm text-gray-600 italic">Sem exercícios</li>`;
+      }
+
       return `
-        <div class='card p-4 rounded-xl cursor-pointer' data-id='${g.id}'>
-          <h3 class='text-lg font-semibold mb-2'>${g.name || 'Sem nome'}</h3>
-          <p class='text-sm text-gray-400'>Exercícios: <span class='text-green-300'>${exNames}</span></p>
+        <div class='task-card rounded-2xl overflow-hidden cursor-pointer p-5 flex flex-col h-full' data-id='${g.id}'>
+          <h3 class='text-xl font-bold mb-3 text-white flex items-center gap-2 border-b border-white/10 pb-2'>
+            <i data-lucide="folder" class="w-5 h-5 text-accent"></i> ${g.name || 'Grupo Sem Nome'}
+          </h3>
+          <ul class='flex-1 space-y-1.5'>
+            ${exercisesHtml}
+          </ul>
         </div>`;
     }
 
     function renderGroups(list) {
       groupList.innerHTML = '';
-      if (!list.length) { groupEmpty.classList.remove('hidden'); return; }
+      if (!list.length) { 
+          groupEmpty.classList.remove('hidden'); 
+          return; 
+      }
       groupEmpty.classList.add('hidden');
+      
+      // Ordena grupos alfabeticamente
+      list.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+      
       list.forEach(it => groupList.insertAdjacentHTML('beforeend', renderGroupCard(it)));
-      groupList.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', () => openModal(allGroups.find(x=>x.id===el.dataset.id))));
+      
+      lucide.createIcons();
+      
+      groupList.querySelectorAll('[data-id]').forEach(el => {
+          el.addEventListener('click', () => openModal(allGroups.find(x => x.id === el.dataset.id)));
+      });
     }
 
-    async function openModal(data = null) {
+    // Renderizar a lista de exercícios DENTRO do modal
+    function renderSelectedExercises() {
+      exerciseListEl.innerHTML = '';
+      if(selectedExercises.length === 0) {
+          exerciseListEl.innerHTML = `
+            <div class="text-center py-4 text-gray-600 text-sm italic bg-black/20 rounded-xl border border-dashed border-white/10">
+                Nenhum exercício adicionado ainda.
+            </div>`;
+          return;
+      }
+
+      selectedExercises.sort((a,b) => a.order - b.order).forEach((e, i) => {
+        const item = document.createElement('div');
+        item.className = 'bg-black/40 border border-white/5 rounded-xl p-3 flex justify-between items-center gap-3 hover:border-white/10 transition';
+        
+        let details = [];
+        if(e.series) details.push(`${e.series} Séries`);
+        if(e.reps) details.push(`${e.reps} Reps`);
+        if(e.weight) details.push(`${e.weight}`);
+        if(e.time) details.push(`${e.time}`);
+        let detailsStr = details.join(' | ');
+
+        item.innerHTML = `
+           <div class="flex-1 min-w-0">
+               <div class="font-bold text-white text-sm truncate">${e.order}. ${e.name}</div>
+               ${detailsStr ? `<div class="text-xs text-accent mt-0.5 font-semibold">${detailsStr}</div>` : ''}
+           </div>
+           <button type="button" class='text-gray-500 hover:text-red-400 p-2 bg-white/5 hover:bg-red-500/10 rounded-lg transition' data-i='${i}'>
+               <i data-lucide="trash-2" class="w-4 h-4"></i>
+           </button>
+        `;
+        exerciseListEl.appendChild(item);
+      });
+      
+      lucide.createIcons();
+      
+      // Evento de remover
+      exerciseListEl.querySelectorAll('button[data-i]').forEach(btn => {
+          btn.addEventListener('click', () => {
+              selectedExercises.splice(btn.dataset.i, 1);
+              renderSelectedExercises();
+          });
+      });
+    }
+
+    // Adicionar Exercício à lista do Grupo (Memória local do Modal)
+    addExerciseBtn.addEventListener('click', () => {
+      const exId = exerciseSelect.value;
+      const order = parseInt(orderInput.value);
+      
+      if (!exId || isNaN(order)) {
+          alert('Por favor, selecione o exercício e informe a ordem numericamente.');
+          return;
+      }
+      
+      const ex = allExercises.find(e => e.id === exId);
+      
+      selectedExercises.push({ 
+          id: ex.id, 
+          name: ex.name, 
+          order: order,
+          series: parseInt(seriesInput.value) || null,
+          reps: parseInt(repsInput.value) || null,
+          weight: weightInput.value.trim() || "",
+          time: timeInput.value.trim() || ""
+      });
+      
+      renderSelectedExercises();
+      
+      // Limpar campos de entrada do exercício
+      exerciseSelect.value = '';
+      orderInput.value = '';
+      seriesInput.value = '';
+      repsInput.value = '';
+      weightInput.value = '';
+      timeInput.value = '';
+    });
+
+    // Abrir Modal
+    function openModal(data = null) {
       editingId = data ? data.id : null;
-      modalTitle.textContent = editingId ? 'Editar Grupo' : 'Novo Grupo';
+      
+      modalTitle.innerHTML = editingId 
+        ? '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> Editar Grupo' 
+        : '<i data-lucide="layers" class="w-5 h-5 text-accent"></i> Novo Grupo';
+      
+      nameInput.value = data?.name || '';
+      selectedExercises = data?.exercises ? JSON.parse(JSON.stringify(data.exercises)) : []; // Deep copy
+      
+      // Limpar campos de adição
+      exerciseSelect.value = '';
+      orderInput.value = '';
+      seriesInput.value = '';
+      repsInput.value = '';
+      weightInput.value = '';
+      timeInput.value = '';
 
-      if (!allExercises.length) allExercises = await carregarExercicios();
-
-      const options = allExercises.map(e => `<option value='${e.id}'>${e.name}</option>`).join('');
-      const selected = (data?.exercises || []).map(e => e.id);
-
-      modalForm.innerHTML = `
-        <label class='text-sm'>Nome do grupo</label>
-        <input id='f-name' class='w-full p-2 rounded bg-gray-800 border border-gray-700 mb-3' value='${data ? (data.name||'') : ''}'>
-
-        <label class='text-sm'>Adicionar exercícios</label>
-        <div class='flex gap-2 mb-2'>
-          <select id='exercise-select' class='flex-1 p-2 rounded bg-gray-800 border border-gray-700'>
-            <option value=''>Selecione um exercício</option>
-            ${options}
-          </select>
-          <button type='button' id='add-exercise' class='px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded'>Adicionar</button>
-        </div>
-
-        <div id='exercise-tags' class='flex flex-wrap gap-2'>
-          ${(data?.exercises || []).map(ex => `<span data-id='${ex.id}' class='bg-green-700 px-2 py-1 rounded text-sm flex items-center gap-1'>${ex.name}<button type='button' class='text-red-400 remove-ex'>&times;</button></span>`).join('')}
-        </div>`;
-
+      renderSelectedExercises();
+      
+      lucide.createIcons();
       modalDelete.classList.toggle('hidden', !editingId);
       modal.classList.remove('hidden');
-
-      const exerciseSelect = document.getElementById('exercise-select');
-      const exerciseTags = document.getElementById('exercise-tags');
-      document.getElementById('add-exercise').addEventListener('click', () => {
-        const id = exerciseSelect.value;
-        const found = allExercises.find(e => e.id === id);
-        if (!found || exerciseTags.querySelector(`[data-id='${id}']`)) return;
-        const tag = document.createElement('span');
-        tag.dataset.id = id;
-        tag.className = 'bg-green-700 px-2 py-1 rounded text-sm flex items-center gap-1';
-        tag.innerHTML = `${found.name}<button type='button' class='text-red-400 remove-ex'>&times;</button>`;
-        exerciseTags.appendChild(tag);
-        tag.querySelector('.remove-ex').addEventListener('click', ()=>tag.remove());
-      });
-
-      exerciseTags.querySelectorAll('.remove-ex').forEach(btn => btn.addEventListener('click', e => e.target.closest('span').remove()));
+      modal.classList.add('flex');
     }
 
-    modalCancel.addEventListener('click', () => modal.classList.add('hidden'));
+    // Fechar Modal
+    const closeModal = () => modal.classList.add('hidden');
+    modalCancel.addEventListener('click', closeModal);
+    modalCancelTop.addEventListener('click', closeModal);
 
-    modalSave.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!uid) return alert('Usuário não autenticado');
+    // Salvar Grupo no Firebase
+    modalSave.addEventListener('click', async () => {
+      if (!uid) return;
+      
+      const groupName = nameInput.value.trim();
+      if(!groupName) {
+          alert("O nome do grupo é obrigatório!");
+          return;
+      }
 
-      const name = document.getElementById('f-name').value.trim();
-      const tags = [...document.querySelectorAll('#exercise-tags span')].map(el => {
-        const id = el.dataset.id;
-        const ex = allExercises.find(e => e.id === id);
-        return { id: ex.id, name: ex.name };
-      });
+      const payload = {
+        name: groupName,
+        exercises: selectedExercises
+      };
 
-      const payload = { name, exercises: tags };
-      const coll = collection(db, 'users', uid, 'academia_grupos');
-      if (editingId) await updateDoc(doc(coll, editingId), payload);
-      else await addDoc(coll, payload);
-      modal.classList.add('hidden');
+      try {
+          const coll = collection(db, 'users', uid, 'academia_grupos');
+          if (editingId) {
+              await updateDoc(doc(coll, editingId), payload);
+          } else {
+              await addDoc(coll, payload);
+          }
+          closeModal();
+      } catch (error) {
+          console.error("Erro ao salvar grupo:", error);
+      }
     });
 
+    // Excluir Grupo
     modalDelete.addEventListener('click', async () => {
       if (!uid || !editingId) return;
-      if (!confirm('Deseja realmente excluir?')) return;
-      await deleteDoc(doc(collection(db, 'users', uid, 'academia_grupos'), editingId));
-      modal.classList.add('hidden');
+      if (!confirm('Deseja realmente excluir este grupo?')) return;
+      
+      try {
+          await deleteDoc(doc(collection(db, 'users', uid, 'academia_grupos'), editingId));
+          closeModal();
+      } catch (error) {
+          console.error("Erro ao deletar grupo:", error);
+      }
     });
 
+    // Listener do Firestore para Grupos
     function startListeners() {
       if (!uid) return;
       onSnapshot(query(collection(db, 'users', uid, 'academia_grupos')), snap => {
-        const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+        const arr = []; 
+        snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
         allGroups = arr;
         renderGroups(arr);
+      }, (error) => {
+          console.error("Erro ao buscar grupos:", error);
       });
     }
 
+    // Auth State
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
+      if (!user) { 
+          window.location.href = 'index.html'; 
+          return; 
+      }
       uid = user.uid;
       userEmailEl.textContent = user.email || user.uid;
-      allExercises = await carregarExercicios();
+      
+      await loadExercises(); // Carrega os exercícios disponíveis
+      startListeners(); // Escuta as mudanças nos grupos
+      
       loading.classList.add('hidden');
       appEl.classList.remove('hidden');
-      startListeners();
     });
 
-    logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
+    // Ações de Botões base
+    logoutBtn.addEventListener('click', async () => { 
+        await signOut(auth); 
+        window.location.href = 'index.html'; 
+    });
+    
     addGroupBtn.addEventListener('click', () => openModal());
 
   </script>
