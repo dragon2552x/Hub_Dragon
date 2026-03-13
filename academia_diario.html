@@ -1,379 +1,631 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gerenciador — Diário</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    .card { background:#151515; border:1px solid #2a2a2a; transition:all .2s; }
-    .card:hover { border-color:#B9314F; transform:translateY(-4px); }
-    .btn-primary { background:#B9314F; }
-    .btn-primary:hover { background:#99233b; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diário de Treino — My Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --accent-color: #B9314F;
+            --bg-dark: #0b0b0b;
+            --bg-panel: #151515;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+            min-height: 100vh;
+        }
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        .glass-panel {
+            background: rgba(21, 21, 21, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .task-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(185, 49, 79, 0.3);
+        }
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+            color-scheme: dark;
+        }
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+        }
+        /* Remover setas nativas do input number */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        .xbox-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .xbox-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+        }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
+            z-index: 50; transition: transform 0.3s ease;
+        }
+        .sidebar.hidden { transform: translateX(-100%); }
+        .main-content { margin-left: 80px; transition: margin-left 0.3s ease; }
+        .main-content.sidebar-hidden { margin-left: 0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+    </style>
 </head>
-<body class="min-h-screen">
-  <!-- LOADING -->
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-[#B9314F] rounded-full"></div>
-  </div>
+<body class="flex h-screen overflow-hidden">
 
-  <!-- APP -->
-  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
-    <header class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3">
-      <div>
-        <h1 class="text-3xl font-bold">Diário de Treino</h1>
-        <div class="text-sm text-gray-400 mt-1">
-          Usuário: <span id="user-email" class="text-[#B9314F] font-mono"></span>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <button onclick="window.location.href='home.html'" class="px-3 py-1 rounded btn-primary text-white">Home</button>
-        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
-      </div>
-    </header>
-
-    <!-- NAV -->
-    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3 flex-wrap">
-      <button class="text-lg font-medium" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
-      <button class="text-lg font-medium" onclick="window.location.href='academia_grupos.html'">Grupos</button>
-      <button class="text-lg font-medium text-[#B9314F]" onclick="window.location.href='academia_diario.html'">Diário</button>
-    </nav>
-
-    <div class="flex justify-end mb-4">
-      <button id="btn-registrar" class="px-3 py-1 rounded btn-primary hover:bg-[#99233b]">Registrar Treino</button>
+    <div id="loading" class="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
     </div>
 
-    <div id="treinos-lista" class="space-y-3"></div>
-  </div>
+    <aside id="sidebar" class="sidebar flex flex-col bg-[#121212] border-r border-white/10 items-center py-6 glass-panel">
+        <div class="text-accent mb-8"><i data-lucide="sparkle" class="w-10 h-10"></i></div>
+        <nav class="flex flex-col gap-6 items-center flex-1">
+            <a href="home.html" class="text-gray-500 hover:text-gray-200 transition"><i data-lucide="home" class="w-7 h-7"></i></a>
+            <a href="academia_exercicios.html" class="text-gray-500 hover:text-gray-200 transition"><i data-lucide="activity" class="w-7 h-7"></i></a>
+            <a href="academia_grupos.html" class="text-gray-500 hover:text-gray-200 transition"><i data-lucide="layers" class="w-7 h-7"></i></a>
+            <a href="#" class="text-accent bg-white/5 p-2 rounded-xl transition shadow-[0_0_15px_rgba(185,49,79,0.2)]"><i data-lucide="calendar" class="w-7 h-7"></i></a>
+            <a href="to_do.html" class="text-gray-500 hover:text-gray-200 transition"><i data-lucide="check-square" class="w-7 h-7"></i></a>
+        </nav>
+        <button id="logout-btn" class="mt-auto text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition"><i data-lucide="log-out" class="w-7 h-7"></i></button>
+    </aside>
 
-  <!-- MODAL -->
-  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50 overflow-auto">
-    <div class="bg-gray-900 rounded-lg w-11/12 max-w-3xl p-6 mb-10">
-      <h2 class="text-xl font-semibold text-white mb-4">Registrar Treino</h2>
-      <form id="form-treino" class="space-y-4">
-        <div>
-          <label class="block text-sm mb-1">Data</label>
-          <input id="treino-data" type="date" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white">
+    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+        <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+            <div class="flex items-center gap-3">
+                <button id="toggle-sidebar" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                    <i data-lucide="calendar" class="text-accent"></i> Diário de Treino
+                </h2>
+            </div>
+            <div id="user-info" class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5 font-mono">
+                <span id="user-email" class="text-accent font-bold">...</span>
+            </div>
+        </header>
+
+        <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 hidden">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-wrap gap-3 mb-8 border-b border-white/10 pb-4">
+                    <a href="academia_exercicios.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4"></i> Exercícios
+                    </a>
+                    <a href="academia_grupos.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4"></i> Grupos
+                    </a>
+                    <a href="#" class="text-white font-bold px-5 py-2.5 bg-accent rounded-xl shadow-[0_0_15px_rgba(185,49,79,0.3)] flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> Diário
+                    </a>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="flex-1">
+                        <div class="glass-panel rounded-2xl p-6 md:p-8 mb-6 border border-white/5">
+                            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                <i data-lucide="play-circle" class="w-5 h-5 text-accent"></i> Hora do Show
+                            </h3>
+                            <p class="text-gray-400 text-sm mb-6">Registre seu treino de hoje com pesos e repetições reais.</p>
+                            
+                            <button id="btn-registrar" class="xbox-button w-full bg-accent text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(185,49,79,0.2)]">
+                                <i data-lucide="plus-circle" class="w-6 h-6"></i> REGISTRAR TREINO
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="w-full lg:w-96">
+                        <div class="glass-panel rounded-2xl p-6 h-full border border-white/5 flex flex-col">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+                                <span class="flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-accent"></i> Histórico</span>
+                                <button id="btn-load-history" class="text-xs bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-gray-300 transition font-bold">
+                                    Carregar Dados
+                                </button>
+                            </h3>
+                            <div id="lista-treinos" class="space-y-3 overflow-y-auto flex-1 pr-2 max-h-[400px]">
+                                <div class="text-center py-8 text-gray-600">
+                                    <i data-lucide="database" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+                                    <p class="text-sm italic">Clique em "Carregar Dados" para ver seus treinos anteriores.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm mb-1">Grupo</label>
-          <select id="treino-grupo" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"></select>
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-[100] p-2 md:p-4 flex items-center justify-center transition-all">
+        <div class="glass-panel rounded-2xl md:rounded-3xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl border border-white/10">
+            
+            <div class="p-5 md:p-6 border-b border-white/10 flex justify-between items-center bg-[#151515] shrink-0">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-5 h-5 text-accent"></i> Registrar Dia de Treino
+                </h2>
+                <button id="btn-fechar-modal" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-5 md:p-6 overflow-y-auto flex-1 bg-[#0b0b0b]/50">
+                <form id="form-treino" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Data do Treino</label>
+                        <input type="date" id="data-treino" class="w-full rounded-xl p-3.5 text-sm font-bold bg-black/40 border-white/10" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Grupo de Treino</label>
+                        <select id="select-grupo" class="w-full rounded-xl p-3.5 text-sm font-bold bg-black/40 border-white/10" required>
+                            <option value="">Selecione um grupo...</option>
+                        </select>
+                    </div>
+                </form>
+
+                <div id="exercicios-detalhes" class="space-y-4 hidden">
+                    </div>
+            </div>
+
+            <div class="p-5 md:p-6 border-t border-white/10 flex gap-3 bg-[#151515] shrink-0">
+                <button id="btn-cancelar" class="flex-1 py-3.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl font-bold transition">Cancelar</button>
+                <button id="btn-salvar" class="xbox-button flex-[2] py-3.5 bg-accent text-white rounded-xl font-bold flex justify-center items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i> SALVAR TREINO
+                </button>
+            </div>
         </div>
-        <div id="exercicios-detalhes" class="space-y-4 hidden"></div>
-        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-          <button id="salvar-treino" class="px-4 py-2 rounded btn-primary hover:bg-[#99233b]">Salvar</button>
-          <button id="cancelar" type="button" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-    import {
-      getFirestore, collection, getDocs, addDoc, onSnapshot,
-      query, doc, getDoc, where, orderBy, limit, deleteDoc
-    } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    <div id="modal-edit-stats" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-[110] flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl w-full max-w-sm border border-white/10 shadow-2xl">
+            <div class="p-5 border-b border-white/10">
+                <h3 class="text-white font-bold flex items-center gap-2">
+                    <i data-lucide="settings-2" class="w-4 h-4 text-accent"></i> Ajustar Execução de Hoje
+                </h3>
+            </div>
+            <div class="p-5 space-y-4 bg-black/30">
+                <input type="hidden" id="edit-idx">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Carga / Peso (ex: 20kg)</label>
+                    <input type="text" id="edit-weight" class="w-full rounded-xl p-3 text-sm bg-black/60 border-white/10 font-bold" placeholder="Deixar vazio se não usar peso">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tempo (ex: 60s)</label>
+                    <input type="text" id="edit-time" class="w-full rounded-xl p-3 text-sm bg-black/60 border-white/10 font-bold" placeholder="Deixar vazio se não for por tempo">
+                </div>
+            </div>
+            <div class="p-4 border-t border-white/10 flex gap-2 bg-[#151515] rounded-b-2xl">
+                <button type="button" onclick="fecharModalEdit()" class="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-sm font-bold transition">Voltar</button>
+                <button type="button" onclick="salvarModalEdit()" class="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-bold hover:bg-[#a12745] transition shadow-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
-      authDomain: "list-games-9bddd.firebaseapp.com",
-      projectId: "list-games-9bddd",
-      storageBucket: "list-games-9bddd.appspot.com",
-      messagingSenderId: "756898313156",
-      appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
-      measurementId: "G-GLM50YVLXP"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
+            authDomain: "list-games-9bddd.firebaseapp.com",
+            projectId: "list-games-9bddd",
+            storageBucket: "list-games-9bddd.firebasestorage.app",
+            messagingSenderId: "756898313156",
+            appId: "1:756898313156:web:9bc660d0a2f4cd07882a91"
+        };
 
-    const loading = document.getElementById('loading');
-    const appEl = document.getElementById('app');
-    const userEmailEl = document.getElementById('user-email');
-    const logoutBtn = document.getElementById('logout-btn');
-    const modal = document.getElementById('modal');
-    const btnRegistrar = document.getElementById('btn-registrar');
-    const cancelar = document.getElementById('cancelar');
-    const treinoGrupo = document.getElementById('treino-grupo');
-    const treinoData = document.getElementById('treino-data');
-    const exerciciosDetalhes = document.getElementById('exercicios-detalhes');
-    const listaTreinos = document.getElementById('treinos-lista');
-    const formTreino = document.getElementById('form-treino');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    let uid = null;
-    let grupos = [];
+        // Estado Global
+        let uid = null;
+        let gruposCache = [];
+        let exerciciosCache = []; // Para buscar as imagens
+        let lastStatsCache = {}; // Cache de último treino feito (por exercício)
+        let currentWorkout = []; // Guarda o estado atual do treino sendo preenchido no modal
 
-    // Busca último treino do grupo (com fallback seguro)
-    async function buscarUltimoTreinoGrupo(grupoId) {
-      try {
-        const q = query(
-          collection(db, 'users', uid, 'academia_diario'),
-          where('groupId', '==', grupoId),
-          orderBy('date', 'desc'),
-          limit(1)
-        );
-        const snap = await getDocs(q);
-        if (snap.empty) return null;
-        return { id: snap.docs[0].id, ...snap.docs[0].data() };
-      } catch (err) {
-        console.warn('Query orderBy/where falhou (fallback). Erro:', err.message || err);
-        // fallback: buscar todos os treinos e filtrar/ordenar no cliente
-        const allSnap = await getDocs(collection(db, 'users', uid, 'academia_diario'));
-        const arr = [];
-        allSnap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-        const filtered = arr.filter(x => x.groupId === grupoId);
-        if (!filtered.length) return null;
-        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-        return filtered[0];
-      }
-    }
+        // Elementos UI
+        const loading = document.getElementById('loading');
+        const appEl = document.getElementById('app');
+        const modal = document.getElementById('modal');
+        const selectGrupo = document.getElementById('select-grupo');
+        const exerciciosDetalhes = document.getElementById('exercicios-detalhes');
+        const listaTreinos = document.getElementById('lista-treinos');
+        const modalEditStats = document.getElementById('modal-edit-stats');
 
-    async function carregarGrupos() {
-      const snap = await getDocs(collection(db, 'users', uid, 'academia_grupos'));
-      grupos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      treinoGrupo.innerHTML = '<option value="">Selecione um grupo</option>';
-      grupos.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = g.name;
-        treinoGrupo.appendChild(opt);
-      });
-    }
+        lucide.createIcons();
 
-    async function carregarExercicioPorId(id) {
-      const ref = doc(db, 'users', uid, 'academia_exercicios', id);
-      const snap = await getDoc(ref);
-      return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-    }
+        // Toggle Sidebar
+        document.getElementById('toggle-sidebar').onclick = () => {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('main-content').classList.toggle('sidebar-hidden');
+        };
 
-    // Ao trocar de grupo, mostrar exercícios + última repetição do último treino (fallback seguro)
-    treinoGrupo.addEventListener('change', async () => {
-      try {
-        const grupo = grupos.find(g => g.id === treinoGrupo.value);
-        if (!grupo) {
-          exerciciosDetalhes.classList.add('hidden');
-          exerciciosDetalhes.innerHTML = '';
-          return;
-        }
-        exerciciosDetalhes.classList.remove('hidden');
-        exerciciosDetalhes.innerHTML = '';
-
-        // buscar último treino desse grupo (pode retornar null)
-        const ultimoTreino = await buscarUltimoTreinoGrupo(grupo.id);
-
-        for (const ex of (grupo.exercises || []).slice().sort((a,b)=> (a.order||0) - (b.order||0))) {
-          const exData = await carregarExercicioPorId(ex.id);
-          if (!exData) continue;
-
-          // pegar última repetição daquele exercício (do último treino do grupo)
-          let ultimaRepeticao = '-';
-          if (ultimoTreino?.exercises) {
-            const ultimoEx = ultimoTreino.exercises.find(e => e.id === ex.id);
-            if (ultimoEx && Array.isArray(ultimoEx.repsDia) && ultimoEx.repsDia.length) {
-              ultimaRepeticao = ultimoEx.repsDia.join(', ');
-            }
-          }
-
-          const card = document.createElement('div');
-          card.className = 'p-3 border border-gray-700 rounded flex gap-4 items-start flex-wrap sm:flex-nowrap';
-          card.innerHTML = `
-            <img src='${exData.image || 'https://placehold.co/100x100/2a2a2a/e0e0e0?text=IMG'}'
-                 class='w-24 h-24 rounded object-cover border border-gray-700'>
-            <div class='flex-1 min-w-[220px]'>
-              <h4 class='text-lg font-semibold text-[#B9314F] mb-1'>${exData.name}</h4>
-              <p class='text-sm text-gray-400'>Repetições padrão: ${exData.reps || exData.repeticoes || '-' } | Séries: ${exData.series || '-'}</p>
-              <p class='text-sm text-gray-400'>Peso: ${exData.weight || exData.peso || '-'} kg | Tempo: ${exData.time || exData.tempo || '-'} s</p>
-              <p class='text-sm text-gray-400'>Última Repetição: ${ultimaRepeticao}</p>
-              <div id='reps-${ex.id}' class='mt-2 flex flex-wrap gap-2'></div>
-            </div>`;
-
-          exerciciosDetalhes.appendChild(card);
-
-          // adicionar inputs para cada série (valores em branco para registrar o dia atual)
-          const repsDiv = card.querySelector(`#reps-${ex.id}`);
-          const seriesCount = parseInt(exData.series) || 1;
-          for (let i = 0; i < seriesCount; i++) {
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.placeholder = `Série ${i+1}`;
-            input.className = 'p-2 w-28 rounded bg-gray-800 border border-gray-700 text-white';
-            input.dataset.exerciseId = ex.id;
-            input.dataset.serieIndex = i;
-            repsDiv.appendChild(input);
-          }
-        }
-      } catch (err) {
-        console.error('Erro ao renderizar exercícios do grupo:', err);
-        exerciciosDetalhes.innerHTML = `<p class="text-sm text-red-400">Erro ao carregar exercícios: ${err.message || err}</p>`;
-      }
-    });
-
-    // salvar treino
-    formTreino.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        const grupo = grupos.find(g => g.id === treinoGrupo.value);
-        if (!grupo) return alert('Selecione um grupo válido.');
-
-        const exerciciosSalvos = [];
-        for (const ex of (grupo.exercises || []).slice().sort((a,b)=> (a.order||0)-(b.order||0))) {
-          const exData = await carregarExercicioPorId(ex.id);
-          if (!exData) continue;
-          const repsInputs = Array.from(document.querySelectorAll(`#reps-${ex.id} input`));
-          const repsDia = repsInputs.map(i => i.value ? parseInt(i.value) : 0);
-          exerciciosSalvos.push({
-            id: ex.id,
-            name: exData.name,
-            image: exData.image || null,
-            weight: exData.weight || null,
-            time: exData.time || null,
-            series: exData.series || null,
-            repsTemplate: exData.reps || null,
-            repsDia
-          });
-        }
-
-        await addDoc(collection(db, 'users', uid, 'academia_diario'), {
-          date: treinoData.value || new Date().toISOString().slice(0,10),
-          groupName: grupo.name,
-          groupId: grupo.id,
-          observation: '',
-          exercises: exerciciosSalvos,
-          createdAt: new Date()
-        });
-
-        modal.classList.add('hidden');
-        formTreino.reset();
-        exerciciosDetalhes.innerHTML = '';
-        alert('Treino salvo com sucesso!');
-      } catch (err) {
-        console.error('Erro ao salvar treino:', err);
-        alert('Erro ao salvar treino: ' + (err.message || err));
-      }
-    });
-
-    // render card e listeners para editar/excluir
-    function renderTreinoCard(t) {
-      return `
-        <div class="card p-3 sm:p-4 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4">
-          <div class="flex items-center gap-3 flex-wrap">
-            <h3 class="text-base sm:text-lg font-semibold">${t.groupName}</h3>
-            <span class="text-sm text-gray-400">${t.date}</span>
-          </div>
-          <div class="flex gap-2">
-            <button class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm" data-edit="${t.id}">Editar</button>
-            <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm" data-del="${t.id}">Excluir</button>
-          </div>
-        </div>`;
-    }
-
-    // carregar treinos e anexar listeners
-    function carregarTreinos() {
-      // uso onSnapshot para atualizações em tempo real
-      onSnapshot(collection(db, 'users', uid, 'academia_diario'), (snap) => {
-        listaTreinos.innerHTML = '';
-        if (snap.empty) {
-          listaTreinos.innerHTML = `<p class="text-gray-500 text-center">Nenhum treino registrado ainda.</p>`;
-          return;
-        }
-        const arr = [];
-        snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-        // ordenar por data descendente (mais recente primeiro)
-        arr.sort((a,b) => new Date(b.date) - new Date(a.date));
-        arr.forEach(t => listaTreinos.insertAdjacentHTML('beforeend', renderTreinoCard(t)));
-
-        // anexar listeners dinamicamente
-        document.querySelectorAll('[data-del]').forEach(btn => {
-          btn.onclick = async () => {
-            const id = btn.dataset.del;
-            if (!confirm('Deseja excluir este treino?')) return;
+        // 1. Carregar Dados Iniciais (Grupos, Exercícios e Histórico Recente)
+        async function carregarDadosBase() {
             try {
-              await deleteDoc(doc(db, 'users', uid, 'academia_diario', id));
-            } catch (err) {
-              console.error('Erro excluir treino:', err);
-              alert('Erro ao excluir: ' + (err.message || err));
-            }
-          };
-        });
+                // Carregar Exercícios (Para imagens)
+                const snapEx = await getDocs(collection(db, 'users', uid, 'academia_exercicios'));
+                exerciciosCache = snapEx.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        document.querySelectorAll('[data-edit]').forEach(btn => {
-            btn.onclick = async () => {
-                const id = btn.dataset.edit;
-                try {
-                const ref = doc(db, 'users', uid, 'academia_diario', id);
-                const snap = await getDoc(ref);
-                if (!snap.exists()) { alert('Treino não encontrado'); return; }
-                const treino = snap.data();
-                treinoData.value = treino.date;
-                treinoGrupo.value = treino.groupId;
-                modal.classList.remove('hidden');
+                // Carregar Grupos
+                const snapGr = await getDocs(collection(db, 'users', uid, 'academia_grupos'));
+                gruposCache = snapGr.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Ordenar alfabeticamente
+                gruposCache.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
 
-                // 🔹 Aguarda renderização completa dos exercícios antes de preencher
-                await new Promise(async (resolve) => {
-                    await treinoGrupo.dispatchEvent(new Event('change'));
-                    const checkInterval = setInterval(() => {
-                    const ready = treino.exercises.every(ex => document.querySelector(`#reps-${ex.id}`));
-                    if (ready) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                    }, 150);
+                selectGrupo.innerHTML = '<option value="">Selecione um grupo...</option>';
+                gruposCache.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = g.name;
+                    selectGrupo.appendChild(opt);
                 });
 
-                // 🔹 Preenche os valores corretos em cada série de cada exercício
-                for (const exItem of (treino.exercises || [])) {
-                    const inputs = Array.from(document.querySelectorAll(`#reps-${exItem.id} input`));
-                    const repsDia = exItem.repsDia || [];
-                    inputs.forEach((inp, idx) => {
-                    inp.value = repsDia[idx] ?? '';
-                    });
+                // Carregar Histórico Diário para cache do "Último Treino"
+                const snapHistory = await getDocs(query(collection(db, 'users', uid, 'academia_diario'), orderBy('date', 'desc')));
+                snapHistory.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if(data.exercises) {
+                        data.exercises.forEach(ex => {
+                            // Se ainda não salvamos o status deste exercício (como vem ordenado por desc, o primeiro é o mais recente)
+                            if (ex.id && !lastStatsCache[ex.id]) {
+                                lastStatsCache[ex.id] = {
+                                    date: data.date,
+                                    weight: ex.weight,
+                                    time: ex.time,
+                                    reps: ex.actualReps // Array de repetições
+                                };
+                            }
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar dados base:", error);
+            }
+        }
+
+        // 2. Evento ao Selecionar um Grupo no Modal
+        selectGrupo.onchange = () => {
+            const grupo = gruposCache.find(g => g.id === selectGrupo.value);
+            if (!grupo || !grupo.exercises) {
+                exerciciosDetalhes.innerHTML = '';
+                exerciciosDetalhes.classList.add('hidden');
+                currentWorkout = [];
+                return;
+            }
+
+            // Inicializa o estado do treino de hoje baseado no grupo
+            currentWorkout = JSON.parse(JSON.stringify(grupo.exercises)).sort((a,b) => a.order - b.order);
+            
+            // Para cada exercício, prepara o array de repetições
+            currentWorkout.forEach(ex => {
+                const series = parseInt(ex.series) || 1;
+                const repBase = parseInt(ex.reps) || 0;
+                ex.actualReps = Array(series).fill(repBase);
+            });
+
+            renderUIExercicios();
+        };
+
+        // 3. Renderizar a Lista de Exercícios para preenchimento
+        function renderUIExercicios() {
+            exerciciosDetalhes.innerHTML = `
+                <div class="flex items-center gap-2 mb-2 px-1 border-t border-white/5 pt-4">
+                    <i data-lucide="list-checks" class="w-4 h-4 text-accent"></i>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Acompanhamento de Séries</h4>
+                </div>
+            `;
+
+            currentWorkout.forEach((ex, idx) => {
+                // Busca a imagem do cache de exercícios
+                const exDb = exerciciosCache.find(e => e.id === ex.id);
+                const imgUrl = (exDb && exDb.image) ? exDb.image : 'https://placehold.co/200x200/151515/e0e0e0?text=Ex';
+
+                // Preparando os dados da "Última vez"
+                let lastWorkoutHtml = '';
+                if(lastStatsCache[ex.id]) {
+                    const last = lastStatsCache[ex.id];
+                    let dateBr = last.date || '';
+                    if(dateBr.includes('-')) {
+                        const p = dateBr.split('-');
+                        dateBr = `${p[2]}/${p[1]}`; // DD/MM
+                    }
+                    
+                    let infoArr = [];
+                    if(last.weight) infoArr.push(`<span class="text-accent">${last.weight}</span>`);
+                    if(last.time) infoArr.push(`<span class="text-accent">${last.time}</span>`);
+                    if(last.reps && last.reps.length > 0) infoArr.push(`<span class="text-gray-300 font-bold">${last.reps.join(' - ')} reps</span>`);
+                    
+                    lastWorkoutHtml = `
+                        <div class="mt-2 text-xs text-gray-400 flex flex-wrap items-center gap-1.5 bg-black/40 px-2.5 py-1.5 rounded-lg w-fit border border-white/5">
+                            <i data-lucide="history" class="w-3 h-3 text-gray-500"></i>
+                            <span>Último (${dateBr}):</span> ${infoArr.length > 0 ? infoArr.join(' <span class="text-gray-600">|</span> ') : '-'}
+                        </div>
+                    `;
                 }
 
-                } catch (err) {
-                console.error('Erro ao editar treino:', err);
-                alert('Erro ao abrir edição: ' + (err.message || err));
+                // Configura as caixinhas de input para cada série
+                let seriesInputsHtml = '';
+                const totalSeries = parseInt(ex.series) || 1;
+                
+                for(let i=0; i < totalSeries; i++) {
+                    const val = ex.actualReps && ex.actualReps[i] !== undefined ? ex.actualReps[i] : (ex.reps || 0);
+                    seriesInputsHtml += `
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase">S${i+1}</span>
+                            <input type="number" id="rep-${idx}-${i}" value="${val}" min="0" 
+                                class="w-12 h-12 text-center rounded-xl bg-black/60 border border-white/10 text-white font-bold text-lg shadow-inner focus:border-accent transition"
+                                onchange="atualizarRepsMemoria(${idx}, ${i}, this.value)">
+                        </div>
+                    `;
                 }
+
+                // Strings auxiliares do treino atual
+                let statsStr = [];
+                if(ex.weight) statsStr.push(`<span class="text-white">${ex.weight}</span>`);
+                if(ex.time) statsStr.push(`<span class="text-white">${ex.time}</span>`);
+                const statsDisplay = statsStr.length > 0 ? statsStr.join(' <span class="text-gray-600">|</span> ') : '<span class="text-gray-500 italic">Sem peso/tempo</span>';
+
+                const cardHtml = `
+                    <div class="task-card rounded-2xl overflow-hidden p-3 md:p-4 flex gap-4 border border-white/5 relative items-start">
+                        <img src="${imgUrl}" alt="${ex.name}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-white/10 shadow-md shrink-0" onerror="this.src='https://placehold.co/200x200/151515/e0e0e0?text=Ex';">
+                        
+                        <div class="flex-1 min-w-0 flex flex-col justify-between">
+                            
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-bold text-white text-base leading-tight mb-1 truncate" title="${ex.name}">${ex.order}. ${ex.name}</h5>
+                                    <div class="text-xs text-accent font-semibold flex items-center gap-2">
+                                        <i data-lucide="dumbbell" class="w-3 h-3"></i> Hoje: ${statsDisplay}
+                                    </div>
+                                    ${lastWorkoutHtml}
+                                </div>
+                                
+                                <button type="button" onclick="abrirModalEdit(${idx})" class="p-2 bg-white/5 hover:bg-accent/20 hover:text-accent text-gray-400 rounded-lg transition border border-transparent hover:border-accent/30 shrink-0 ml-2" title="Ajustar Carga/Tempo">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div class="bg-black/30 rounded-xl p-2.5 border border-white/5 mt-2">
+                                <div class="flex flex-wrap gap-2 md:gap-3">
+                                    ${seriesInputsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                exerciciosDetalhes.insertAdjacentHTML('beforeend', cardHtml);
+            });
+            
+            lucide.createIcons();
+            exerciciosDetalhes.classList.remove('hidden');
+        }
+
+        // Atualiza a memória quando o usuário digita na caixa de repetição
+        window.atualizarRepsMemoria = (exIdx, serieIdx, valor) => {
+            if(currentWorkout[exIdx] && currentWorkout[exIdx].actualReps) {
+                currentWorkout[exIdx].actualReps[serieIdx] = parseInt(valor) || 0;
+            }
+        };
+
+        // 4. Modal Secundário: Edição Rápida de Peso/Tempo
+        window.abrirModalEdit = (idx) => {
+            const ex = currentWorkout[idx];
+            document.getElementById('edit-idx').value = idx;
+            document.getElementById('edit-weight').value = ex.weight || '';
+            document.getElementById('edit-time').value = ex.time || '';
+            modalEditStats.classList.remove('hidden');
+        };
+
+        window.fecharModalEdit = () => {
+            modalEditStats.classList.add('hidden');
+        };
+
+        window.salvarModalEdit = () => {
+            const idx = document.getElementById('edit-idx').value;
+            const newWeight = document.getElementById('edit-weight').value.trim();
+            const newTime = document.getElementById('edit-time').value.trim();
+            
+            currentWorkout[idx].weight = newWeight;
+            currentWorkout[idx].time = newTime;
+            
+            fecharModalEdit();
+            renderUIExercicios(); // Re-renderiza para mostrar os novos dados no card
+        };
+
+
+        // 5. Salvar o Treino no Firebase
+        document.getElementById('btn-salvar').onclick = async () => {
+            const date = document.getElementById('data-treino').value;
+            const groupId = selectGrupo.value;
+            
+            if(!date || !groupId) {
+                alert("Preencha a Data e selecione o Grupo!");
+                return;
+            }
+
+            const grupoPlanejado = gruposCache.find(g => g.id === groupId);
+            
+            // Garantir que todas as caixas de repetições foram lidas
+            currentWorkout.forEach((ex, idx) => {
+                const totalSeries = parseInt(ex.series) || 1;
+                ex.actualReps = [];
+                for(let i=0; i<totalSeries; i++) {
+                    const input = document.getElementById(`rep-${idx}-${i}`);
+                    if(input) {
+                        ex.actualReps.push(parseInt(input.value) || 0);
+                    }
+                }
+            });
+
+            // Payload final
+            const payload = {
+                date: date, // formato YYYY-MM-DD
+                groupId: groupId,
+                groupName: grupoPlanejado.name,
+                exercises: currentWorkout, 
+                createdAt: new Date().toISOString()
             };
+
+            try {
+                // Ao salvar, atualizamos o cache do "Último treino" para a próxima vez que ele abrir o modal na mesma sessão
+                currentWorkout.forEach(ex => {
+                    lastStatsCache[ex.id] = {
+                        date: date,
+                        weight: ex.weight,
+                        time: ex.time,
+                        reps: ex.actualReps
+                    };
+                });
+
+                await addDoc(collection(db, 'users', uid, 'academia_diario'), payload);
+                modal.classList.add('hidden');
+                
+                // Atualiza o histórico se ele estiver visível
+                if(document.getElementById('lista-treinos').innerHTML.indexOf('task-card') !== -1) {
+                     document.getElementById('btn-load-history').click();
+                }
+            } catch (error) {
+                console.error("Erro ao salvar treino:", error);
+                alert("Erro ao salvar. Verifique o console.");
+            }
+        };
+
+
+        // 6. Histórico
+        document.getElementById('btn-load-history').onclick = async () => {
+            listaTreinos.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8">
+                    <div class="animate-spin h-8 w-8 border-2 border-t-transparent border-accent rounded-full mb-2"></div>
+                    <p class="text-accent text-sm font-bold">Buscando registros...</p>
+                </div>
+            `;
+            
+            try {
+                const q = query(collection(db, 'users', uid, 'academia_diario'), orderBy('date', 'desc'));
+                const snap = await getDocs(q);
+                listaTreinos.innerHTML = '';
+                
+                if(snap.empty) {
+                    listaTreinos.innerHTML = `
+                        <div class="text-center py-8 text-gray-600">
+                            <i data-lucide="ghost" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+                            <p class="text-sm italic">Nenhum treino registrado na história.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const treino = d.data();
+                    let dataFmt = "Data Inválida";
+                    if(treino.date) {
+                        const partes = treino.date.split('-');
+                        if(partes.length === 3) dataFmt = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                    }
+                    
+                    const qtdEx = treino.exercises ? treino.exercises.length : 0;
+
+                    const card = document.createElement('div');
+                    card.className = "task-card p-4 rounded-xl cursor-pointer border border-white/5 mb-3";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-black/40 p-2 rounded-lg border border-white/5 mt-0.5">
+                                    <i data-lucide="calendar-check" class="w-5 h-5 text-accent"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-white leading-tight">${treino.groupName || 'Treino'}</p>
+                                    <p class="text-xs text-accent font-bold mt-1">${dataFmt}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">${qtdEx} exercícios concluídos</p>
+                                </div>
+                            </div>
+                            <button onclick="deletarTreino('${d.id}')" class="text-gray-500 hover:text-red-500 p-2 hover:bg-red-500/10 rounded-lg transition" title="Excluir Registro">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    listaTreinos.appendChild(card);
+                });
+                lucide.createIcons();
+            } catch(error) {
+                console.error("Erro ao carregar histórico:", error);
+                listaTreinos.innerHTML = '<p class="text-red-500 text-sm text-center">Erro ao carregar histórico.</p>';
+            }
+        };
+
+        window.deletarTreino = async (id) => {
+            if(!confirm("Excluir definitivamente este registro de treino?")) return;
+            try {
+                await deleteDoc(doc(db, 'users', uid, 'academia_diario', id));
+                document.getElementById('btn-load-history').click(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao deletar treino:", error);
+            }
+        };
+
+        // Modal Controls Base
+        document.getElementById('btn-registrar').onclick = () => {
+            document.getElementById('form-treino').reset();
+            
+            // Seta data de hoje (ajustada para timezone local)
+            const hoje = new Date();
+            const yyyy = hoje.getFullYear();
+            const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoje.getDate()).padStart(2, '0');
+            document.getElementById('data-treino').value = `${yyyy}-${mm}-${dd}`;
+            
+            exerciciosDetalhes.innerHTML = '';
+            exerciciosDetalhes.classList.add('hidden');
+            currentWorkout = [];
+            
+            modal.classList.remove('hidden');
+        };
+        document.getElementById('btn-fechar-modal').onclick = () => modal.classList.add('hidden');
+        document.getElementById('btn-cancelar').onclick = () => modal.classList.add('hidden');
+
+        // Auth
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            uid = user.uid;
+            document.getElementById('user-email').textContent = user.email || user.uid;
+            
+            await carregarDadosBase();
+            
+            loading.classList.add('hidden');
+            appEl.classList.remove('hidden');
         });
-      }, (err) => {
-        console.error('Erro onSnapshot treinos:', err);
-        listaTreinos.innerHTML = `<p class="text-red-400">Erro ao carregar treinos: ${err.message || err}</p>`;
-      });
-    }
 
-    // eventos do modal
-    btnRegistrar.addEventListener('click', () => {
-      formTreino.reset();
-      exerciciosDetalhes.innerHTML = '';
-      exerciciosDetalhes.classList.add('hidden');
-      modal.classList.remove('hidden');
-    });
-    cancelar.addEventListener('click', () => modal.classList.add('hidden'));
-
-    // auth init
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      uid = user.uid;
-      userEmailEl.textContent = user.email || user.uid;
-      try {
-        await carregarGrupos();
-        carregarTreinos();
-      } catch (err) {
-        console.error('Erro init:', err);
-      } finally {
-        loading.classList.add('hidden');
-        appEl.classList.remove('hidden');
-      }
-    });
-
-    logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
-  </script>
+        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href = 'index.html');
+    </script>
 </body>
 </html>
