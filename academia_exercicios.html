@@ -1,70 +1,299 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gerenciador — Exercícios</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercícios — My Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; background:#0b0b0b; color:#e6e6e6; }
-    .card { background:#151515; border:1px solid #2a2a2a; transition: all 0.2s; }
-    .card:hover { border-color:#16a34a; transform:translateY(-4px); }
+      /* Configurações Base */
+      :root {
+          --accent-color: #B9314F;
+          --bg-dark: #0b0b0b;
+          --bg-panel: #151515;
+      }
+      body {
+          background-color: var(--bg-dark);
+          color: #e6e6e6;
+          font-family: 'Inter', system-ui, sans-serif;
+          /* Gradiente de fundo sutil estilo Xbox */
+          background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
+          min-height: 100vh;
+      }
+
+      /* Utilitários de Estilo */
+      .text-accent { color: var(--accent-color); }
+      .bg-accent { background-color: var(--accent-color); }
+      
+      /* Painéis translúcidos */
+      .glass-panel {
+          background: rgba(21, 21, 21, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      /* Cards com efeito Xbox */
+      .task-card {
+          background: rgba(30, 30, 30, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+      }
+      .task-card:hover {
+          transform: translateY(-4px);
+          background: rgba(40, 40, 40, 0.6);
+          border-color: rgba(185, 49, 79, 0.3);
+          box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(185, 49, 79, 0.1);
+      }
+
+      /* Inputs estilo Xbox */
+      input, select, textarea {
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s;
+          color: white;
+          color-scheme: dark;
+      }
+      input:focus, select:focus, textarea:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(185, 49, 79, 0.1);
+          outline: none;
+      }
+
+      option {
+          background-color: var(--bg-panel);
+          color: #e6e6e6;
+          padding: 10px;
+      }
+
+      /* Botões com efeito Xbox */
+      .xbox-button {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s;
+      }
+      .xbox-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.6s;
+      }
+      .xbox-button:hover::before {
+          transform: translateX(100%);
+      }
+      .xbox-button:hover {
+          transform: scale(1.02);
+          box-shadow: 0 0 20px rgba(185, 49, 79, 0.4);
+      }
+
+      /* Scrollbar customizada */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg-dark); }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+      /* Sidebar retrátil */
+      .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          transform: translateX(0);
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: 50;
+      }
+      .sidebar.hidden {
+          transform: translateX(-100%);
+      }
+      
+      /* Ajustar conteúdo quando sidebar está visível */
+      .main-content {
+          margin-left: 80px;
+          transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .main-content.sidebar-hidden {
+          margin-left: 0;
+      }
+
+      /* Botão toggle */
+      .toggle-sidebar-btn {
+          transition: all 0.3s;
+      }
+      .toggle-sidebar-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(185, 49, 79, 0.4);
+      }
   </style>
 </head>
-<body class="min-h-screen">
-  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-green-500 rounded-full"></div>
+<body class="flex h-screen overflow-hidden">
+
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
   </div>
 
-  <div id="app" class="container mx-auto p-6 max-w-6xl hidden">
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold">Minha Academia</h1>
-        <div class="text-sm text-gray-400 mt-1">Usuário: <span id="user-email" class="text-green-300 font-mono"></span></div>
+  <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+      <div class="text-accent mb-8">
+          <i data-lucide="sparkle" class="w-10 h-10"></i>
       </div>
-      <div class="flex items-center gap-3">
-        <button id="logout-btn" class="px-3 py-1 rounded bg-red-600 hover:bg-red-700">Sair</button>
+      
+      <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
+          <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home">
+              <i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="games_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Games">
+              <i data-lucide="gamepad-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="animes_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Animes">
+              <i data-lucide="tv" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="cards_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Cards">
+              <i data-lucide="layers" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="hqs_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="HQs">
+              <i data-lucide="book-open-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manga_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Mangás">
+              <i data-lucide="notebook-text" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="manhwa_manager.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Manhwas">
+              <i data-lucide="smartphone" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="#" class="text-accent p-1.5 md:p-2 bg-white/5 rounded-xl" title="Academia">
+              <i data-lucide="dumbbell" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+
+          <a href="to_do.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="To Do">
+              <i data-lucide="check-square" class="w-5 h-5 md:w-7 md:h-7"></i>
+          </a>
+      </nav>
+
+      <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair">
+          <i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i>
+      </button>
+  </aside>
+
+  <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+      
+      <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10">
+          <div class="flex items-center gap-3">
+              <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu">
+                  <i data-lucide="menu" class="w-5 h-5"></i>
+              </button>
+              
+              <div>
+                  <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                      <i data-lucide="dumbbell" class="text-accent"></i> Academia
+                  </h2>
+              </div>
+          </div>
+          
+          <div class="hidden sm:block text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              Usuário: <span id="user-email" class="text-accent font-mono font-bold">...</span>
+          </div>
+      </header>
+
+      <div id="app" class="flex-1 overflow-y-auto p-6 md:px-8 pb-8 hidden">
+          <div class="max-w-6xl mx-auto">
+              
+              <div class="flex flex-wrap gap-3 mb-8 border-b border-white/10 pb-4">
+                  <a href="academia_exercicios.html" class="text-white font-bold px-5 py-2.5 bg-accent rounded-xl shadow-[0_0_15px_rgba(185,49,79,0.3)] flex items-center gap-2">
+                      <i data-lucide="activity" class="w-4 h-4"></i> Exercícios
+                  </a>
+                  <a href="academia_grupos.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                      <i data-lucide="layers" class="w-4 h-4"></i> Grupos
+                  </a>
+                  <a href="academia_diario.html" class="text-gray-400 hover:text-white font-bold px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2">
+                      <i data-lucide="calendar" class="w-4 h-4"></i> Diário
+                  </a>
+              </div>
+
+              <div class="flex justify-end mb-6">
+                  <button id="add-exercise" class="xbox-button w-full sm:w-auto bg-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                      <i data-lucide="plus-circle" class="w-5 h-5"></i> Novo Exercício
+                  </button>
+              </div>
+
+              <div id="exercise-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+              
+              <div id="exercise-empty" class="text-center py-16 hidden">
+                  <i data-lucide="ghost" class="w-16 h-16 mx-auto mb-4 opacity-20 text-gray-500"></i>
+                  <p class="text-lg text-gray-500 font-semibold">Nenhum Exercício cadastrado.</p>
+              </div>
+
+          </div>
       </div>
-    </header>
+  </main>
 
-    <nav class="flex gap-4 mb-6 border-b border-gray-800 pb-3">
-      <button class="text-lg font-medium text-green-300" onclick="window.location.href='academia_exercicios.html'">Exercícios</button>
-      <button class="text-lg font-medium" onclick="window.location.href='academia_grupos.html'">Grupos</button>
-      <button class="text-lg font-medium" onclick="window.location.href='academia_diario.html'">Diário</button>
-    </nav>
-
-    <section id="tab-exercises">
-      <div class="flex justify-end mb-4">
-        <button id="add-exercise" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700">+ Novo Exercício</button>
+  <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 overflow-auto p-4 transition-all">
+    <div class="glass-panel rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border border-white/10">
+      
+      <div class="flex justify-between items-center mb-6">
+        <h2 id="modal-title" class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="dumbbell" class="w-5 h-5 text-accent"></i> Novo Exercício
+        </h2>
+        <button id="modal-cancel-top" class="text-gray-500 hover:text-white transition bg-white/5 p-2 rounded-xl hover:bg-white/10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-      <div id="exercise-list" class="flex flex-col gap-4"></div>
-      <p id="exercise-empty" class="text-center text-gray-500 hidden">Nenhum exercício cadastrado.</p>
-    </section>
-  </div>
 
-  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-70 z-50">
-    <div class="bg-gray-900 rounded-lg w-11/12 max-w-lg p-5">
-      <h2 id="modal-title" class="text-xl font-semibold text-white mb-3">Modal</h2>
-      <form id="modal-form" class="space-y-3"></form>
-      <div class="flex justify-end gap-3 mt-4">
-        <button id="modal-save" class="px-4 py-2 rounded bg-green-500 hover:bg-green-600">Salvar</button>
-        <button id="modal-delete" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 hidden">Excluir</button>
-        <button id="modal-cancel" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Cancelar</button>
+      <form id="modal-form" class="space-y-4">
+        </form>
+      
+      <div class="flex items-center gap-3 pt-6 mt-4 border-t border-white/5">
+          <button id="modal-delete" type="button" class="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition flex items-center justify-center hidden" title="Excluir">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+          </button>
+          
+          <div class="flex-1 flex gap-3 justify-end">
+              <button id="modal-cancel" type="button" class="px-4 py-3 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white font-bold transition">
+                  Cancelar
+              </button>
+              <button id="modal-save" type="button" class="xbox-button flex-1 sm:flex-none bg-accent text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                  <i data-lucide="save" class="w-5 h-5"></i> Salvar
+              </button>
+          </div>
       </div>
     </div>
   </div>
+
+  <script>
+      lucide.createIcons();
+      
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      
+      toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('hidden');
+          mainContent.classList.toggle('sidebar-hidden');
+      });
+  </script>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
     import { getFirestore, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDsbiLPBOda119Qr6Ji69j8TZLpiFixBWI",
       authDomain: "list-games-9bddd.firebaseapp.com",
       projectId: "list-games-9bddd",
-      storageBucket: "list-games-9bddd.appspot.com",
+      storageBucket: "list-games-9bddd.firebasestorage.app", // Atualizado do original para o padrão appspot/firebasestorage
       messagingSenderId: "756898313156",
       appId: "1:756898313156:web:9bc660d0a2f4cd07882a91",
       measurementId: "G-GLM50YVLXP"
@@ -89,92 +318,146 @@
     const modalSave = document.getElementById('modal-save');
     const modalDelete = document.getElementById('modal-delete');
     const modalCancel = document.getElementById('modal-cancel');
+    const modalCancelTop = document.getElementById('modal-cancel-top');
 
     let uid = null;
     let editingId = null;
     let allExercises = [];
 
+    // Renderizar Card
     function renderExerciseCard(ex) {
-      const img = ex.image || 'https://placehold.co/200x200?text=Exercício';
+      const img = ex.image || 'https://placehold.co/200x200/151515/e0e0e0?text=Exercício';
       return `
-        <div class='card flex items-center gap-4 rounded-xl p-3 cursor-pointer' data-id='${ex.id}'>
-          <img src='${img}' alt='${ex.name || 'Ex'}' class='w-24 h-24 object-cover rounded-md border border-gray-700'>
-          <div class='flex-1'>
-            <h3 class='text-lg font-semibold truncate'>${ex.name || 'Sem nome'}</h3>
-            <p class='text-sm text-gray-400 mt-1'>Músculo: <span class='text-green-300'>${ex.muscle || '-'}</span></p>
-            <p class='text-xs text-gray-500 mt-2'>Séries: ${ex.series || '-'} | Reps: ${ex.reps || '-'} | Peso: ${ex.weight || '-'} | Tempo: ${ex.time || '-'}</p>
+        <div class='task-card rounded-2xl overflow-hidden cursor-pointer p-4 flex gap-4 items-center' data-id='${ex.id}'>
+          <img src='${img}' alt='${ex.name || 'Ex'}' class='w-20 h-20 md:w-24 md:h-24 object-cover rounded-xl border border-white/10 shadow-md flex-shrink-0' onerror="this.src='https://placehold.co/200x200/151515/e0e0e0?text=Exercício'; this.onerror=null;">
+          <div class='flex flex-col justify-center flex-1 min-w-0'>
+            <h3 class='text-lg font-bold mb-2 text-white truncate' title='${ex.name || 'Sem nome'}'>${ex.name || 'Sem nome'}</h3>
+            <span class='text-[10px] md:text-xs uppercase font-bold px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-300 inline-block w-max'>
+                Músculo: <span class='text-accent'>${ex.muscle || '-'}</span>
+            </span>
           </div>
         </div>`;
     }
 
+    // Renderizar Lista
     function renderExercises(list) {
       exerciseList.innerHTML = '';
-      if (!list.length) { exerciseEmpty.classList.remove('hidden'); return; }
+      if (!list.length) { 
+          exerciseEmpty.classList.remove('hidden'); 
+          return; 
+      }
       exerciseEmpty.classList.add('hidden');
       list.forEach(it => exerciseList.insertAdjacentHTML('beforeend', renderExerciseCard(it)));
-      exerciseList.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', () => openModal(allExercises.find(x=>x.id===el.dataset.id))));
-    }
-
-    function openModal(data = null) {
-      editingId = data ? data.id : null;
-      modalTitle.textContent = editingId ? 'Editar Exercício' : 'Novo Exercício';
-      modalForm.innerHTML = `
-        <label class='text-sm'>Nome</label>
-        <input id='f-name' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.name||'') : ''}'>
-        <label class='text-sm'>URL da imagem</label>
-        <input id='f-image' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.image||'') : ''}'>
-        <label class='text-sm'>Músculo</label>
-        <input id='f-muscle' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.muscle||'') : ''}'>
-        <label class='text-sm'>Séries</label>
-        <input id='f-series' type='number' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.series||'') : ''}'>
-        <label class='text-sm'>Repetições</label>
-        <input id='f-reps' type='number' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.reps||'') : ''}'>
-        <label class='text-sm'>Peso</label>
-        <input id='f-weight' type='text' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.weight||'') : ''}'>
-        <label class='text-sm'>Tempo</label>
-        <input id='f-time' type='text' class='w-full p-2 rounded bg-gray-800 border border-gray-700' value='${data ? (data.time||'') : ''}'>`;
-      modalDelete.classList.toggle('hidden', !editingId);
-      modal.classList.remove('hidden');
-    }
-
-    modalCancel.addEventListener('click', () => modal.classList.add('hidden'));
-
-    modalSave.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!uid) return alert('Usuário não autenticado');
-      const payload = {
-        name: document.getElementById('f-name').value.trim(),
-        image: document.getElementById('f-image').value.trim(),
-        muscle: document.getElementById('f-muscle').value.trim(),
-        series: parseInt(document.getElementById('f-series').value) || null,
-        reps: parseInt(document.getElementById('f-reps').value) || null,
-        weight: document.getElementById('f-weight').value.trim(),
-        time: document.getElementById('f-time').value.trim()
-      };
-      const coll = collection(db, 'users', uid, 'academia_exercicios');
-      if (editingId) await updateDoc(doc(coll, editingId), payload);
-      else await addDoc(coll, payload);
-      modal.classList.add('hidden');
-    });
-
-    modalDelete.addEventListener('click', async () => {
-      if (!uid || !editingId) return;
-      if (!confirm('Deseja realmente excluir?')) return;
-      await deleteDoc(doc(collection(db, 'users', uid, 'academia_exercicios'), editingId));
-      modal.classList.add('hidden');
-    });
-
-    function startListeners() {
-      if (!uid) return;
-      onSnapshot(query(collection(db, 'users', uid, 'academia_exercicios')), snap => {
-        const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-        allExercises = arr;
-        renderExercises(arr);
+      
+      // Evento de clique nos cards para editar
+      exerciseList.querySelectorAll('[data-id]').forEach(el => {
+          el.addEventListener('click', () => {
+              openModal(allExercises.find(x => x.id === el.dataset.id));
+          });
       });
     }
 
+    // Abrir Modal
+    function openModal(data = null) {
+      editingId = data ? data.id : null;
+      
+      modalTitle.innerHTML = editingId 
+        ? '<i data-lucide="edit" class="w-5 h-5 text-accent"></i> Editar Exercício' 
+        : '<i data-lucide="dumbbell" class="w-5 h-5 text-accent"></i> Novo Exercício';
+      
+      modalForm.innerHTML = `
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome do Exercício</label>
+          <input id="f-name" type="text" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="Ex: Supino Reto" value="${data ? (data.name||'') : ''}" required>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">URL da Imagem</label>
+          <input id="f-image" type="url" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="https://..." value="${data ? (data.image||'') : ''}">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Músculo Alvo</label>
+          <input id="f-muscle" type="text" class="w-full rounded-xl px-4 py-3 text-sm" placeholder="Ex: Peito" value="${data ? (data.muscle||'') : ''}">
+        </div>
+      `;
+      
+      lucide.createIcons();
+      modalDelete.classList.toggle('hidden', !editingId);
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // Fechar Modal
+    const closeModal = () => modal.classList.add('hidden');
+    modalCancel.addEventListener('click', closeModal);
+    modalCancelTop.addEventListener('click', closeModal);
+
+    // Salvar
+    modalSave.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!uid) return alert('Usuário não autenticado');
+      
+      const payload = {
+        name: document.getElementById('f-name').value.trim(),
+        image: document.getElementById('f-image').value.trim(),
+        muscle: document.getElementById('f-muscle').value.trim()
+      };
+      
+      if(!payload.name) {
+          alert("O nome do exercício é obrigatório!");
+          return;
+      }
+
+      try {
+          const coll = collection(db, 'users', uid, 'academia_exercicios');
+          if (editingId) {
+              await updateDoc(doc(coll, editingId), payload);
+          } else {
+              await addDoc(coll, payload);
+          }
+          closeModal();
+      } catch (error) {
+          console.error("Erro ao salvar exercício:", error);
+      }
+    });
+
+    // Excluir
+    modalDelete.addEventListener('click', async () => {
+      if (!uid || !editingId) return;
+      if (!confirm('Deseja realmente excluir este exercício?')) return;
+      
+      try {
+          await deleteDoc(doc(collection(db, 'users', uid, 'academia_exercicios'), editingId));
+          closeModal();
+      } catch (error) {
+          console.error("Erro ao deletar exercício:", error);
+      }
+    });
+
+    // Listener do Firestore
+    function startListeners() {
+      if (!uid) return;
+      const q = query(collection(db, 'users', uid, 'academia_exercicios'));
+      
+      onSnapshot(q, snap => {
+        const arr = []; 
+        snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+        
+        // Ordena por nome em ordem alfabética
+        arr.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        
+        allExercises = arr;
+        renderExercises(arr);
+      }, (error) => {
+          console.error("Erro ao buscar exercícios:", error);
+      });
+    }
+
+    // Auth State
     onAuthStateChanged(auth, (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
+      if (!user) { 
+          window.location.href = 'index.html'; 
+          return; 
+      }
       uid = user.uid;
       userEmailEl.textContent = user.email || user.uid;
       loading.classList.add('hidden');
@@ -182,7 +465,12 @@
       startListeners();
     });
 
-    logoutBtn.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; });
+    // Ações de Botões
+    logoutBtn.addEventListener('click', async () => { 
+        await signOut(auth); 
+        window.location.href = 'index.html'; 
+    });
+    
     addExerciseBtn.addEventListener('click', () => openModal());
 
   </script>
