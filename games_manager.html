@@ -332,44 +332,19 @@
             </div>
         </div>
 
-        <details id="arts_group" class="bg-black/20 p-4 mb-3 shadow-xl rounded-xl border border-white/10 group/details">
-            <summary class="cursor-pointer text-accent font-bold list-none flex justify-between items-center select-none">
-                <span class="flex items-center gap-2">
-                    <i data-lucide="image" class="w-4 h-4"></i> Arts e Prints (<span id="arts_count" class="text-white">0</span>)
-                </span>
-                <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500 group-open/details:rotate-180 transition-transform"></i>
-            </summary>
-
-            <!-- NOVO CAMPO: URL DO ÁLBUM -->
-            <div class="mt-4 flex gap-2 items-end border-b border-white/5 pb-4 mb-4">
-                <div class="flex-1">
-                    <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">URL do Álbum</label>
-                    <input id="item-album-url" type="url" class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none" placeholder="https://imgur.com/a/...">
-                </div>
-                <button type="button" id="btn-view-album" class="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors h-[38px] flex items-center justify-center" title="Visualizar Álbum">
-                    <i data-lucide="eye" class="w-5 h-5"></i>
+        <!-- CAMPO: URL DO ÁLBUM -->
+        <div class="bg-black/20 p-4 mb-3 shadow-xl rounded-xl border border-white/10">
+            <label class="block text-xs text-accent mb-2 uppercase font-bold flex items-center gap-2">
+                <i data-lucide="image" class="w-4 h-4"></i> Álbum de Imagens
+            </label>
+            <div class="flex gap-2 items-center">
+                <input id="item-album-url" type="url" class="w-full rounded-xl px-4 py-3 text-sm bg-black/40 border border-white/10 text-white focus:border-accent outline-none" placeholder="Link do Álbum (Imgur, Drive, etc...)">
+                
+                <button type="button" id="btn-view-album" class="p-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors flex items-center justify-center shrink-0" title="Abrir Álbum">
+                    <i data-lucide="external-link" class="w-5 h-5"></i>
                 </button>
             </div>
-
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
-                <select id="art-type" class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none">
-                    <option value="Art">Art</option>
-                    <option value="Print">Print</option>
-                </select>
-
-                <input id="art-name" type="text" placeholder="Nome (Opcional)" 
-                       class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none sm:col-span-3">
-
-                <input id="art-url" type="url" placeholder="URL da Imagem (https://...)" 
-                       class="w-full rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-white focus:border-accent outline-none sm:col-span-3">
-
-                <button type="button" id="btn-add-art" class="xbox-button bg-accent hover:bg-[#99233b] text-white rounded-xl px-3 py-2 text-sm font-bold transition-colors shadow-md flex items-center justify-center gap-2">
-                    Adicionar
-                </button>
-            </div>
-
-            <ul id="arts-list" class="mt-4 space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
-        </details>
+        </div>
 
         <div>
           <label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Observações</label>
@@ -387,18 +362,6 @@
         </div>
       </form>
     </div>
-  </div>
-
-  <!-- MODAL DE VISUALIZAÇÃO DE IMAGEM -->
-  <div id="image-view-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center z-[60] p-4">
-      <div class="relative max-w-4xl w-full flex flex-col items-center">
-          <button onclick="document.getElementById('image-view-modal').classList.add('hidden')" 
-                  class="absolute -top-12 right-0 bg-white/10 hover:bg-accent text-white p-2 rounded-xl transition-colors">
-              <i data-lucide="x" class="w-6 h-6"></i>
-          </button>
-          <img id="view-modal-img" src="" class="max-h-[80vh] w-auto rounded-xl border border-white/10 shadow-2xl object-contain">
-          <p id="view-modal-caption" class="text-white mt-4 text-sm font-semibold glass-panel px-6 py-2 rounded-full border border-white/10"></p>
-      </div>
   </div>
 
   <!-- CAIXA DE MENSAGEM -->
@@ -443,7 +406,6 @@
     let userId = null;
     let allGames = [];
     let authChecked = false;
-    let currentArts = [];
 
     // DOM Elements
     const els = {
@@ -595,12 +557,7 @@
         els.modalTitle.innerHTML = id ? '<i data-lucide="edit-3" class="w-5 h-5 text-accent"></i> Editar Jogo' : '<i data-lucide="gamepad-2" class="w-5 h-5 text-accent"></i> Novo Jogo';
         lucide.createIcons();
 
-        // Resetar lista de Arts
-        currentArts = [];
-        renderArtsList(); 
-
-        els.inputs.id.value = '';
-        document.getElementById('item-album-url').value = ''; // Limpa o campo de álbum
+        document.getElementById('item-album-url').value = ''; 
 
         if(id) {
             const item = allGames.find(i => i.id === id);
@@ -614,13 +571,7 @@
                 els.inputs.hours.value = item.hours || '';
                 els.inputs.status.value = item.status || '';
                 els.inputs.notes.value = item.notes || '';
-
                 document.getElementById('item-album-url').value = item.albumUrl || '';
-                
-                if (item.arts && Array.isArray(item.arts)) {
-                    currentArts = [...item.arts];
-                    renderArtsList();
-                }
 
                 els.deleteBtn.classList.remove('hidden');
             }
@@ -644,7 +595,6 @@
             status: els.inputs.status.value,
             notes: els.inputs.notes.value,
             albumUrl: document.getElementById('item-album-url').value.trim(),
-            arts: currentArts, 
             updatedAt: serverTimestamp()
         };
 
@@ -788,8 +738,6 @@
         els.form.onsubmit = handleSubmit;
         els.deleteBtn.onclick = handleDelete;
         els.authBtn.onclick = () => signOut(auth);
-
-        document.getElementById('btn-add-art').onclick = addArt;
 
         document.getElementById('btn-view-album').onclick = () => {
             const url = document.getElementById('item-album-url').value.trim();
