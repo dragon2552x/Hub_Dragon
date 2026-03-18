@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&family=Caveat:wght@700&family=Orbitron:wght@700&family=Macondo&family=Great+Vibes&display=swap');        
         
         :root {
             --accent-color: #B9314F;
@@ -149,6 +149,24 @@
         
         @media (max-width: 1024px) { .card-preview-container.editor-mode { transform: scale(0.85); transform-origin: top center; margin-bottom: -50px; } }
         @media (max-width: 640px) { .card-preview-container.editor-mode { transform: scale(0.7); transform-origin: top center; margin-bottom: -100px; } }
+    
+        /* ======== EFEITOS TCG (FOIL/OVERLAYS) ======== */
+        .foil-rainbow {
+            background: linear-gradient(125deg, rgba(255,0,0,0.15) 0%, rgba(255,255,0,0.15) 20%, rgba(0,255,0,0.15) 40%, rgba(0,255,255,0.15) 60%, rgba(0,0,255,0.15) 80%, rgba(255,0,255,0.15) 100%);
+            mix-blend-mode: color-dodge;
+        }
+        .foil-gold {
+            background: linear-gradient(125deg, rgba(255,215,0,0) 30%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 70%);
+            mix-blend-mode: overlay;
+        }
+        .foil-holo {
+            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.2) 10px, rgba(255,255,255,0.05) 20px);
+            mix-blend-mode: color-dodge;
+        }
+        .foil-dark-edge {
+            background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.8) 100%);
+            mix-blend-mode: multiply;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -340,6 +358,18 @@
                                         <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgRt</label><input type="number" id="bgRot" value="0" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
                                         <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgX</label><input type="number" id="bgX" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
                                         <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">BgY</label><input type="number" id="bgY" value="50" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
+                                    </div>
+                                    <div class="pt-3 border-t border-white/5 mt-3">
+                                        <label class="block text-xs text-purple-400 mb-1.5 uppercase font-semibold flex items-center gap-1">
+                                            <i data-lucide="sparkles" class="w-3 h-3"></i> Efeito TCG (Foil)
+                                        </label>
+                                        <select id="selOverlay" onchange="updatePreview()" class="w-full rounded-xl px-4 py-2.5 text-sm border border-purple-500/30 bg-purple-500/5 focus:border-purple-500 text-purple-200">
+                                            <option value="">Nenhum (Arte Original)</option>
+                                            <option value="foil-rainbow">✨ Holográfico Arco-íris (Secret Rare)</option>
+                                            <option value="foil-gold">🏆 Brilho Dourado (Gold Rare)</option>
+                                            <option value="foil-holo">☄️ Listras Brilhantes (Parallel Rare)</option>
+                                            <option value="foil-dark-edge">🌑 Bordas Obscuras (Dark)</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -608,6 +638,7 @@
             edition: document.getElementById('cardEdition').value,
             charUrl: document.getElementById('charUrl').value,
             bgId: document.getElementById('selBg').value,
+            overlayId: document.getElementById('selOverlay').value,
             frameId: document.getElementById('selFrame').value,
             configChar: { 
                 zoom: parseFloat(document.getElementById('charZoom').value) || 1, 
@@ -706,7 +737,18 @@
         // 4. TEXTS (Hide if isClean)
         let textsHTML = '';
         if(card.textConfig) {
-            const tClass = isClean ? 'opacity-0' : 'opacity-100'; // Transition class handled in CSS
+            const tClass = isClean ? 'opacity-0' : 'opacity-100';
+            
+            // Dicionário de conversão de fontes
+            // Dicionário de conversão de fontes
+            const fontMap = {
+                'Cinzel': "'Cinzel', serif",
+                'Inter': "'Inter', sans-serif",
+                'Caveat': "'Caveat', cursive",
+                'GreatVibes': "'Great Vibes', cursive",
+                'Orbitron': "'Orbitron', sans-serif",
+                'Macondo': "'Macondo', cursive"
+            };
             
             textsHTML = textFields.map(field => {
                 const cfg = card.textConfig[field];
@@ -722,14 +764,16 @@
                 }
                 if(!val) return '';
                 
-                // Os ID text- são importantes para o Drag no editor
-                return `<div id="text-${field}" class="text-element ${tClass} pointer-events-none" style="left: ${cfg.x}%; top: ${cfg.y}%; transform: translate(-50%, -50%); font-size: ${cfg.size}px; color: ${cfg.color}; font-family: ${cfg.font === 'Cinzel' ? "'Cinzel', serif" : "'Inter', sans-serif"};">${val}</div>`;
+                const fontFamilyCSS = fontMap[cfg.font] || fontMap['Inter'];
+                
+                return `<div id="text-${field}" class="text-element ${tClass} pointer-events-none" style="left: ${cfg.x}%; top: ${cfg.y}%; transform: translate(-50%, -50%); font-size: ${cfg.size}px; color: ${cfg.color}; font-family: ${fontFamilyCSS};">${val}</div>`;
             }).join('');
             
             html += `<div class="layer layer-text">${textsHTML}</div>`;
         }
         
-        html += `<div class="layer layer-overlay"></div>`;
+        // 5. OVERLAY TCG EFFECT
+        html += `<div class="layer layer-overlay ${card.overlayId || ''}"></div>`;
         return html;
     }
 
@@ -799,8 +843,12 @@
                         <div>
                             <label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Fonte</label>
                             <select onchange="updateTextConfig('${field}', 'font', this.value)" class="w-full rounded-lg px-2 py-1.5 text-sm bg-black/60">
-                                <option value="Cinzel" ${cfg.font==='Cinzel'?'selected':''}>Cinzel (Título)</option>
+                                <option value="Cinzel" ${cfg.font==='Cinzel'?'selected':''}>Cinzel (Clássico)</option>
                                 <option value="Inter" ${cfg.font==='Inter'?'selected':''}>Inter (Padrão)</option>
+                                <option value="Caveat" ${cfg.font==='Caveat'?'selected':''}>Caveat (Letra de Mão)</option>
+                                <option value="GreatVibes" ${cfg.font==='GreatVibes'?'selected':''}>Great Vibes (Assinatura Fina)</option>
+                                <option value="Orbitron" ${cfg.font==='Orbitron'?'selected':''}>Orbitron (Cyberpunk)</option>
+                                <option value="Macondo" ${cfg.font==='Macondo'?'selected':''}>Macondo (Fantasia)</option>
                             </select>
                         </div>
                     </div>
@@ -852,6 +900,7 @@
             frameId: document.getElementById('selFrame').value,
             configFrame: { zoom: document.getElementById('frameZoom').value, rot: document.getElementById('frameRot').value, x: document.getElementById('frameX').value, y: document.getElementById('frameY').value },
             bgId: document.getElementById('selBg').value,
+            overlayId: document.getElementById('selOverlay').value,
             configBg: { zoom: document.getElementById('bgZoom').value, rot: document.getElementById('bgRot').value, x: document.getElementById('bgX').value, y: document.getElementById('bgY').value },
             textConfig: textConfig,
             updatedAt: new Date().toISOString()
@@ -896,6 +945,7 @@
         document.getElementById('bgRot').value = c.configBg?.rot || 0;
         document.getElementById('bgX').value = c.configBg?.x || 50;
         document.getElementById('bgY').value = c.configBg?.y || 50;
+        document.getElementById('selOverlay').value = c.overlayId || '';
 
         if(c.textConfig) textConfig = c.textConfig;
         renderTextControls();
@@ -920,6 +970,7 @@
         document.getElementById('bgRot').value = '0';
         document.getElementById('selFrame').value = '';
         document.getElementById('selBg').value = '';
+        document.getElementById('selOverlay').value = '';
         
         textConfig = {
             name: { x: 50, y: 85, size: 24, color: '#d4af37', font: 'Cinzel', label: 'Nome' },
