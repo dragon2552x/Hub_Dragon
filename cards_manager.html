@@ -121,6 +121,7 @@
         }
         .card-preview-container.vertical { width: 340px; height: 476px; } 
         .card-preview-container.horizontal { width: 476px; height: 340px; }
+        .card-preview-container.square { width: 400px; height: 400px; }
 
         .layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .layer-bg { z-index: 1; }     
@@ -145,6 +146,7 @@
         }
         .card-item-preview.vertical { aspect-ratio: 2.5 / 3.5; }
         .card-item-preview.horizontal { aspect-ratio: 3.5 / 2.5; }
+        .card-item-preview.square { aspect-ratio: 1 / 1; }
         .card-item-preview .layer { position: absolute; inset: 0; width: 100%; height: 100%; }
         
         @media (max-width: 1024px) { .card-preview-container.editor-mode { transform: scale(0.85); transform-origin: top center; margin-bottom: -50px; } }
@@ -218,8 +220,7 @@
                         <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🔍 Buscar</label><input type="text" id="search" placeholder="Nome do card..." oninput="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"></div>
                         <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">🎭 Origem</label><select id="filterOrigin" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option></select></div>
                         <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">⭐ Raridade</label><select id="filterRarity" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option><option value="common">Comum</option><option value="rare">Raro</option><option value="epic">Épico</option><option value="legendary">Lendário</option></select></div>
-                        <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📐 Orientação</label><select id="filterOrient" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option></select></div>
-                        <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📚 Série</label><select id="filterSeries" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option></select></div>
+                        <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📐 Orientação</label><select id="filterOrient" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option><option value="square">Quadrado</option></select></div>                        <div><label class="block text-xs text-gray-500 mb-2 uppercase font-semibold">📚 Série</label><select id="filterSeries" onchange="renderCardsList()" class="w-full rounded-xl px-4 py-2.5"><option value="">Todas</option></select></div>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5">
                         <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -309,8 +310,7 @@
                                     <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Nome do Card</label><input type="text" id="cardName" oninput="updateText('name', this.value)" placeholder="Nome" class="w-full rounded-xl px-4 py-2.5 text-sm"></div>
                                     <div class="grid grid-cols-2 gap-3">
                                         <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Raridade</label><select id="cardRarity" onchange="updateText('rarity', this.options[this.selectedIndex].text)" class="w-full rounded-xl px-3 py-2.5 text-sm"><option value="common">Comum</option><option value="rare">Raro</option><option value="epic">Épico</option><option value="legendary">Lendário</option></select></div>
-                                        <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Orientação</label><select id="cardOrient" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm"><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option></select></div>
-                                    </div>
+                                        <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Orientação</label><select id="cardOrient" onchange="updatePreview()" class="w-full rounded-xl px-3 py-2.5 text-sm"><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option><option value="square">Quadrado</option></select></div>                                    </div>
                                     <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Origem</label><input type="text" id="cardOrigin" placeholder="Ex: Naruto" oninput="updateText('origin', this.value)" class="w-full rounded-xl px-4 py-2.5 text-sm"></div>
                                     <div class="grid grid-cols-2 gap-3">
                                         <div><label class="block text-xs text-gray-500 mb-1.5 uppercase font-semibold">Série</label><input type="text" id="cardSeries" placeholder="Series 1" oninput="updateText('series', this.value)" class="w-full rounded-xl px-3 py-2.5 text-sm"></div>
@@ -1073,8 +1073,8 @@
             const rarityLabels = { common: 'Comum', rare: 'Raro', epic: 'Épico', legendary: 'Lendário' };
             const rarityColors = { common: '#888', rare: '#3b82f6', epic: '#a855f7', legendary: '#f59e0b' };
             const orient = c.orient || 'vertical';
-            const cardWidth = orient === 'horizontal' ? 'w-full sm:w-[420px]' : 'w-full sm:w-[260px]';
-            
+            const cardWidth = orient === 'horizontal' ? 'w-full sm:w-[420px]' : (orient === 'square' ? 'w-full sm:w-[320px]' : 'w-full sm:w-[260px]');
+
             // Usamos a nova função que é a mesma do editor
             const previewHTML = renderCardHTML(c, false, false);
             
