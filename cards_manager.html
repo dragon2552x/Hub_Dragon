@@ -23,7 +23,7 @@
             font-family: 'Inter', system-ui, sans-serif;
             background-image: radial-gradient(circle at top right, rgba(185, 49, 79, 0.1), transparent 40%),
                               radial-gradient(circle at bottom left, rgba(20, 20, 20, 1), transparent 40%);
-            min-height: 100vh;
+            height: 100dvh; /* FIX: dinamic viewport height (impede corte no mobile) */
             user-select: none;
         }
 
@@ -100,13 +100,23 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
 
+        /* ======== RESPONSIVIDADE E SIDEBAR ======== */
         .sidebar {
             position: fixed; left: 0; top: 0; bottom: 0; width: 80px;
-            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 50;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            z-index: 60; /* Z-index maior para sobrepor no celular */
+            background: rgba(18, 18, 18, 0.98); /* Mais opaco no mobile */
         }
         .sidebar.hidden { transform: translateX(-100%); }
-        .main-content { margin-left: 80px; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .main-content.sidebar-hidden { margin-left: 0; }
+        .main-content { transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        
+        @media (min-width: 768px) {
+            .main-content { margin-left: 80px; }
+            .main-content.sidebar-hidden { margin-left: 0; }
+        }
+        @media (max-width: 767px) {
+            .main-content { margin-left: 0; } /* No mobile não empurra a tela, fica por cima */
+        }
         .toggle-sidebar-btn { transition: all 0.3s; }
         .toggle-sidebar-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(185, 49, 79, 0.4); }
 
@@ -171,13 +181,13 @@
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-[100dvh] overflow-hidden">
 
     <div id="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="animate-spin h-16 w-16 border-4 border-t-transparent border-accent rounded-full"></div>
     </div>
 
-    <aside id="sidebar" class="sidebar flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
+    <aside id="sidebar" class="sidebar hidden flex flex-col w-20 bg-[#121212] border-r border-white/10 items-center py-6 flex-shrink-0 glass-panel">
         <div class="text-accent mb-8"><i data-lucide="sparkle" class="w-10 h-10"></i></div>
         <nav class="flex flex-col gap-3 md:gap-6 items-center flex-1">
             <a href="home.html" class="text-gray-500 hover:text-gray-200 p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition" title="Home"><i data-lucide="home" class="w-5 h-5 md:w-7 md:h-7"></i></a>
@@ -193,7 +203,7 @@
         <button id="logout-btn" class="mt-auto text-red-500 hover:text-red-400 p-1.5 md:p-2 hover:bg-red-500/10 rounded-xl transition" title="Sair"><i data-lucide="log-out" class="w-5 h-5 md:w-7 md:h-7"></i></button>
     </aside>
 
-    <main id="main-content" class="main-content flex-1 flex flex-col overflow-hidden relative">
+    <main id="main-content" class="main-content sidebar-hidden flex-1 flex flex-col overflow-hidden relative">
         <header class="flex justify-between items-center p-6 md:px-8 bg-transparent z-10 shrink-0">
             <div class="flex items-center gap-3">
                 <button id="toggle-sidebar" class="toggle-sidebar-btn p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-accent transition" title="Mostrar/Ocultar Menu"><i data-lucide="menu" class="w-5 h-5"></i></button>
@@ -257,6 +267,9 @@
         <button onclick="closeViewModal()" class="fixed top-6 right-6 text-gray-400 hover:text-white bg-white/5 p-3 rounded-full hover:bg-white/10 transition z-50 border border-white/10">
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
+
+        <!-- VÍDEO DE TRANSIÇÃO (Fica escondido até o play) -->
+        <video id="transition-video" class="fixed inset-0 w-full h-full object-contain bg-black z-[300] hidden" playsinline></video>
 
         <div class="flex flex-col lg:flex-row items-center justify-center gap-8 w-full max-w-7xl p-4 md:p-8 min-h-full">
             
@@ -329,6 +342,10 @@
                                     <div>
                                         <label class="block text-xs text-purple-400 mb-1.5 uppercase font-semibold flex items-center gap-1"><i data-lucide="eye-off" class="w-3 h-3"></i> URL Oculta (Alt)</label>
                                         <input type="url" id="charHiddenUrl" placeholder="https://..." class="w-full rounded-xl px-4 py-2.5 text-sm border-purple-500/30 bg-purple-500/5 focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-green-400 mb-1.5 uppercase font-semibold flex items-center gap-1"><i data-lucide="film" class="w-3 h-3"></i> Vídeo de Transição (MP4)</label>
+                                        <input type="url" id="transVideoUrl" placeholder="https://.mp4" class="w-full rounded-xl px-4 py-2.5 text-sm border-green-500/30 bg-green-500/5 focus:border-green-500">
                                     </div>
                                     <div class="grid grid-cols-4 gap-2">
                                         <div><label class="block text-[10px] text-gray-500 mb-1 uppercase font-semibold">Zoom</label><input type="number" id="charZoom" step="0.1" value="1" oninput="updatePreview()" class="w-full rounded-lg px-2 py-2 text-sm text-center"></div>
@@ -414,9 +431,19 @@
     const mainContent = document.getElementById('main-content');
     const toggleBtn = document.getElementById('toggle-sidebar');
     
-    toggleBtn.addEventListener('click', () => {
+    // Abrir/Fechar pelo botão
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita que clique no botão dispare evento na main
         sidebar.classList.toggle('hidden');
         mainContent.classList.toggle('sidebar-hidden');
+    });
+
+    // Fechar ao clicar fora no celular
+    mainContent.addEventListener('click', () => {
+        if (window.innerWidth < 768 && !sidebar.classList.contains('hidden')) {
+            sidebar.classList.add('hidden');
+            mainContent.classList.add('sidebar-hidden');
+        }
     });
 
     const toggleFilterBtn = document.getElementById('toggle-filter-btn');
@@ -553,7 +580,37 @@
     };
 
     window.playTransition = () => {
-        alert("Efeito de transição de vídeo será implementado em breve!");
+        const c = cardsList.find(x => x.id === window.currentViewCardId);
+        if(!c || !c.transVideoUrl) {
+            alert("Nenhum link de vídeo MP4 cadastrado para este card!");
+            return;
+        }
+
+        const videoEl = document.getElementById('transition-video');
+        
+        // 1. Força o card a voltar para a Imagem 1 original antes do vídeo
+        window.isViewHidden = false;
+        document.getElementById('btn-view-hidden').classList.remove('bg-purple-500/20', 'border-purple-500/50');
+        renderViewCard();
+
+        // 2. Carrega e exibe o vídeo em tela cheia
+        videoEl.src = c.transVideoUrl;
+        videoEl.classList.remove('hidden');
+        
+        videoEl.play().catch(e => {
+            alert("O navegador bloqueou o vídeo. Erro: " + e.message);
+            videoEl.classList.add('hidden');
+        });
+
+        // 3. Quando o vídeo termina
+        videoEl.onended = () => {
+            videoEl.classList.add('hidden'); // Esconde o vídeo
+            
+            // Ativa a Imagem 2 (Oculta) e atualiza o botão
+            window.isViewHidden = true;
+            document.getElementById('btn-view-hidden').classList.add('bg-purple-500/20', 'border-purple-500/50');
+            renderViewCard(); 
+        };
     };
 
     window.openEditFromView = () => {
@@ -640,6 +697,7 @@
             bgId: document.getElementById('selBg').value,
             overlayId: document.getElementById('selOverlay').value,
             frameId: document.getElementById('selFrame').value,
+            transVideoUrl: document.getElementById('transVideoUrl').value,
             configChar: { 
                 zoom: parseFloat(document.getElementById('charZoom').value) || 1, 
                 rot: parseFloat(document.getElementById('charRot').value) || 0, 
@@ -896,6 +954,7 @@
             edition: document.getElementById('cardEdition').value,
             charUrl: document.getElementById('charUrl').value,
             charHiddenUrl: document.getElementById('charHiddenUrl').value,
+            transVideoUrl: document.getElementById('transVideoUrl').value,
             configChar: { zoom: document.getElementById('charZoom').value, rot: document.getElementById('charRot').value, x: document.getElementById('charX').value, y: document.getElementById('charY').value },
             frameId: document.getElementById('selFrame').value,
             configFrame: { zoom: document.getElementById('frameZoom').value, rot: document.getElementById('frameRot').value, x: document.getElementById('frameX').value, y: document.getElementById('frameY').value },
@@ -931,6 +990,7 @@
         document.getElementById('cardEdition').value = c.edition || '';
         document.getElementById('charUrl').value = c.charUrl || '';
         document.getElementById('charHiddenUrl').value = c.charHiddenUrl || '';
+        document.getElementById('transVideoUrl').value = c.transVideoUrl || '';
         document.getElementById('charZoom').value = c.configChar?.zoom || 1;
         document.getElementById('charRot').value = c.configChar?.rot || 0;
         document.getElementById('charX').value = c.configChar?.x || 50;
@@ -962,6 +1022,7 @@
         document.getElementById('cardForm').reset();
         document.getElementById('cardId').value = '';
         document.getElementById('charHiddenUrl').value = '';
+        document.getElementById('transVideoUrl').value = '';
         document.getElementById('charZoom').value = '1';
         document.getElementById('charRot').value = '0';
         document.getElementById('charX').value = '50';
